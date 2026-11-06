@@ -1,0 +1,593 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>หลังบ้านหอพัก</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap">
+<style>
+/* Layout: a dorm office key board. The building is drawn floor by floor, each room a key tag; the meter page is a plain ledger with one water row and one power row per room. */
+:root{
+  --bg:#EEF2F1; --surface:#FBFCFC; --sunk:#E3E9E7; --line:#CBD6D3; --fg:#14302D; --muted:#55706B;
+  --accent:#0E6A5F; --accent-ink:#F2FBF9; --accent-soft:#D3EAE5; --brass:#A9701A; --brass-soft:#F5E6C8;
+  --ok:#1C7A4A; --ok-soft:#D8F0E2; --warn:#9A6200; --warn-soft:#FBEBC8; --crit:#B3322B; --crit-soft:#F9DEDB;
+  --shadow:0 18px 50px rgba(15,50,45,.22);
+  --display:"Chakra Petch","IBM Plex Sans Thai",system-ui,sans-serif;
+  --body:"IBM Plex Sans Thai","Noto Sans Thai",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0F1817; --surface:#162220; --sunk:#1D2C2A; --line:#2F4441; --fg:#E2EDEA; --muted:#93ABA6;
+  --accent:#55C7B4; --accent-ink:#06211D; --accent-soft:#1C403B; --brass:#E0AE5A; --brass-soft:#3D3019;
+  --ok:#62D098; --ok-soft:#173A29; --warn:#EDB95A; --warn-soft:#3E3016; --crit:#F58A82; --crit-soft:#4A2120;
+  --shadow:0 18px 50px rgba(0,0,0,.55); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1817; --surface:#162220; --sunk:#1D2C2A; --line:#2F4441; --fg:#E2EDEA; --muted:#93ABA6;
+  --accent:#55C7B4; --accent-ink:#06211D; --accent-soft:#1C403B; --brass:#E0AE5A; --brass-soft:#3D3019;
+  --ok:#62D098; --ok-soft:#173A29; --warn:#EDB95A; --warn-soft:#3E3016; --crit:#F58A82; --crit-soft:#4A2120;
+  --shadow:0 18px 50px rgba(0,0,0,.55); color-scheme:dark}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--fg);font:400 15px/1.6 var(--body)}
+h1,h2,h3{font-family:var(--display);line-height:1.25;margin:0;text-wrap:balance}
+h1{font-size:1.75rem;font-weight:700}h2{font-size:1.15rem;font-weight:600}
+p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100vh}
+.side{background:var(--surface);border-right:1px solid var(--line);padding-block:20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:16px;display:flex;flex-direction:column;gap:20px;position:sticky;top:env(safe-area-inset-top,0px);height:100vh;align-self:start}
+.brand{font:700 1.1rem/1.3 var(--display)}
+.brand small{display:block;font:400 .78rem var(--body);color:var(--muted)}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav a{padding:8px 12px;border-radius:6px;color:var(--fg);text-decoration:none;font-weight:500;white-space:nowrap;display:flex;justify-content:space-between;gap:8px}
+.nav a:hover{background:var(--sunk)}
+.nav a[aria-current=page]{background:var(--accent);color:var(--accent-ink)}
+.nav .n{font:600 .75rem var(--mono);background:var(--crit-soft);color:var(--crit);border-radius:4px;padding:1px 6px;align-self:center}
+.main{padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));min-width:0}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
+@media(min-width:821px){.main{padding-inline:32px}}
+@media(max-width:820px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .side{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line);padding-block:12px;padding-right:max(16px,env(safe-area-inset-right,0px));gap:10px}
+  .nav{flex-direction:row;overflow-x:auto;scrollbar-width:none;margin-inline:-4px}
+}
+.head{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.head>div:first-child{min-width:0}
+.head p{color:var(--muted)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{border:1px solid var(--line);background:var(--surface);padding:7px 14px;border-radius:6px;cursor:pointer;font-weight:500}
+.btn:hover{border-color:var(--accent)}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.danger{color:var(--crit);border-color:var(--crit)}
+.btn.sm{padding:3px 10px;font-size:.87rem}
+a.btn{color:var(--fg);text-decoration:none;display:inline-block}a.btn.pri{color:var(--accent-ink)}#qrSlot:empty{display:none}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.month{display:flex;align-items:center;gap:4px;font:600 1rem var(--display)}
+.month span{min-width:10.5em;text-align:center}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;border-block:1px solid var(--line)}
+.stat{padding:14px 16px;border-left:1px solid var(--line)}
+.stat:first-child{border-left:0;padding-left:0}
+.stat b{display:block;font:600 1.5rem/1.2 var(--mono);font-variant-numeric:tabular-nums}
+.stat span{color:var(--muted);font-size:.87rem}
+.stat.crit b{color:var(--crit)}
+@media(max-width:640px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stat{border-left:0;padding-left:0}}
+.panel{display:flex;flex-direction:column;gap:12px;min-width:0}
+.two{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:32px;align-items:start}
+@media(max-width:1000px){.two{grid-template-columns:minmax(0,1fr)}}
+/* building plan */
+.plan{display:flex;flex-direction:column;background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:6px 14px}
+.floor{display:grid;grid-template-columns:44px minmax(0,1fr);gap:8px;padding-block:10px;border-top:2px solid var(--line)}
+.floor:first-child{border-top:0}
+.floor>span{font:600 .8rem var(--mono);color:var(--muted);padding-top:12px}
+.tags{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.tag{position:relative;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:6px 6px 14px 14px;padding:16px 8px 8px;cursor:pointer;min-width:0}
+.tag::before{content:"";position:absolute;top:6px;left:50%;width:10px;height:5px;margin-left:-5px;border-radius:3px;background:var(--bg);border:1px solid var(--line)}
+.tag:hover{border-color:var(--accent)}
+.tag b{display:block;font:700 1.15rem/1.1 var(--display)}
+.tag small{display:block;color:var(--muted);font-size:.76rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tag .ty{font-weight:600;color:var(--fg)}
+.tag .owe{position:absolute;top:5px;right:5px;background:#C62828;color:#fff;font-size:.72rem;font-weight:600;line-height:1.5;padding:0 7px;border-radius:4px}
+.tag.on{background:var(--accent-soft);border-color:var(--accent)}
+.tag.on small{color:var(--fg)}
+.tag.late{background:var(--crit-soft);border-color:var(--crit)}
+.tag.end{background:var(--warn-soft);border-color:var(--warn)}
+.tag.off{background:repeating-linear-gradient(-45deg,var(--sunk) 0 6px,var(--surface) 6px 12px)}
+.tag.free{border-style:dashed;background:transparent}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.84rem;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;border:1px solid var(--line)}
+/* lists */
+.todo{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.todo li{display:flex;gap:10px;justify-content:space-between;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+.todo li:first-child{border-top:0}
+.todo li>div{min-width:0}
+.todo small{display:block;color:var(--muted)}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th{font-weight:500;font-size:.8rem;letter-spacing:.02em;color:var(--muted);text-align:left;white-space:nowrap;background:var(--sunk)}
+th,td{padding:9px 12px;border-top:1px solid var(--line);vertical-align:middle}
+tr:first-child th{border-top:0}
+td.num,th.num{text-align:right}
+td small{display:block;color:var(--muted)}
+.nowrap{white-space:nowrap}
+.pill{display:inline-block;padding:1px 9px;border-radius:999px;font-size:.8rem;font-weight:500;white-space:nowrap;background:var(--sunk);color:var(--muted)}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}.pill.warn{background:var(--warn-soft);color:var(--warn)}.pill.crit{background:var(--crit-soft);color:var(--crit)}.pill.info{background:var(--accent-soft);color:var(--accent)}
+.empty{padding:28px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:8px;display:flex;flex-direction:column;gap:10px;align-items:center}
+.note{padding:10px 14px;border-radius:8px;background:var(--brass-soft);color:var(--fg);display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.note>span{min-width:0;flex:1 1 240px}
+input.search{padding:7px 12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);width:min(280px,100%)}
+/* meter rows */
+.mtable td{padding:6px 12px}
+.mtable tbody tr.mfirst td{border-top:2px solid var(--line)}
+.mtable tbody tr:first-child td{border-top:0}
+.mtable td.mroom{vertical-align:top}
+.mroom b{font:700 1.15rem var(--display)}
+.mroom .btn{margin-top:4px;white-space:nowrap}
+.mk{font-weight:600;white-space:nowrap}
+.mk.w{color:var(--accent)}.mk.e{color:var(--brass)}
+.mprev{font:500 1rem var(--mono);text-align:right}
+.mcur{width:6.5em;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--fg);font:500 1rem var(--mono);text-align:right}
+.mcur.bad{border-color:var(--crit);box-shadow:0 0 0 2px var(--crit)}
+.munits{font:600 1rem var(--mono);text-align:right;white-space:nowrap}
+.munits.bad{color:var(--crit);font:500 .84rem var(--body)}
+.mtable tfoot td{background:var(--sunk);font-weight:500;text-align:right}
+.mroom .short{display:none}
+@media(max-width:520px){.mtable td,.mtable th{padding-inline:5px}.mtable td:first-child,.mtable th:first-child{padding-left:8px}.mtable td:last-child,.mtable th:last-child{padding-right:8px}.mcur{width:4.8em;padding:4px 5px;font-size:.92rem}.mprev,.munits{font-size:.92rem}.mtable td.mroom{max-width:5.4em}.mroom .long{display:none}.mroom .short{display:inline}}
+/* forms */
+dialog{border:0;padding:0;border-radius:10px;background:var(--surface);color:var(--fg);box-shadow:var(--shadow);width:min(640px,calc(100vw - 32px));max-height:calc(100vh - 32px)}
+dialog::backdrop{background:rgba(10,30,28,.5)}
+.dlg{padding:20px;display:flex;flex-direction:column;gap:14px}
+.dlg header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+fieldset{border:0;padding:0;margin:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px}
+fieldset legend{font:600 .95rem var(--display);padding:0 0 6px;color:var(--brass)}
+.f{display:flex;flex-direction:column;gap:3px;font-size:.84rem;color:var(--muted);min-width:0}
+.f.full{grid-column:1/-1}
+.f input,.f select,.f textarea{padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);font-size:.95rem;width:100%;min-width:0}
+.actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.actions .l{margin-right:auto}
+@media(max-width:480px){fieldset{grid-template-columns:minmax(0,1fr)}}
+.rp{grid-column:1/-1;display:flex;flex-direction:column;gap:8px;font-size:.84rem;color:var(--muted)}
+.rpf{display:grid;grid-template-columns:44px minmax(0,1fr);gap:8px}
+.rpf>span{font:600 .8rem var(--mono);padding-top:8px}
+.rpg{display:grid;grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:6px}
+.rpc{position:relative;cursor:pointer;aspect-ratio:1;max-width:100%}
+.rpc input{position:absolute;inset:0;width:100%;height:100%;opacity:0;margin:0;cursor:pointer}
+.rpc span{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--fg)}
+.rpc b{font:700 1.05rem var(--display)}
+.rpc small{font-size:.72rem;color:var(--muted)}
+.rpc:hover span{border-color:var(--accent)}
+.rpc input:checked+span{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.rpc input:checked+span small{color:inherit}
+.rpc input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+.rpc.off,.rpc.off input{cursor:not-allowed}
+.rpc.off span{background:var(--sunk);border-color:var(--line);color:var(--muted)}
+.login{max-width:360px;margin:12vh auto;display:flex;flex-direction:column;gap:12px}
+.login .f input{background:var(--surface)}
+.side .out{margin-top:auto}
+@media(max-width:820px){.side .out{margin-top:0;align-self:flex-start}}
+/* bill paper: always a white slip, like the page torn from a receipt book */
+.paper{--ink:#1A2B29;--soft:#5C6E6B;--rule:#D4DBD9;background:#FFFFFF;color:var(--ink);padding:20px;border-radius:4px;border:1px solid var(--line);position:relative;background-image:radial-gradient(circle at 8px 0,var(--surface) 4px,transparent 4.5px);background-size:16px 8px;background-repeat:repeat-x;display:flex;flex-direction:column;gap:12px}
+.paper h3{font-size:1.1rem}
+.paper .top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.paper small,.paper .soft{color:var(--soft)}
+.paper table{color:var(--ink)}
+.paper th{background:none;color:var(--soft);border-bottom:1px solid var(--rule)}
+.paper th,.paper td{border-top:0;padding:4px 0}
+.paper td{border-bottom:1px dotted var(--rule)}
+.paper .total{display:flex;justify-content:space-between;align-items:baseline;font:700 1.25rem var(--display);border-top:2px solid var(--ink);padding-top:8px}
+.paper .foot{display:flex;gap:14px;align-items:center;font-size:.86rem}
+.paper .foot canvas{width:112px;height:112px;flex:none}
+.paper .stamp{position:absolute;right:20px;top:64px;border:3px solid #1C7A4A;color:#1C7A4A;font:700 1.1rem var(--display);padding:2px 12px;border-radius:6px;transform:rotate(-8deg);background:#fff}
+.xrow{display:grid;grid-template-columns:minmax(0,1fr) 110px auto;gap:6px}
+.xrow input{padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);min-width:0}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 16px;border-radius:6px;z-index:50;max-width:calc(100vw - 32px)}
+@media(prefers-reduced-motion:no-preference){.tag{transition:border-color .12s}}
+</style>
+
+</head><body>
+<div class="app">
+  <aside class="side">
+    <div class="brand" id="brand">หอพัก<small>ระบบหลังบ้าน</small></div>
+    <nav class="nav" id="nav" aria-label="เมนูหลัก"></nav>
+    <button class="btn sm out" data-act="logout" id="logoutBtn" hidden>ออกจากระบบ</button>
+  </aside>
+  <main class="main"><div class="wrap" id="view"><div class="empty">กำลังโหลดข้อมูลหอพัก</div></div></main>
+</div>
+<dialog id="dlg"><div id="dlgBody"></div></dialog>
+<dialog id="askDlg"><div class="dlg" id="askBody"></div></dialog>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+/* ---------- pure logic ---------- */
+const round2=n=>Math.round((Number(n)+Number.EPSILON)*100)/100;
+const num=v=>{if(v===''||v==null)return null;const n=Number(String(v).replace(/,/g,''));return Number.isFinite(n)?n:null};
+function calcBill({rent=0,water,elec,rates,extras=[]}){
+  const wU=round2(water.cur-water.prev),eU=round2(elec.cur-elec.prev);
+  const wA=round2(Math.max(wU*rates.water,rates.waterMin||0)),eA=round2(Math.max(eU*rates.elec,rates.elecMin||0));
+  const common=round2(rates.common||0);
+  const ex=round2(extras.reduce((a,x)=>a+(Number(x.amount)||0),0));
+  return {waterUnits:wU,elecUnits:eU,waterAmt:wA,elecAmt:eA,common,extrasTotal:ex,total:round2(Number(rent)+wA+eA+common+ex)};
+}
+function crc16(s){let c=0xFFFF;for(let i=0;i<s.length;i++){c^=s.charCodeAt(i)<<8;for(let j=0;j<8;j++)c=c&0x8000?((c<<1)^0x1021)&0xFFFF:(c<<1)&0xFFFF}return c.toString(16).toUpperCase().padStart(4,'0')}
+function ppPayload(id,amount){
+  const d=String(id||'').replace(/\D/g,'');const f=(k,v)=>k+String(v.length).padStart(2,'0')+v;
+  let tag,t;if(d.length===10){tag='01';t='0066'+d.slice(1)}else if(d.length===13){tag='02';t=d}else return null;
+  const p=f('00','01')+f('01',amount?'12':'11')+f('29',f('00','A000000677010111')+f(tag,t))+f('58','TH')+f('53','764')+(amount?f('54',Number(amount).toFixed(2)):'')+'6304';
+  return p+crc16(p);
+}
+const TM=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const TMS=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const pad=n=>String(n).padStart(2,'0');
+const monthLabel=m=>{const[y,mo]=m.split('-').map(Number);return TM[mo-1]+' '+(y+543)};
+const thDate=s=>{if(!s)return '-';const[y,m,d]=s.slice(0,10).split('-').map(Number);return d+' '+TMS[m-1]+' '+(y+543)};
+const thDT=s=>!s?'-':thDate(s)+(s.length>10?' '+s.slice(11,16)+' น.':'');
+const baht=n=>Number(n||0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
+const units=n=>Number(n||0).toLocaleString('th-TH',{maximumFractionDigits:2});
+const shiftMonth=(m,d)=>{const[y,mo]=m.split('-').map(Number);const t=new Date(y,mo-1+d,1);return t.getFullYear()+'-'+pad(t.getMonth()+1)};
+const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())};
+const nowLocal=()=>{const d=new Date();return todayStr()+'T'+pad(d.getHours())+':'+pad(d.getMinutes())};
+const daysTo=s=>Math.round((new Date(s+'T00:00:00')-new Date(todayStr()+'T00:00:00'))/864e5);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ---------- state ---------- */
+const COLS=['rooms','tenants','meters','bills'];
+const S={rooms:{},tenants:{},meters:{},bills:{},setup:{}};
+const seen={};let sb=null,dl=null,canWrite=true,ready=false,month=todayStr().slice(0,7),query='',denied=false;
+const VIEWS={home:'ภาพรวม',rooms:'ห้องพัก',tenants:'ผู้เช่า',contracts:'สัญญา',meter:'จดมิเตอร์',bills:'ทำบิล',setup:'ตั้งค่า'};
+const view=()=>{const h=location.hash.slice(1);return VIEWS[h]?h:'home'};
+const $=s=>document.querySelector(s);
+const rooms=()=>Object.values(S.rooms).sort((a,b)=>String(a.number).localeCompare(String(b.number),'th',{numeric:true}));
+const tenantOf=rid=>Object.values(S.tenants).find(t=>t.status==='active'&&t.roomId===rid);
+const activeTenants=()=>Object.values(S.tenants).filter(t=>t.status==='active');
+const roomNo=rid=>S.rooms[rid]?.number??'-';
+const rate=k=>Number(S.setup[k])||0;
+const rates=()=>({water:rate('waterRate'),elec:rate('elecRate'),waterMin:rate('waterMin'),elecMin:rate('elecMin'),common:rate('common')});
+const meterId=(m,r)=>m+'_'+r;
+function dueDateFor(m){return shiftMonth(m,1)+'-'+pad(Math.min(28,Number(S.setup.dueDay)||5))}
+function prevReading(rid,m){
+  const t=tenantOf(rid),r=S.rooms[rid]||{},floor=t?.moveInAt?.slice(0,7)||'';
+  const past=Object.values(S.meters).filter(x=>x.roomId===rid&&x.month<m&&x.month>=floor).sort((a,b)=>b.month.localeCompare(a.month))[0];
+  return {water:past?.waterCur??r.waterStart??0,elec:past?.elecCur??r.elecStart??0};
+}
+function reading(rid,m){
+  const d=S.meters[meterId(m,rid)],p=prevReading(rid,m);
+  return {waterPrev:d?.waterPrev??p.water,elecPrev:d?.elecPrev??p.elec,waterCur:d?.waterCur??null,elecCur:d?.elecCur??null};
+}
+function readingOk(r){return r.waterCur!=null&&r.elecCur!=null&&r.waterCur>=r.waterPrev&&r.elecCur>=r.elecPrev}
+function buildBill(rid,m,old){
+  const t=tenantOf(rid),room=S.rooms[rid],r=reading(rid,m);if(!t||!readingOk(r))return null;
+  const R=rates(),rent=Number(t.rent??room.rent)||0,extras=old?.extras||[];
+  const c=calcBill({rent,water:{prev:r.waterPrev,cur:r.waterCur},elec:{prev:r.elecPrev,cur:r.elecCur},rates:R,extras});
+  return {month:m,roomId:rid,roomNumber:room.number,tenantId:t.id,tenantName:t.name,billNo:(Number(m.slice(0,4))+543)+m.slice(5,7)+'-'+room.number,rent,
+    water:{prev:r.waterPrev,cur:r.waterCur},elec:{prev:r.elecPrev,cur:r.elecCur},rates:R,extras,...c,
+    issuedAt:old?.issuedAt||todayStr(),dueDate:old?.dueDate||dueDateFor(m),status:'unpaid',sample:old?.sample||undefined};
+}
+const isLate=b=>b.status==='unpaid'&&b.dueDate<todayStr();
+const allBills=()=>Object.values(S.bills);
+
+/* ---------- writes ---------- */
+function clean(o){return JSON.parse(JSON.stringify(o))}
+function applyRow(r){const k=r.col+'/'+r.id;if(seen[k]===r.updated_at)return false;seen[k]=r.updated_at;
+  if(r.col==='setup'){S.setup=r.deleted?{}:r.data;return true}if(!S[r.col])return false;
+  if(r.deleted)delete S[r.col][r.id];else S[r.col][r.id]={...r.data,id:r.id};return true}
+const COLUMNS='col,id,data,deleted,updated_at';
+async function put(col,id,data){
+  const{data:row,error}=await sb.from('docs').upsert({col,id,data:clean(data),deleted:false}).select(COLUMNS).single();
+  if(error){toast('บันทึกไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วลองอีกครั้ง');return false}
+  applyRow(row);render();return true}
+async function del(col,id){
+  const{data:row,error}=await sb.from('docs').update({deleted:true}).match({col,id}).select(COLUMNS).single();
+  if(error){toast('ลบไม่สำเร็จ ลองอีกครั้ง');return false}
+  applyRow(row);render();return true}
+const newId=()=>crypto.randomUUID().replace(/-/g,'');
+const newCode=()=>String(100000+crypto.getRandomValues(new Uint32Array(1))[0]%900000);
+const billLink=()=>new URL('bill.html',location.href).href;
+let tt;function toast(m){const e=$('#toast');e.textContent=m;e.hidden=false;clearTimeout(tt);tt=setTimeout(()=>e.hidden=true,2800)}
+function ask(title,msg,yes='ยืนยัน',danger=true){return new Promise(res=>{const d=$('#askDlg');
+  $('#askBody').innerHTML=`<h2>${esc(title)}</h2><p>${esc(msg)}</p><div class="actions"><button class="btn" id="askNo">ยกเลิก</button><button class="btn ${danger?'danger':'pri'}" id="askYes">${esc(yes)}</button></div>`;
+  $('#askNo').onclick=()=>{d.close();res(false)};$('#askYes').onclick=()=>{d.close();res(true)};d.showModal()})}
+
+/* ---------- views ---------- */
+const monthBar=()=>`<div class="month"><button class="btn sm" data-act="month" data-d="-1" aria-label="เดือนก่อน">‹</button><span>${monthLabel(month)}</span><button class="btn sm" data-act="month" data-d="1" aria-label="เดือนถัดไป">›</button></div>`;
+function contractState(t){if(!t.contractEnd)return ['ไม่มีวันสิ้นสุด',''];const d=daysTo(t.contractEnd);
+  if(d<0)return ['หมดสัญญาแล้ว '+(-d)+' วัน','crit'];if(d<=60)return ['เหลือ '+d+' วัน','warn'];return ['เหลือ '+d+' วัน','ok']}
+function billPill(b){return b.status==='paid'?'<span class="pill ok">ชำระแล้ว</span>':isLate(b)?'<span class="pill crit">เกินกำหนด</span>':'<span class="pill info">รอชำระ</span>'}
+function sampleNote(){const has=COLS.some(c=>Object.values(S[c]).some(x=>x.sample));
+  return has?`<div class="note"><span>ข้อมูลที่เห็นตอนนี้เป็นตัวอย่าง ผู้เช่าและยอดเงินไม่ใช่ข้อมูลจริง</span>${canWrite?'<button class="btn sm" data-act="clearSample">ลบข้อมูลตัวอย่าง</button>':''}</div>`:''}
+
+function vHome(){
+  const rs=rooms(),act=activeTenants(),occ=act.length,open=rs.filter(r=>!r.closed).length;
+  const mb=allBills().filter(b=>b.month===month);
+  const paid=mb.filter(b=>b.status==='paid').reduce((a,b)=>a+b.total,0);
+  const unpaid=allBills().filter(b=>b.status==='unpaid');const late=unpaid.filter(isLate);
+  const owed=unpaid.reduce((a,b)=>a+b.total,0);
+  const ending=act.filter(t=>t.contractEnd&&daysTo(t.contractEnd)<=60).sort((a,b)=>a.contractEnd.localeCompare(b.contractEnd));
+  const noMeter=act.filter(t=>!readingOk(reading(t.roomId,month)));
+  const lateRooms=new Set(late.map(b=>b.roomId)),endRooms=new Set(ending.map(t=>t.roomId));
+  const floors={};rs.forEach(r=>(floors[r.floor||'-']??=[]).push(r));
+  const plan=Object.keys(floors).sort((a,b)=>Number(b)-Number(a)).map(f=>`<div class="floor"><span>ชั้น ${esc(f)}</span><div class="tags">${floors[f].map(r=>{
+    const t=tenantOf(r.id);const c=r.closed?'off':!t?'free':lateRooms.has(r.id)?'late':endRooms.has(r.id)?'end':'on';
+    return `<button class="tag ${c}" data-act="${t?'editTenant':r.closed?'editRoom':'newTenant'}" data-id="${t?t.id:r.id}">${c==='late'?'<span class="owe">ค้าง</span>':''}<b>${esc(r.number)}</b><small>${r.closed?'ปิดซ่อม':t?esc(t.name):'ว่าง'}</small><small class="ty">${esc(r.type)||'&nbsp;'}</small></button>`}).join('')}</div></div>`).join('');
+  const todo=[
+    ...late.map(b=>`<li><div>ห้อง ${esc(b.roomNumber)} ค้างบิล ${monthLabel(b.month)}<small>${baht(b.total)} บาท ครบกำหนด ${thDate(b.dueDate)}</small></div><button class="btn sm" data-act="openBill" data-id="${b.id}">ดูบิล</button></li>`),
+    ...ending.map(t=>{const[s]=contractState(t);return `<li><div>สัญญาห้อง ${esc(roomNo(t.roomId))} ${esc(t.name)}<small>${s} สิ้นสุด ${thDate(t.contractEnd)}</small></div><button class="btn sm" data-act="editTenant" data-id="${t.id}">ต่อสัญญา</button></li>`}),
+    ...(noMeter.length?[`<li><div>ยังไม่จดมิเตอร์ ${noMeter.length} ห้อง<small>${monthLabel(month)}</small></div><a class="btn sm" href="#meter">จดมิเตอร์</a></li>`]:[])
+  ].join('');
+  return `<div class="head"><div><h1>ภาพรวมหอพัก</h1></div>${monthBar()}</div>${sampleNote()}
+  <div class="stats">
+    <div class="stat"><b>${occ}/${open}</b><span>ห้องมีผู้เช่า</span></div>
+    <div class="stat"><b>${baht(paid)}</b><span>รับแล้วของ${TM[+month.slice(5)-1]}</span></div>
+    <div class="stat ${late.length?'crit':''}"><b>${baht(owed)}</b><span>ยอดค้างรับทั้งหมด</span></div>
+    <div class="stat"><b>${ending.length}</b><span>สัญญาใกล้หมด (60 วัน)</span></div>
+  </div>
+  <div class="two"><section class="panel"><h2>ผังห้องพัก</h2>${rs.length?`<div class="plan">${plan}</div>
+    <div class="legend"><span><i style="background:var(--accent-soft);border-color:var(--accent)"></i>มีผู้เช่า</span><span><i style="background:var(--crit-soft);border-color:var(--crit)"></i>ค้างชำระ</span><span><i style="background:var(--warn-soft);border-color:var(--warn)"></i>สัญญาใกล้หมด</span><span><i style="border-style:dashed"></i>ว่าง</span></div>`
+    :`<div class="empty">ยังไม่มีห้องพัก เพิ่มห้องก่อนเริ่มใช้งาน<a class="btn pri" href="#rooms">เพิ่มห้อง</a></div>`}</section>
+  <section class="panel"><h2>งานที่ต้องตาม</h2>${todo?`<ul class="todo">${todo}</ul>`:'<div class="empty">ไม่มีงานค้าง</div>'}</section></div>`;
+}
+function vRooms(){
+  const rows=rooms().map(r=>{const t=tenantOf(r.id);return `<tr><td class="nowrap"><b>${esc(r.number)}</b></td><td>${esc(r.floor)}</td><td>${esc(r.type)}</td><td class="num">${baht(r.rent)}</td>
+    <td>${r.closed?'<span class="pill warn">ปิดซ่อม</span>':t?'<span class="pill info">มีผู้เช่า</span>':'<span class="pill">ว่าง</span>'}</td><td>${t?esc(t.name):'-'}</td>
+    <td class="nowrap">${r.code?`<code>${esc(r.code)}</code> <button class="btn sm" data-act="copyCode" data-id="${r.id}">คัดลอก</button>`:'-'}</td><td class="num nowrap"><button class="btn sm" data-act="editRoom" data-id="${r.id}">แก้ไข</button></td></tr>`}).join('');
+  const noCode=rooms().filter(r=>!r.code).length;
+  return `<div class="head"><div><h1>ห้องพัก</h1><p>${rooms().length} ห้อง</p></div><div class="row">${noCode?`<button class="btn" data-act="genCodes">สร้างรหัสดูบิล ${noCode} ห้อง</button>`:''}<button class="btn" data-act="bulkRoom">เพิ่มหลายห้อง</button><button class="btn pri" data-act="newRoom">เพิ่มห้อง</button></div></div>${sampleNote()}
+  ${rows?`<div class="tw"><table><thead><tr><th>ห้อง</th><th>ชั้น</th><th>ประเภท</th><th class="num">ค่าเช่า/เดือน</th><th>สถานะ</th><th>ผู้เช่า</th><th>รหัสดูบิล</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="empty">ยังไม่มีห้องพัก กด "เพิ่มหลายห้อง" เพื่อสร้างทั้งชั้นในครั้งเดียว</div>'}`;
+}
+function vTenants(){
+  const q=query.trim().toLowerCase();
+  const list=Object.values(S.tenants).filter(t=>!q||[t.name,t.phone,roomNo(t.roomId)].join(' ').toLowerCase().includes(q))
+    .sort((a,b)=>(a.status===b.status?String(roomNo(a.roomId)).localeCompare(String(roomNo(b.roomId)),'th',{numeric:true}):a.status==='active'?-1:1));
+  const rows=list.map(t=>`<tr><td class="nowrap"><b>${esc(roomNo(t.roomId))}</b></td><td>${esc(t.name)}<small>${esc(t.phone)}</small></td><td class="nowrap">${thDT(t.moveInAt)}</td>
+    <td>${t.status==='active'?'<span class="pill ok">พักอยู่</span>':`<span class="pill">ย้ายออก ${thDate(t.moveOutAt)}</span>`}</td>
+    <td class="num nowrap"><button class="btn sm" data-act="editTenant" data-id="${t.id}">เปิด</button></td></tr>`).join('');
+  return `<div class="head"><div><h1>ผู้เช่า</h1><p>พักอยู่ ${activeTenants().length} คน</p></div><div class="row"><input class="search" id="q" type="search" placeholder="ค้นหาชื่อ เบอร์ หรือห้อง" value="${esc(query)}" aria-label="ค้นหาผู้เช่า"><button class="btn pri" data-act="newTenant">รับผู้เช่าใหม่</button></div></div>${sampleNote()}
+  ${rows?`<div class="tw"><table><thead><tr><th>ห้อง</th><th>ผู้เช่า</th><th>วันเวลาเข้าพัก</th><th>สถานะ</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`:`<div class="empty">${q?'ไม่พบผู้เช่าที่ตรงกับคำค้น':'ยังไม่มีผู้เช่า กด "รับผู้เช่าใหม่" เพื่อเริ่ม'}</div>`}`;
+}
+function vContracts(){
+  const list=activeTenants().sort((a,b)=>(a.contractEnd||'9').localeCompare(b.contractEnd||'9'));
+  const rows=list.map(t=>{const[s,c]=contractState(t);return `<tr><td class="nowrap"><b>${esc(roomNo(t.roomId))}</b></td><td>${esc(t.name)}<small>เลขที่ ${esc(t.contractNo||'-')}</small></td><td class="nowrap">${thDate(t.contractStart)}</td><td class="nowrap">${thDate(t.contractEnd)}</td><td><span class="pill ${c}">${s}</span></td><td class="num">${baht(t.deposit)}</td><td class="num">${baht(t.rent)}</td><td class="num"><button class="btn sm" data-act="editTenant" data-id="${t.id}">แก้ไข</button></td></tr>`}).join('');
+  const dep=list.reduce((a,t)=>a+(Number(t.deposit)||0),0);
+  return `<div class="head"><div><h1>สัญญาเช่า</h1><p>เงินประกันที่ถือไว้ ${baht(dep)} บาท</p></div></div>${sampleNote()}
+  ${rows?`<div class="tw"><table><thead><tr><th>ห้อง</th><th>ผู้เช่า</th><th>เริ่ม</th><th>สิ้นสุด</th><th>สถานะ</th><th class="num">เงินประกัน</th><th class="num">ค่าเช่า</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="empty">สัญญาจะแสดงที่นี่เมื่อรับผู้เช่าเข้าห้องแล้ว</div>'}`;
+}
+function vMeter(){
+  const list=activeTenants().sort((a,b)=>String(roomNo(a.roomId)).localeCompare(String(roomNo(b.roomId)),'th',{numeric:true}));
+  const done=list.filter(t=>readingOk(reading(t.roomId,month))).length;
+  const totals={water:0,elec:0};
+  const line=(rid,r,k,lab,lead)=>{const P=r[k+'Prev'],C=r[k+'Cur'],bad=C!=null&&C<P,u=C==null?null:round2(C-P);if(u!=null&&!bad)totals[k]+=u;
+    return `<tr class="${lead?'mfirst':''}">${lead||''}<td class="mk ${k[0]}">${lab}</td><td class="mprev">${units(P)}</td><td><input class="mcur ${bad?'bad':''}" id="c-${k}-${rid}" inputmode="decimal" aria-label="เลขมิเตอร์${lab}ครั้งนี้" data-m="${k}Cur" data-room="${rid}" value="${C??''}" ${canWrite?'':'disabled'}></td><td class="munits ${bad?'bad':''}">${u==null?'-':bad?'เลขน้อยกว่าเดิม':units(u)}</td></tr>`};
+  const rows=list.map(t=>{const rid=t.roomId,r=reading(rid,month),b=S.bills[meterId(month,rid)];
+    const lead=`<td class="mroom" rowspan="2"><b>${esc(roomNo(rid))}</b><small>${esc(t.name)}</small>${b?'<small>ออกบิลแล้ว</small>':''}${canWrite?`<button class="btn sm" data-act="editPrev" data-id="${rid}" aria-label="แก้เลขครั้งก่อน"><span class="long">แก้เลขครั้งก่อน</span><span class="short">แก้ไข</span></button>`:''}</td>`;
+    return line(rid,r,'water','น้ำ',lead)+line(rid,r,'elec','ไฟ')}).join('');
+  return `<div class="head"><div><h1>จดมิเตอร์น้ำ-ไฟ</h1><p>จดแล้ว ${done} จาก ${list.length} ห้อง ระบบบันทึกให้ทันทีเมื่อกรอกช่องถัดไป</p></div>${monthBar()}</div>${sampleNote()}
+  ${rows?`<div class="tw"><table class="mtable"><thead><tr><th>ห้อง</th><th>รายการ</th><th class="num">ครั้งก่อน</th><th>ครั้งนี้</th><th class="num">หน่วย</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><td colspan="4">รวมน้ำ</td><td class="munits">${units(totals.water)}</td></tr><tr><td colspan="4">รวมไฟ</td><td class="munits">${units(totals.elec)}</td></tr></tfoot></table></div><div class="row"><a class="btn pri" href="#bills">ไปทำบิล</a></div>`:'<div class="empty">ต้องมีผู้เช่าก่อนจึงจะจดมิเตอร์ได้</div>'}`;
+}
+function billRows(){
+  const out=[];const seen=new Set();
+  allBills().filter(b=>b.month===month).forEach(b=>{seen.add(b.roomId);out.push({rid:b.roomId,no:b.roomNumber,name:b.tenantName,b})});
+  activeTenants().forEach(t=>{if(!seen.has(t.roomId))out.push({rid:t.roomId,no:roomNo(t.roomId),name:t.name,r:reading(t.roomId,month)})});
+  return out.sort((a,b)=>String(a.no).localeCompare(String(b.no),'th',{numeric:true}));
+}
+function vBills(){
+  const list=billRows();const can=list.filter(x=>!x.b&&readingOk(x.r));
+  const issued=list.filter(x=>x.b);const sum=f=>issued.filter(x=>f(x.b)).reduce((a,x)=>a+x.b.total,0);
+  const rows=list.map(x=>{const b=x.b,prev=!b&&readingOk(x.r)?buildBill(x.rid,month):null,show=b||prev;
+    return `<tr><td class="nowrap"><b>${esc(x.no)}</b></td><td>${esc(x.name)}</td><td class="num">${show?units(show.waterUnits):'-'}</td><td class="num">${show?units(show.elecUnits):'-'}</td><td class="num"><b>${show?baht(show.total):'-'}</b></td>
+    <td>${b?billPill(b):prev?'<span class="pill">พร้อมออกบิล</span>':'<span class="pill warn">รอจดมิเตอร์</span>'}</td>
+    <td class="num nowrap">${b?`<button class="btn sm" data-act="openBill" data-id="${b.id}">เปิดบิล</button>`:prev?`<button class="btn sm pri" data-act="issue" data-id="${x.rid}" ${canWrite?'':'disabled'}>ออกบิล</button>`:`<a class="btn sm" href="#meter">จดมิเตอร์</a>`}</td></tr>`}).join('');
+  return `<div class="head"><div><h1>ทำบิลค่าห้อง</h1><p>ค่าน้ำ ${baht(rate('waterRate'))} ค่าไฟ ${baht(rate('elecRate'))} บาท/หน่วย ส่วนกลาง ${baht(rate('common'))} บาท</p></div>${monthBar()}</div>${sampleNote()}
+  <div class="stats"><div class="stat"><b>${issued.length}/${list.length}</b><span>ออกบิลแล้ว</span></div><div class="stat"><b>${baht(sum(()=>true))}</b><span>ยอดบิลเดือนนี้</span></div><div class="stat"><b>${baht(sum(b=>b.status==='paid'))}</b><span>ชำระแล้ว</span></div><div class="stat ${sum(b=>isLate(b))?'crit':''}"><b>${baht(sum(b=>b.status==='unpaid'))}</b><span>รอชำระ</span></div></div>
+  <div class="row"><button class="btn pri" data-act="issueAll" ${can.length&&canWrite?'':'disabled'}>ออกบิลทุกห้องที่พร้อม (${can.length})</button>${dl&&issued.length?'<button class="btn" data-act="csv">ดาวน์โหลด CSV</button>':''}</div>
+  ${rows?`<div class="tw"><table><thead><tr><th>ห้อง</th><th>ผู้เช่า</th><th class="num">น้ำ (หน่วย)</th><th class="num">ไฟ (หน่วย)</th><th class="num">ยอดรวม</th><th>สถานะ</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="empty">เดือนนี้ยังไม่มีห้องที่ต้องออกบิล</div>'}`;
+}
+function vSetup(){
+  const s=S.setup,v=k=>esc(s[k]??'');const fld=(k,l,t='text',x='')=>`<label class="f">${l}<input name="${k}" type="${t}" value="${v(k)}" ${t==='number'?'step="any" min="0"':''} ${x}></label>`;
+  return `<div class="head"><div><h1>ตั้งค่าหอพัก</h1><p>อัตราที่แก้ใหม่มีผลกับบิลที่ออกต่อจากนี้ บิลเดิมคงยอดเดิม</p></div></div>${sampleNote()}
+  <form data-form="setup" class="panel" style="max-width:640px">
+  <fieldset><legend>ข้อมูลบนหัวบิล</legend>${fld('name','ชื่อหอพัก')}${fld('phone','เบอร์โทร')}<label class="f full">ที่อยู่<input name="address" value="${v('address')}"></label></fieldset>
+  <fieldset><legend>อัตราค่าบริการ</legend>${fld('waterRate','ค่าน้ำ (บาท/หน่วย)','number')}${fld('waterMin','ค่าน้ำขั้นต่ำ (บาท/เดือน)','number')}${fld('elecRate','ค่าไฟ (บาท/หน่วย)','number')}${fld('elecMin','ค่าไฟขั้นต่ำ (บาท/เดือน)','number')}${fld('common','ค่าส่วนกลาง (บาท/เดือน)','number')}${fld('dueDay','ครบกำหนดชำระวันที่ของเดือนถัดไป','number','max="28"')}</fieldset>
+  <fieldset><legend>ช่องทางรับเงิน</legend>${fld('promptpay','พร้อมเพย์ (เบอร์ 10 หลัก หรือเลขบัตร 13 หลัก)')}${fld('bank','บัญชีธนาคาร')}<label class="f full">หมายเหตุท้ายบิล<input name="billNote" value="${v('billNote')}"></label></fieldset>
+  <div class="row"><button class="btn pri" ${canWrite?'':'disabled'}>บันทึกการตั้งค่า</button><button class="btn" type="button" data-act="backup">สำรองข้อมูลเป็นไฟล์</button><label class="btn">นำเข้าไฟล์สำรอง<input type="file" id="imp" accept=".json" hidden></label></div></form>`;
+}
+const RENDER={home:vHome,rooms:vRooms,tenants:vTenants,contracts:vContracts,meter:vMeter,bills:vBills,setup:vSetup};
+function renderNav(){
+  const late=allBills().filter(isLate).length;
+  $('#nav').innerHTML=Object.entries(VIEWS).map(([k,l])=>`<a href="#${k}" ${view()===k?'aria-current="page"':''}>${l}${k==='bills'&&late?`<span class="n">${late}</span>`:''}</a>`).join('');
+  $('#brand').innerHTML=esc(S.setup.name||'หอพัก')+'<small>ระบบหลังบ้าน</small>';
+}
+let rq;function render(){cancelAnimationFrame(rq);rq=requestAnimationFrame(paint)}
+function paint(){
+  const main=$('#view');
+  if(!ready){return}
+  renderNav();
+  if(denied){main.innerHTML='<div class="empty">บัญชีนี้ยังไม่ได้รับสิทธิ์ เพิ่มอีเมลนี้ในตาราง staff ของ Supabase ก่อน</div>';return}
+  const a=document.activeElement,id=a?.id,val=a?.value,pos=a?.selectionStart,y=scrollY;
+  main.innerHTML=RENDER[view()]();
+  if(id&&main.contains(document.getElementById(id))){const e=document.getElementById(id);if(e.tagName==='INPUT'){e.value=val;e.focus();try{e.setSelectionRange(pos,pos)}catch(_){}}}
+  scrollTo(0,y);
+}
+
+/* ---------- dialogs ---------- */
+const openDlg=h=>{$('#dlgBody').innerHTML=h;const d=$('#dlg');if(!d.open)d.showModal()};
+const closeDlg=()=>$('#dlg').close();
+const dHead=t=>`<header><h2>${esc(t)}</h2><button type="button" class="btn sm" data-act="close">ปิด</button></header>`;
+function roomForm(r={}){openDlg(`<form class="dlg" data-form="room" data-id="${r.id||''}">${dHead(r.id?'แก้ไขห้อง '+r.number:'เพิ่มห้อง')}
+  <fieldset><label class="f">เลขห้อง<input name="number" required value="${esc(r.number??'')}"></label><label class="f">ชั้น<input name="floor" required value="${esc(r.floor??'')}"></label>
+  <label class="f">ประเภทห้อง<input name="type" placeholder="พัดลม, แอร์" value="${esc(r.type??'')}"></label><label class="f">ค่าเช่า/เดือน<input name="rent" type="number" min="0" step="any" required value="${r.rent??''}"></label>
+  <label class="f">เลขมิเตอร์น้ำตั้งต้น<input name="waterStart" type="number" min="0" step="any" value="${r.waterStart??0}"></label><label class="f">เลขมิเตอร์ไฟตั้งต้น<input name="elecStart" type="number" min="0" step="any" value="${r.elecStart??0}"></label>
+  <label class="f full"><span><input type="checkbox" name="closed" style="width:auto" ${r.closed?'checked':''}> ปิดซ่อม ไม่รับผู้เช่า</span></label></fieldset>
+  <div class="actions">${r.id?`<button type="button" class="btn danger l" data-act="delRoom" data-id="${r.id}">ลบห้อง</button>`:''}<button class="btn pri">บันทึกห้อง</button></div></form>`)}
+function bulkForm(){openDlg(`<form class="dlg" data-form="bulk">${dHead('เพิ่มห้องหลายห้อง')}<fieldset>
+  <label class="f">ชั้น<input name="floor" type="number" min="1" required value="1"></label><label class="f">จำนวนห้องบนชั้นนี้<input name="count" type="number" min="1" max="60" required value="10"></label>
+  <label class="f">ค่าเช่า/เดือน<input name="rent" type="number" min="0" step="any" required></label><label class="f">ประเภทห้อง<input name="type"></label></fieldset>
+  <p class="soft" style="color:var(--muted)">เลขห้องเรียงจากเลขชั้น เช่น ชั้น 2 จะได้ 201, 202, 203</p><div class="actions"><button class="btn pri">สร้างห้อง</button></div></form>`)}
+function tenantForm(t={},presetRoom){
+  const isNew=!t.id,rid=t.roomId||presetRoom||'';
+  const fl={};rooms().forEach(r=>(fl[r.floor||'-']??=[]).push(r));
+  const opts=Object.keys(fl).sort((a,b)=>Number(a)-Number(b)).map(f=>`<div class="rpf"><span>ชั้น ${esc(f)}</span><div class="rpg">${fl[f].map(r=>{const who=tenantOf(r.id),taken=who&&who.id!==t.id,busy=r.closed||taken||t.status==='moved_out';
+    return `<label class="rpc ${busy?'off':''}"><input type="radio" name="roomId" value="${r.id}" required ${r.id===rid?'checked':''} ${busy?'disabled':''}><span><b>${esc(r.number)}</b><small>${r.closed?'ปิดซ่อม':taken?'มีผู้เช่า':units(r.rent)}</small></span></label>`}).join('')}</div></div>`).join('');
+  const v=k=>esc(t[k]??'');
+  const preRoom=S.rooms[rid];
+  openDlg(`<form class="dlg" data-form="tenant" data-id="${t.id||''}">${dHead(isNew?'รับผู้เช่าใหม่':t.name)}
+  <fieldset><legend>ผู้เช่า</legend><label class="f">ชื่อ-นามสกุล<input name="name" required value="${v('name')}"></label><label class="f">เบอร์โทร<input name="phone" inputmode="tel" value="${v('phone')}"></label>
+  <label class="f">เลขบัตรประชาชน<input name="idCard" inputmode="numeric" value="${v('idCard')}"></label><label class="f">LINE ID<input name="line" value="${v('line')}"></label>
+  <label class="f full">ผู้ติดต่อฉุกเฉิน<input name="emergency" value="${v('emergency')}"></label></fieldset>
+  <fieldset><legend>การเข้าพัก</legend><div class="rp" role="radiogroup" aria-label="เลือกห้อง">เลือกห้อง${opts}</div><label class="f full">วันเวลาเข้าพัก<input name="moveInAt" type="datetime-local" required value="${v('moveInAt')||nowLocal()}"></label>
+  ${isNew?`<label class="f">เลขมิเตอร์น้ำวันเข้า<input name="waterIn" id="tW" type="number" min="0" step="any" value="${preRoom?.waterStart??0}"></label><label class="f">เลขมิเตอร์ไฟวันเข้า<input name="elecIn" id="tE" type="number" min="0" step="any" value="${preRoom?.elecStart??0}"></label>`:''}</fieldset>
+  <fieldset><legend>สัญญาเช่า</legend><label class="f">เลขที่สัญญา<input name="contractNo" value="${v('contractNo')}"></label><label class="f">ค่าเช่า/เดือน<input name="rent" id="tRent" type="number" min="0" step="any" required value="${t.rent??preRoom?.rent??''}"></label>
+  <label class="f">วันเริ่มสัญญา<input name="contractStart" type="date" value="${v('contractStart')||todayStr()}"></label><label class="f">วันสิ้นสุดสัญญา<input name="contractEnd" type="date" value="${v('contractEnd')}"></label>
+  <label class="f">เงินประกัน<input name="deposit" type="number" min="0" step="any" value="${t.deposit??''}"></label><label class="f">หมายเหตุ<input name="note" value="${v('note')}"></label></fieldset>
+  ${t.status==='moved_out'?`<p style="color:var(--muted)">ย้ายออก ${thDT(t.moveOutAt)} คืนเงินประกัน ${baht(t.depositReturned)} บาท</p>`:''}
+  <div class="actions">${t.status==='active'?`<button type="button" class="btn danger l" data-act="moveOut" data-id="${t.id}">บันทึกย้ายออก</button>`:''}<button class="btn pri" ${canWrite?'':'disabled'}>${isNew?'รับเข้าพัก':'บันทึก'}</button></div></form>`);
+}
+function moveOutForm(t){openDlg(`<form class="dlg" data-form="moveOut" data-id="${t.id}">${dHead('ย้ายออก: '+t.name)}<p>ห้อง ${esc(roomNo(t.roomId))} จะกลับเป็นห้องว่าง ประวัติและบิลเดิมยังอยู่ครบ</p>
+  <fieldset><label class="f">วันเวลาย้ายออก<input name="moveOutAt" type="datetime-local" required value="${nowLocal()}"></label><label class="f">คืนเงินประกัน (บาท)<input name="depositReturned" type="number" min="0" step="any" value="${t.deposit??0}"></label>
+  <label class="f">เลขมิเตอร์น้ำวันออก<input name="waterOut" type="number" min="0" step="any"></label><label class="f">เลขมิเตอร์ไฟวันออก<input name="elecOut" type="number" min="0" step="any"></label></fieldset>
+  <div class="actions"><button class="btn danger">ยืนยันย้ายออก</button></div></form>`)}
+function prevForm(rid){const r=reading(rid,month),b=S.bills[meterId(month,rid)];
+  openDlg(`<form class="dlg" data-form="prevMeter" data-id="${rid}">${dHead('แก้เลขครั้งก่อน ห้อง '+roomNo(rid))}<p>ใช้เมื่อเปลี่ยนมิเตอร์ใหม่ หรือเลขเดือนก่อนจดผิด มีผลกับ${monthLabel(month)}</p>
+  <fieldset><label class="f">มิเตอร์น้ำครั้งก่อน<input name="waterPrev" type="number" min="0" step="any" required value="${r.waterPrev}"></label><label class="f">มิเตอร์ไฟครั้งก่อน<input name="elecPrev" type="number" min="0" step="any" required value="${r.elecPrev}"></label></fieldset>
+  ${b?'<p style="color:var(--warn)">ห้องนี้ออกบิลแล้ว หลังแก้เลขให้เปิดบิลแล้วกด "คำนวณใหม่จากมิเตอร์"</p>':''}<div class="actions"><button class="btn pri">บันทึกเลขครั้งก่อน</button></div></form>`)}
+function makeQR(text,size){try{const d=document.createElement('div');new QRCode(d,{text,width:size,height:size,correctLevel:QRCode.CorrectLevel.M});return d.querySelector('canvas')}catch(e){return null}}
+function billLines(b){
+  return [['ค่าเช่าห้อง','',b.rent],
+   ['ค่าน้ำ',`${units(b.water.prev)} → ${units(b.water.cur)} = ${units(b.waterUnits)} หน่วย × ${baht(b.rates.water)}`,b.waterAmt],
+   ['ค่าไฟ',`${units(b.elec.prev)} → ${units(b.elec.cur)} = ${units(b.elecUnits)} หน่วย × ${baht(b.rates.elec)}`,b.elecAmt],
+   ...(b.common?[['ค่าส่วนกลาง','',b.common]]:[]),...(b.extras||[]).map(x=>[x.label||'รายการอื่น','',Number(x.amount)||0])];
+}
+function billDlg(b){
+  const s=S.setup,open=b.status==='unpaid'&&canWrite;
+  const pp=b.status==='unpaid'&&ppPayload(s.promptpay,b.total);
+  openDlg(`<div class="dlg">${dHead('บิลห้อง '+b.roomNumber)}
+  <div class="paper">${b.status==='paid'?'<div class="stamp">ชำระแล้ว</div>':''}
+    <div class="top"><div><h3>${esc(s.name||'หอพัก')}</h3><small>${esc(s.address)} ${esc(s.phone)}</small></div><div style="text-align:right"><b>ใบแจ้งค่าเช่า</b><br><small>เลขที่ ${esc(b.billNo)}</small></div></div>
+    <div class="top"><div>ห้อง <b>${esc(b.roomNumber)}</b> ${esc(b.tenantName)}</div><div class="soft">ประจำเดือน ${monthLabel(b.month)}</div></div>
+    <div style="overflow-x:auto"><table><thead><tr><th>รายการ</th><th class="num">บาท</th></tr></thead><tbody>${billLines(b).map(([a,d,n])=>`<tr><td>${esc(a)}${d?`<small>${esc(d)}</small>`:''}</td><td class="num">${baht(n)}</td></tr>`).join('')}</tbody></table></div>
+    <div class="total"><span>รวมทั้งสิ้น</span><span>${baht(b.total)} บาท</span></div>
+    <div class="foot"><span id="qrSlot"></span><div>${b.status==='paid'?`ชำระเมื่อ ${thDate(b.paidAt)} ${esc(b.payMethod||'')}`:`ชำระภายใน ${thDate(b.dueDate)}`}<br><span class="soft">${esc(s.bank)}</span><br><span class="soft">${esc(s.billNote)}</span></div></div>
+  </div>
+  ${open?`<div class="panel"><h2>รายการเพิ่มเติม</h2><p style="color:var(--muted)">ค่าปรับ ค่าซ่อม หรือส่วนลด ใส่ยอดติดลบได้</p><div id="xs">${(b.extras||[]).map((x,i)=>`<div class="xrow"><input aria-label="ชื่อรายการ" id="xl${i}" value="${esc(x.label)}"><input aria-label="จำนวนเงิน" id="xa${i}" type="number" step="any" value="${x.amount}"><button class="btn sm" data-act="xDel" data-i="${i}" data-id="${b.id}">ลบ</button></div>`).join('')}</div>
+    <div class="xrow"><input id="xLabel" aria-label="ชื่อรายการใหม่" placeholder="เช่น ค่าปรับล่าช้า"><input id="xAmt" aria-label="จำนวนเงินใหม่" type="number" step="any" placeholder="บาท"><button class="btn sm" data-act="xAdd" data-id="${b.id}">เพิ่ม</button></div></div>
+    <form data-form="pay" data-id="${b.id}"><fieldset><legend>รับชำระเงิน</legend><label class="f">วันที่รับเงิน<input name="paidAt" type="date" required value="${todayStr()}"></label><label class="f">ช่องทาง<select name="payMethod"><option>โอนพร้อมเพย์</option><option>โอนธนาคาร</option><option>เงินสด</option></select></label></fieldset><div class="actions" style="margin-top:10px"><button class="btn pri">บันทึกว่าชำระแล้ว</button></div></form>`:''}
+  <div class="actions"><button class="btn" data-act="copyBill" data-id="${b.id}">คัดลอกข้อความส่ง LINE</button>${dl?`<button class="btn" data-act="pngBill" data-id="${b.id}">บันทึกบิลเป็นรูป</button>`:''}
+  ${canWrite?(b.status==='paid'?`<button class="btn" data-act="unpay" data-id="${b.id}">ยกเลิกการรับเงิน</button>`:`<button class="btn" data-act="recalc" data-id="${b.id}">คำนวณใหม่จากมิเตอร์</button><button class="btn danger" data-act="delBill" data-id="${b.id}">ลบบิล</button>`):''}</div></div>`);
+  if(pp){const c=window.QRCode&&makeQR(pp,224);if(c)$('#qrSlot').append(c)}
+}
+function billText(b){const s=S.setup;return [`${s.name||'หอพัก'} แจ้งค่าเช่าห้อง ${b.roomNumber}`,`ประจำเดือน ${monthLabel(b.month)}`,...billLines(b).map(([a,d,n])=>`${a}${d?` (${d})`:''}: ${baht(n)} บาท`),`รวม ${baht(b.total)} บาท`,`ชำระภายใน ${thDate(b.dueDate)}`,s.promptpay?`พร้อมเพย์ ${s.promptpay}`:'',s.bank||''].filter(Boolean).join('\n')}
+async function billPng(b){
+  const s=S.setup,W=760,lines=billLines(b),F='"IBM Plex Sans Thai","Noto Sans Thai",sans-serif';
+  try{await document.fonts.load('16px "IBM Plex Sans Thai"','ก')}catch(e){}
+  const pp=b.status==='unpaid'&&window.QRCode&&ppPayload(s.promptpay,b.total),qr=pp&&makeQR(pp,240);
+  const H=330+lines.length*54+(qr?260:70);
+  const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
+  g.fillStyle='#fff';g.fillRect(0,0,W,H);g.fillStyle='#1A2B29';let y=64;const P=48;
+  const T=(t,x,yy,f,al='left',col='#1A2B29')=>{g.font=f;g.textAlign=al;g.fillStyle=col;g.fillText(t,x,yy)};
+  T(s.name||'หอพัก',P,y,`600 30px ${F}`);T('ใบแจ้งค่าเช่า',W-P,y,`600 24px ${F}`,'right');y+=32;
+  T(`${s.address||''} ${s.phone||''}`.trim(),P,y,`400 18px ${F}`,'left','#5C6E6B');T('เลขที่ '+b.billNo,W-P,y,`400 18px ${F}`,'right','#5C6E6B');y+=54;
+  T(`ห้อง ${b.roomNumber}  ${b.tenantName}`,P,y,`600 22px ${F}`);T('ประจำเดือน '+monthLabel(b.month),W-P,y,`400 20px ${F}`,'right');y+=26;
+  g.strokeStyle='#1A2B29';g.lineWidth=2;g.beginPath();g.moveTo(P,y);g.lineTo(W-P,y);g.stroke();y+=36;
+  lines.forEach(([a,d,n])=>{T(a,P,y,`500 21px ${F}`);T(baht(n),W-P,y,`500 21px ${F}`,'right');if(d)T(d,P,y+22,`400 16px ${F}`,'left','#5C6E6B');y+=54});
+  g.beginPath();g.moveTo(P,y-14);g.lineTo(W-P,y-14);g.stroke();y+=24;
+  T('รวมทั้งสิ้น',P,y,`600 28px ${F}`);T(baht(b.total)+' บาท',W-P,y,`600 28px ${F}`,'right');y+=44;
+  T(b.status==='paid'?`ชำระแล้วเมื่อ ${thDate(b.paidAt)}`:`ชำระภายใน ${thDate(b.dueDate)}`,P,y,`500 20px ${F}`,'left',b.status==='paid'?'#1C7A4A':'#1A2B29');y+=28;
+  if(s.bank)T(s.bank,P,y,`400 18px ${F}`,'left','#5C6E6B');y+=14;
+  if(qr)g.drawImage(qr,W/2-120,y,240,240);
+  const blob=await new Promise(r=>c.toBlob(r,'image/png'));
+  await dl.save({filename:`bill-${b.billNo}.png`,data:blob});
+}
+
+/* ---------- actions ---------- */
+async function issueRoom(rid,m=month){const id=meterId(m,rid),b=buildBill(rid,m,S.bills[id]);return b&&await put('bills',id,b)}
+const ACT={
+  close:closeDlg,
+  month:e=>{month=shiftMonth(month,Number(e.dataset.d));paint()},
+  logout:async()=>{await sb.auth.signOut();location.reload()},
+  genCodes:async()=>{for(const r of rooms().filter(x=>!x.code)){const{id,...d}=r;await put('rooms',id,{...d,code:newCode()})}toast('สร้างรหัสแล้ว')},
+  copyCode:e=>{const r=S.rooms[e.dataset.id],t=`ดูบิลห้อง ${r.number}\n${billLink()}\nเลขห้อง ${r.number}\nรหัส ${r.code}`;navigator.clipboard.writeText(t).then(()=>toast('คัดลอกข้อความแจ้งผู้เช่าแล้ว'),()=>toast('คัดลอกไม่สำเร็จ'))},
+  editPrev:e=>prevForm(e.dataset.id),
+  newRoom:()=>roomForm(),bulkRoom:bulkForm,editRoom:e=>roomForm(S.rooms[e.dataset.id]),
+  delRoom:async e=>{const id=e.dataset.id;if(tenantOf(id))return toast('ห้องนี้มีผู้เช่าอยู่ ต้องย้ายออกก่อนจึงลบได้');closeDlg();if(await ask('ลบห้อง '+roomNo(id)+'?','ลบแล้วกู้คืนไม่ได้ บิลเดิมยังอยู่','ลบห้อง'))await del('rooms',id)},
+  newTenant:e=>{if(!rooms().some(r=>!r.closed&&!tenantOf(r.id)))return toast('ไม่มีห้องว่างให้รับผู้เช่า');tenantForm({},e.dataset.id)},
+  editTenant:e=>tenantForm(S.tenants[e.dataset.id]),moveOut:e=>moveOutForm(S.tenants[e.dataset.id]),
+  issue:async e=>{if(await issueRoom(e.dataset.id))toast('ออกบิลแล้ว')},
+  issueAll:async()=>{const l=billRows().filter(x=>!x.b&&readingOk(x.r));for(const x of l)await issueRoom(x.rid);toast(`ออกบิลแล้ว ${l.length} ห้อง`)},
+  openBill:e=>billDlg(S.bills[e.dataset.id]),
+  xAdd:async e=>{const b=S.bills[e.dataset.id],label=$('#xLabel').value.trim(),amount=num($('#xAmt').value);if(amount==null)return toast('ใส่จำนวนเงินก่อน');await saveExtras(b,[...(b.extras||[]),{label:label||'รายการอื่น',amount}])},
+  xDel:async e=>{const b=S.bills[e.dataset.id];await saveExtras(b,(b.extras||[]).filter((_,i)=>i!==Number(e.dataset.i)))},
+  recalc:async e=>{const b=S.bills[e.dataset.id],n=buildBill(b.roomId,b.month,b);if(!n)return toast('คำนวณไม่ได้ ตรวจเลขมิเตอร์และผู้เช่าของห้องนี้');await put('bills',b.id,n);billDlg({...n,id:b.id});toast('คำนวณใหม่แล้ว')},
+  delBill:async e=>{const b=S.bills[e.dataset.id];closeDlg();if(await ask('ลบบิลห้อง '+b.roomNumber+'?','ออกบิลใหม่ได้จากหน้าทำบิล','ลบบิล'))await del('bills',b.id)},
+  unpay:async e=>{const b=S.bills[e.dataset.id],{paidAt,payMethod,id,...r}=b;const n={...r,status:'unpaid'};await put('bills',id,n);billDlg({...n,id});toast('ยกเลิกการรับเงินแล้ว')},
+  copyBill:e=>{const t=billText(S.bills[e.dataset.id]);navigator.clipboard.writeText(t).then(()=>toast('คัดลอกแล้ว วางใน LINE ได้เลย'),()=>{openDlg(`<div class="dlg">${dHead('คัดลอกข้อความเอง')}<textarea id="copyTa" rows="10" style="width:100%">${esc(t)}</textarea></div>`);$('#copyTa').select()})},
+  pngBill:async e=>{try{await billPng(S.bills[e.dataset.id])}catch(x){if(x?.code!=='declined')toast('บันทึกรูปไม่สำเร็จ')}},
+  csv:async()=>{const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';const rows=allBills().filter(b=>b.month===month).sort((a,b)=>String(a.roomNumber).localeCompare(String(b.roomNumber),'th',{numeric:true}));
+    const csv='﻿'+[['เลขที่บิล','ห้อง','ผู้เช่า','ค่าเช่า','น้ำ(หน่วย)','ค่าน้ำ','ไฟ(หน่วย)','ค่าไฟ','ส่วนกลาง','อื่นๆ','รวม','สถานะ','วันชำระ'].map(q).join(','),...rows.map(b=>[b.billNo,b.roomNumber,b.tenantName,b.rent,b.waterUnits,b.waterAmt,b.elecUnits,b.elecAmt,b.common,b.extrasTotal,b.total,b.status==='paid'?'ชำระแล้ว':'รอชำระ',b.paidAt||''].map(q).join(','))].join('\n');
+    try{await dl.save({filename:`bills-${month}.csv`,data:csv})}catch(x){if(x?.code!=='declined')toast('ดาวน์โหลดไม่สำเร็จ')}},
+  backup:async()=>{try{await dl.save({filename:`dorm-backup-${todayStr()}.json`,data:JSON.stringify(S,null,1)})}catch(x){if(x?.code!=='declined')toast('สำรองข้อมูลไม่สำเร็จ')}},
+  clearSample:async()=>{if(!await ask('ลบข้อมูลตัวอย่าง?','ห้อง ผู้เช่า มิเตอร์ และบิลตัวอย่างจะถูกลบทั้งหมด ข้อมูลที่คุณเพิ่มเองยังอยู่','ลบข้อมูลตัวอย่าง'))return;
+    for(const c of COLS)for(const x of Object.values(S[c]))if(x.sample)await del(c,x.id);toast('ลบข้อมูลตัวอย่างแล้ว')}
+};
+async function saveExtras(b,extras){const c=calcBill({rent:b.rent,water:b.water,elec:b.elec,rates:b.rates,extras});const {id,...r}=b;const n={...r,...c,extras};await put('bills',id,n);billDlg({...n,id})}
+const FORM={
+  room:async(d,id)=>{const data={number:d.number.trim(),floor:d.floor.trim(),type:d.type.trim(),rent:num(d.rent)||0,waterStart:num(d.waterStart)||0,elecStart:num(d.elecStart)||0,closed:!!d.closed};
+    if(rooms().some(r=>r.number===data.number&&r.id!==id))return toast('มีห้องเลขนี้แล้ว');
+    data.code=(id&&S.rooms[id].code)||newCode();if(id&&S.rooms[id].sample)data.sample=true;await put('rooms',id||newId(),data);closeDlg();toast('บันทึกห้องแล้ว')},
+  bulk:async d=>{const f=num(d.floor),n=num(d.count);let made=0;for(let i=1;i<=n;i++){const no=f+pad(i);if(rooms().some(r=>r.number===no))continue;await put('rooms',newId(),{number:no,floor:String(f),type:d.type.trim(),rent:num(d.rent)||0,waterStart:0,elecStart:0,closed:false,code:newCode()});made++}closeDlg();toast(`สร้างแล้ว ${made} ห้อง`)},
+  tenant:async(d,id)=>{const old=id?S.tenants[id]:null;const{waterIn,elecIn,...f}=d;
+    const data={...old,...f,name:f.name.trim(),rent:num(f.rent)||0,deposit:num(f.deposit)||0,status:old?.status||'active'};delete data.id;
+    const tid=id||newId();await put('tenants',tid,data);
+    if(!id){const{id:rid,...r}=S.rooms[d.roomId];await put('rooms',rid,{...r,waterStart:num(waterIn)||0,elecStart:num(elecIn)||0})}
+    closeDlg();toast(id?'บันทึกแล้ว':'รับผู้เช่าเข้าห้องแล้ว')},
+  moveOut:async(d,id)=>{const{id:_,...t}=S.tenants[id];await put('tenants',id,{...t,status:'moved_out',moveOutAt:d.moveOutAt,depositReturned:num(d.depositReturned)||0});
+    const w=num(d.waterOut),e=num(d.elecOut),{id:rid,...r}=S.rooms[t.roomId];await put('rooms',rid,{...r,waterStart:w??r.waterStart,elecStart:e??r.elecStart,code:newCode()});
+    closeDlg();toast('บันทึกย้ายออกแล้ว')},
+  prevMeter:async(d,rid)=>{const mid=meterId(month,rid),r=reading(rid,month),{id:_,...old}=S.meters[mid]||{};
+    if(await put('meters',mid,{...r,...old,roomId:rid,month,waterPrev:num(d.waterPrev)||0,elecPrev:num(d.elecPrev)||0,readAt:old.readAt||nowLocal()})){closeDlg();toast('แก้เลขครั้งก่อนแล้ว')}},
+  pay:async(d,id)=>{const{id:_,...b}=S.bills[id];await put('bills',id,{...b,status:'paid',paidAt:d.paidAt,payMethod:d.payMethod});closeDlg();toast('บันทึกรับเงินแล้ว')},
+  setup:async d=>{const n={...S.setup,...d};['waterRate','waterMin','elecRate','elecMin','common','dueDay'].forEach(k=>n[k]=num(d[k])||0);delete n.id;await put('setup','main',n);toast('บันทึกการตั้งค่าแล้ว')}
+};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const f=ACT[b.dataset.act];if(f){e.preventDefault();f(b)}});
+document.addEventListener('submit',e=>{const f=e.target;if(!f.dataset.form)return;e.preventDefault();const d=Object.fromEntries(new FormData(f));FORM[f.dataset.form](d,f.dataset.id||'')});
+document.addEventListener('input',e=>{if(e.target.id==='q'){query=e.target.value;paint()}});
+async function importFile(file){const d=JSON.parse(await file.text()),rows=[];
+  COLS.forEach(c=>Object.entries(d[c]||{}).forEach(([id,x])=>{const{id:_,...v}=x;rows.push({col:c,id,data:v,deleted:false})}));
+  if(d.setup&&Object.keys(d.setup).length){const{id:_,...v}=d.setup;rows.push({col:'setup',id:'main',data:v,deleted:false})}
+  if(!rows.length)throw 0;for(let i=0;i<rows.length;i+=500){const{error}=await sb.from('docs').upsert(rows.slice(i,i+500));if(error)throw error}
+  await refresh();toast(`นำเข้าแล้ว ${rows.length} รายการ`)}
+document.addEventListener('change',async e=>{const t=e.target;
+  if(t.id==='imp'&&t.files[0]){importFile(t.files[0]).catch(()=>toast('นำเข้าไม่สำเร็จ ตรวจว่าเป็นไฟล์สำรองของระบบนี้'));t.value=''}
+  if(t.name==='roomId'&&S.rooms[t.value]){const r=S.rooms[t.value];const set=(i,v)=>{const x=document.getElementById(i);if(x)x.value=v};set('tRent',r.rent);set('tW',r.waterStart??0);set('tE',r.elecStart??0)}
+  if(t.dataset.m){const rid=t.dataset.room,id=meterId(month,rid),r=reading(rid,month),v=num(t.value);
+    if(t.value!==''&&v==null){toast('กรอกเป็นตัวเลขเท่านั้น');return}
+    const{id:_,...old}=S.meters[id]||{};await put('meters',id,{...r,...old,roomId:rid,month,[t.dataset.m]:v,readAt:nowLocal()})}
+});
+addEventListener('hashchange',()=>{scrollTo(0,0);paint()});
+
+/* ---------- boot ---------- */
+let last=null;
+async function refresh(){
+  const rows=[];for(let from=0;;from+=1000){let q=sb.from('docs').select(COLUMNS).order('updated_at').range(from,from+999);if(last)q=q.gt('updated_at',last);
+    const{data,error}=await q;if(error)throw error;rows.push(...data);if(data.length<1000)break}
+  let changed=false;rows.forEach(r=>{if(applyRow(r))changed=true});
+  if(rows.length)last=new Date(new Date(rows[rows.length-1].updated_at)-10000).toISOString();
+  if(changed)render();
+}
+function loginView(msg=''){$('#nav').innerHTML='';$('#view').innerHTML=`<form class="login" data-login><h1>เข้าสู่ระบบหอพัก</h1>${msg?`<p style="color:var(--crit)">${esc(msg)}</p>`:''}<label class="f">อีเมล<input id="lgE" type="email" autocomplete="username" required></label><label class="f">รหัสผ่าน<input id="lgP" type="password" autocomplete="current-password" required></label><button class="btn pri">เข้าสู่ระบบ</button></form>`}
+document.addEventListener('submit',async e=>{if(!e.target.matches('[data-login]'))return;e.preventDefault();
+  const{error}=await sb.auth.signInWithPassword({email:$('#lgE').value,password:$('#lgP').value});if(error)return loginView('อีเมลหรือรหัสผ่านไม่ถูกต้อง');start()});
+async function start(){
+  $('#logoutBtn').hidden=false;$('#view').innerHTML='<div class="empty">กำลังโหลดข้อมูลหอพัก</div>';
+  const{data:st}=await sb.from('staff').select('email').limit(1);denied=!st?.length;
+  try{if(!denied)await refresh();ready=true;paint()}catch(e){$('#view').innerHTML='<div class="empty">ติดต่อฐานข้อมูลไม่ได้ ตรวจอินเทอร์เน็ตแล้วโหลดหน้านี้อีกครั้ง</div>';return}
+  setInterval(()=>{if(!denied&&!document.hidden)refresh().catch(()=>{})},30000);
+  addEventListener('focus',()=>{if(!denied)refresh().catch(()=>{})});
+}
+(async function(){
+  const C=window.DORM_CONFIG||{};
+  if(!window.supabase||!C.url||C.url.includes('YOUR-PROJECT')){$('#view').innerHTML='<div class="empty">ยังไม่ได้ตั้งค่า Supabase ใส่ค่าในไฟล์ config.js ก่อน</div>';return}
+  sb=supabase.createClient(C.url,C.anonKey);
+  dl={save:async({filename,data})=>{const u=URL.createObjectURL(new Blob([data]));const a=document.createElement('a');a.href=u;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(u),2000);return{status:'saved'}}};
+  const{data}=await sb.auth.getSession();if(data.session)start();else loginView();
+})();
+</script>
+
+</body></html>

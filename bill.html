@@ -1,0 +1,134 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>ดูบิลค่าห้อง</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#EEF2F1; --surface:#FBFCFC; --sunk:#E3E9E7; --line:#CBD6D3; --fg:#14302D; --muted:#55706B;
+  --accent:#0E6A5F; --accent-ink:#F2FBF9; --accent-soft:#D3EAE5; --brass:#A9701A; --brass-soft:#F5E6C8;
+  --ok:#1C7A4A; --ok-soft:#D8F0E2; --warn:#9A6200; --warn-soft:#FBEBC8; --crit:#B3322B; --crit-soft:#F9DEDB;
+  --shadow:0 18px 50px rgba(15,50,45,.22);
+  --display:"Chakra Petch","IBM Plex Sans Thai",system-ui,sans-serif;
+  --body:"IBM Plex Sans Thai","Noto Sans Thai",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0F1817; --surface:#162220; --sunk:#1D2C2A; --line:#2F4441; --fg:#E2EDEA; --muted:#93ABA6;
+  --accent:#55C7B4; --accent-ink:#06211D; --accent-soft:#1C403B; --brass:#E0AE5A; --brass-soft:#3D3019;
+  --ok:#62D098; --ok-soft:#173A29; --warn:#EDB95A; --warn-soft:#3E3016; --crit:#F58A82; --crit-soft:#4A2120;
+  --shadow:0 18px 50px rgba(0,0,0,.55); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1817; --surface:#162220; --sunk:#1D2C2A; --line:#2F4441; --fg:#E2EDEA; --muted:#93ABA6;
+  --accent:#55C7B4; --accent-ink:#06211D; --accent-soft:#1C403B; --brass:#E0AE5A; --brass-soft:#3D3019;
+  --ok:#62D098; --ok-soft:#173A29; --warn:#EDB95A; --warn-soft:#3E3016; --crit:#F58A82; --crit-soft:#4A2120;
+  --shadow:0 18px 50px rgba(0,0,0,.55); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:400 16px/1.6 var(--body)}
+.w{max-width:480px;margin:0 auto;padding-block:32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+h1,h2,h3{font-family:var(--display);margin:0;line-height:1.25}h1{font-size:1.6rem}
+p{margin:0}.err{color:var(--crit)}.m{color:var(--muted)}
+label{display:flex;flex-direction:column;gap:4px;color:var(--muted);font-size:.9rem}
+input,select{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--fg);width:100%}
+.btn{font:inherit;font-weight:500;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:10px 14px;border-radius:6px;cursor:pointer}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row .btn{flex:1}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}th{font-weight:500;font-size:.8rem;text-align:left}td small{display:block}td.num,th.num{text-align:right}
+/* bill paper: always a white slip, like the page torn from a receipt book */
+.paper{--ink:#1A2B29;--soft:#5C6E6B;--rule:#D4DBD9;background:#FFFFFF;color:var(--ink);padding:20px;border-radius:4px;border:1px solid var(--line);position:relative;background-image:radial-gradient(circle at 8px 0,var(--surface) 4px,transparent 4.5px);background-size:16px 8px;background-repeat:repeat-x;display:flex;flex-direction:column;gap:12px}
+.paper h3{font-size:1.1rem}
+.paper .top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.paper small,.paper .soft{color:var(--soft)}
+.paper table{color:var(--ink)}
+.paper th{background:none;color:var(--soft);border-bottom:1px solid var(--rule)}
+.paper th,.paper td{border-top:0;padding:4px 0}
+.paper td{border-bottom:1px dotted var(--rule)}
+.paper .total{display:flex;justify-content:space-between;align-items:baseline;font:700 1.25rem var(--display);border-top:2px solid var(--ink);padding-top:8px}
+.paper .foot{display:flex;gap:14px;align-items:center;font-size:.86rem}
+.paper .foot canvas{width:112px;height:112px;flex:none}
+.paper .stamp{position:absolute;right:20px;top:64px;border:3px solid #1C7A4A;color:#1C7A4A;font:700 1.1rem var(--display);padding:2px 12px;border-radius:6px;transform:rotate(-8deg);background:#fff}
+
+</style></head><body><div class="w" id="app"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+/* ---------- pure logic ---------- */
+const round2=n=>Math.round((Number(n)+Number.EPSILON)*100)/100;
+const num=v=>{if(v===''||v==null)return null;const n=Number(String(v).replace(/,/g,''));return Number.isFinite(n)?n:null};
+function calcBill({rent=0,water,elec,rates,extras=[]}){
+  const wU=round2(water.cur-water.prev),eU=round2(elec.cur-elec.prev);
+  const wA=round2(Math.max(wU*rates.water,rates.waterMin||0)),eA=round2(Math.max(eU*rates.elec,rates.elecMin||0));
+  const common=round2(rates.common||0);
+  const ex=round2(extras.reduce((a,x)=>a+(Number(x.amount)||0),0));
+  return {waterUnits:wU,elecUnits:eU,waterAmt:wA,elecAmt:eA,common,extrasTotal:ex,total:round2(Number(rent)+wA+eA+common+ex)};
+}
+function crc16(s){let c=0xFFFF;for(let i=0;i<s.length;i++){c^=s.charCodeAt(i)<<8;for(let j=0;j<8;j++)c=c&0x8000?((c<<1)^0x1021)&0xFFFF:(c<<1)&0xFFFF}return c.toString(16).toUpperCase().padStart(4,'0')}
+function ppPayload(id,amount){
+  const d=String(id||'').replace(/\D/g,'');const f=(k,v)=>k+String(v.length).padStart(2,'0')+v;
+  let tag,t;if(d.length===10){tag='01';t='0066'+d.slice(1)}else if(d.length===13){tag='02';t=d}else return null;
+  const p=f('00','01')+f('01',amount?'12':'11')+f('29',f('00','A000000677010111')+f(tag,t))+f('58','TH')+f('53','764')+(amount?f('54',Number(amount).toFixed(2)):'')+'6304';
+  return p+crc16(p);
+}
+const TM=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const TMS=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const pad=n=>String(n).padStart(2,'0');
+const monthLabel=m=>{const[y,mo]=m.split('-').map(Number);return TM[mo-1]+' '+(y+543)};
+const thDate=s=>{if(!s)return '-';const[y,m,d]=s.slice(0,10).split('-').map(Number);return d+' '+TMS[m-1]+' '+(y+543)};
+const thDT=s=>!s?'-':thDate(s)+(s.length>10?' '+s.slice(11,16)+' น.':'');
+const baht=n=>Number(n||0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
+const units=n=>Number(n||0).toLocaleString('th-TH',{maximumFractionDigits:2});
+const shiftMonth=(m,d)=>{const[y,mo]=m.split('-').map(Number);const t=new Date(y,mo-1+d,1);return t.getFullYear()+'-'+pad(t.getMonth()+1)};
+const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())};
+const nowLocal=()=>{const d=new Date();return todayStr()+'T'+pad(d.getHours())+':'+pad(d.getMinutes())};
+const daysTo=s=>Math.round((new Date(s+'T00:00:00')-new Date(todayStr()+'T00:00:00'))/864e5);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+
+const S={setup:{}};const $=s=>document.querySelector(s);
+const dl={save:async({filename,data})=>{const u=URL.createObjectURL(data);const a=document.createElement('a');a.href=u;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(u),2000)}};
+function makeQR(text,size){try{const d=document.createElement('div');new QRCode(d,{text,width:size,height:size,correctLevel:QRCode.CorrectLevel.M});return d.querySelector('canvas')}catch(e){return null}}
+function billLines(b){
+  return [['ค่าเช่าห้อง','',b.rent],
+   ['ค่าน้ำ',`${units(b.water.prev)} → ${units(b.water.cur)} = ${units(b.waterUnits)} หน่วย × ${baht(b.rates.water)}`,b.waterAmt],
+   ['ค่าไฟ',`${units(b.elec.prev)} → ${units(b.elec.cur)} = ${units(b.elecUnits)} หน่วย × ${baht(b.rates.elec)}`,b.elecAmt],
+   ...(b.common?[['ค่าส่วนกลาง','',b.common]]:[]),...(b.extras||[]).map(x=>[x.label||'รายการอื่น','',Number(x.amount)||0])];
+}
+async function billPng(b){
+  const s=S.setup,W=760,lines=billLines(b),F='"IBM Plex Sans Thai","Noto Sans Thai",sans-serif';
+  try{await document.fonts.load('16px "IBM Plex Sans Thai"','ก')}catch(e){}
+  const pp=b.status==='unpaid'&&window.QRCode&&ppPayload(s.promptpay,b.total),qr=pp&&makeQR(pp,240);
+  const H=330+lines.length*54+(qr?260:70);
+  const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
+  g.fillStyle='#fff';g.fillRect(0,0,W,H);g.fillStyle='#1A2B29';let y=64;const P=48;
+  const T=(t,x,yy,f,al='left',col='#1A2B29')=>{g.font=f;g.textAlign=al;g.fillStyle=col;g.fillText(t,x,yy)};
+  T(s.name||'หอพัก',P,y,`600 30px ${F}`);T('ใบแจ้งค่าเช่า',W-P,y,`600 24px ${F}`,'right');y+=32;
+  T(`${s.address||''} ${s.phone||''}`.trim(),P,y,`400 18px ${F}`,'left','#5C6E6B');T('เลขที่ '+b.billNo,W-P,y,`400 18px ${F}`,'right','#5C6E6B');y+=54;
+  T(`ห้อง ${b.roomNumber}  ${b.tenantName}`,P,y,`600 22px ${F}`);T('ประจำเดือน '+monthLabel(b.month),W-P,y,`400 20px ${F}`,'right');y+=26;
+  g.strokeStyle='#1A2B29';g.lineWidth=2;g.beginPath();g.moveTo(P,y);g.lineTo(W-P,y);g.stroke();y+=36;
+  lines.forEach(([a,d,n])=>{T(a,P,y,`500 21px ${F}`);T(baht(n),W-P,y,`500 21px ${F}`,'right');if(d)T(d,P,y+22,`400 16px ${F}`,'left','#5C6E6B');y+=54});
+  g.beginPath();g.moveTo(P,y-14);g.lineTo(W-P,y-14);g.stroke();y+=24;
+  T('รวมทั้งสิ้น',P,y,`600 28px ${F}`);T(baht(b.total)+' บาท',W-P,y,`600 28px ${F}`,'right');y+=44;
+  T(b.status==='paid'?`ชำระแล้วเมื่อ ${thDate(b.paidAt)}`:`ชำระภายใน ${thDate(b.dueDate)}`,P,y,`500 20px ${F}`,'left',b.status==='paid'?'#1C7A4A':'#1A2B29');y+=28;
+  if(s.bank)T(s.bank,P,y,`400 18px ${F}`,'left','#5C6E6B');y+=14;
+  if(qr)g.drawImage(qr,W/2-120,y,240,240);
+  const blob=await new Promise(r=>c.toBlob(r,'image/png'));
+  await dl.save({filename:`bill-${b.billNo}.png`,data:blob});
+}
+
+
+let bills=[];const sb=window.supabase&&window.DORM_CONFIG&&!DORM_CONFIG.url.includes('YOUR-PROJECT')?supabase.createClient(DORM_CONFIG.url,DORM_CONFIG.anonKey):null;
+function login(msg=''){$('#app').innerHTML=`<h1>ดูบิลค่าห้อง</h1><p class="m">ใส่เลขห้องและรหัสที่ได้รับจากหอพัก</p>${msg?`<p class="err">${esc(msg)}</p>`:''}<form id="f" style="display:flex;flex-direction:column;gap:12px"><label>เลขห้อง<input id="room" required autocomplete="off"></label><label>รหัสห้อง<input id="code" inputmode="numeric" required autocomplete="off"></label><button class="btn pri">ดูบิล</button></form>`;
+  $('#f').onsubmit=async e=>{e.preventDefault();if(!sb)return login('ระบบยังไม่พร้อมใช้งาน');const{data,error}=await sb.rpc('get_bills',{p_room:$('#room').value.trim(),p_code:$('#code').value.trim()});
+    if(error)return login('เปิดบิลไม่ได้ ตรวจอินเทอร์เน็ตแล้วลองอีกครั้ง');if(data.error==='locked')return login('ลองผิดหลายครั้ง รอ 15 นาทีแล้วลองใหม่');if(data.error)return login('เลขห้องหรือรหัสไม่ถูกต้อง');
+    S.setup=data.setup||{};bills=data.bills||[];show(0)}}
+function show(i){const s=S.setup;if(!bills.length){$('#app').innerHTML='<h1>ดูบิลค่าห้อง</h1><p>ยังไม่มีบิลของห้องนี้</p><button class="btn" id="bk">กลับ</button>';$('#bk').onclick=()=>login();return}
+  const b=bills[i],pp=b.status==='unpaid'&&ppPayload(s.promptpay,b.total);
+  $('#app').innerHTML=`<h1>บิลห้อง ${esc(b.roomNumber)}</h1><label>เดือน<select id="mo">${bills.map((x,j)=>`<option value="${j}" ${j===i?'selected':''}>${monthLabel(x.month)}</option>`).join('')}</select></label>
+  <div class="paper">${b.status==='paid'?'<div class="stamp">ชำระแล้ว</div>':''}<div class="top"><div><h3>${esc(s.name||'หอพัก')}</h3><small>${esc(s.address)} ${esc(s.phone)}</small></div><div style="text-align:right"><b>ใบแจ้งค่าเช่า</b><br><small>เลขที่ ${esc(b.billNo)}</small></div></div>
+  <table><thead><tr><th>รายการ</th><th class="num">บาท</th></tr></thead><tbody>${billLines(b).map(([a,d,n])=>`<tr><td>${esc(a)}${d?`<small>${esc(d)}</small>`:''}</td><td class="num">${baht(n)}</td></tr>`).join('')}</tbody></table>
+  <div class="total"><span>รวมทั้งสิ้น</span><span>${baht(b.total)} บาท</span></div><div class="foot"><span id="qrSlot"></span><div>${b.status==='paid'?`ชำระเมื่อ ${thDate(b.paidAt)}`:`ชำระภายใน ${thDate(b.dueDate)}`}<br><span class="soft">${esc(s.bank)}</span><br><span class="soft">${esc(s.billNote)}</span></div></div></div>
+  <div class="row"><button class="btn pri" id="sv">บันทึกบิลเป็นรูป</button><button class="btn" id="bk">ออก</button></div>`;
+  if(pp&&window.QRCode){const c=makeQR(pp,224);if(c)$('#qrSlot').append(c)}
+  $('#mo').onchange=e=>show(Number(e.target.value));$('#bk').onclick=()=>{bills=[];login()};$('#sv').onclick=()=>billPng({...b,tenantName:''})}
+login();
+</script></body></html>
