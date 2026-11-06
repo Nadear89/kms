@@ -95,7 +95,7 @@ async function billPng(b){
   const T=(t,x,yy,f,al='left',col='#1A2B29')=>{g.font=f;g.textAlign=al;g.fillStyle=col;g.fillText(t,x,yy)};
   T(s.name||'หอพัก',P,y,`600 30px ${F}`);T('ใบแจ้งค่าเช่า',W-P,y,`600 24px ${F}`,'right');y+=32;
   T(`${s.address||''} ${s.phone||''}`.trim(),P,y,`400 18px ${F}`,'left','#5C6E6B');T('เลขที่ '+b.billNo,W-P,y,`400 18px ${F}`,'right','#5C6E6B');y+=54;
-  T(`ห้อง ${b.roomNumber}  ${b.tenantName}`,P,y,`600 22px ${F}`);T('ประจำเดือน '+monthLabel(b.month),W-P,y,`400 20px ${F}`,'right');y+=26;
+  T(`${b.buildingName?b.buildingName+'  ':''}ห้อง ${b.roomNumber}  ${b.tenantName}`,P,y,`600 22px ${F}`);T('ประจำเดือน '+monthLabel(b.month),W-P,y,`400 20px ${F}`,'right');y+=26;
   g.strokeStyle='#1A2B29';g.lineWidth=2;g.beginPath();g.moveTo(P,y);g.lineTo(W-P,y);g.stroke();y+=36;
   lines.forEach(([a,d,n])=>{T(a,P,y,`500 21px ${F}`);T(baht(n),W-P,y,`500 21px ${F}`,'right');if(d)T(d,P,y+22,`400 16px ${F}`,'left','#5C6E6B');y+=54});
   g.beginPath();g.moveTo(P,y-14);g.lineTo(W-P,y-14);g.stroke();y+=24;
@@ -115,7 +115,7 @@ function login(msg=''){$('#app').innerHTML=`<img src="favicon-192.png" alt="" wi
     S.setup=data.setup||{};bills=data.bills||[];show(0)}}
 function show(i){const s=S.setup;if(!bills.length){$('#app').innerHTML='<h1>ดูบิลค่าห้อง</h1><p>ยังไม่มีบิลของห้องนี้</p><button class="btn" id="bk">กลับ</button>';$('#bk').onclick=()=>login();return}
   const b=bills[i],pp=b.status==='unpaid'&&ppPayload(s.promptpay,b.total);
-  $('#app').innerHTML=`<h1>บิลห้อง ${esc(b.roomNumber)}</h1><label>เดือน<select id="mo">${bills.map((x,j)=>`<option value="${j}" ${j===i?'selected':''}>${monthLabel(x.month)}</option>`).join('')}</select></label>
+  $('#app').innerHTML=`<h1>บิล${b.buildingName?' '+esc(b.buildingName):''} ห้อง ${esc(b.roomNumber)}</h1><label>เดือน<select id="mo">${bills.map((x,j)=>`<option value="${j}" ${j===i?'selected':''}>${monthLabel(x.month)}</option>`).join('')}</select></label>
   <div class="paper">${b.status==='paid'?'<div class="stamp">ชำระแล้ว</div>':''}<div class="top"><div><h3>${esc(s.name||'หอพัก')}</h3><small>${esc(s.address)} ${esc(s.phone)}</small></div><div style="text-align:right"><b>ใบแจ้งค่าเช่า</b><br><small>เลขที่ ${esc(b.billNo)}</small></div></div>
   <table><thead><tr><th>รายการ</th><th class="num">บาท</th></tr></thead><tbody>${billLines(b).map(([a,d,n])=>`<tr><td>${esc(a)}${d?`<small>${esc(d)}</small>`:''}</td><td class="num">${baht(n)}</td></tr>`).join('')}</tbody></table>
   <div class="total"><span>รวมทั้งสิ้น</span><span>${baht(b.total)} บาท</span></div><div class="foot"><span id="qrSlot"></span><div>${b.status==='paid'?`ชำระเมื่อ ${thDate(b.paidAt)}`:`ชำระภายใน ${thDate(b.dueDate)}`}<br><span class="soft">${esc(s.bank)}</span><br><span class="soft">${esc(s.billNote)}</span></div></div></div>

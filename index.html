@@ -172,6 +172,15 @@ fieldset legend{font:600 .95rem var(--display);padding:0 0 6px;color:var(--brass
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 16px;border-radius:6px;z-index:50;max-width:calc(100vw - 32px)}
 @media(prefers-reduced-motion:no-preference){.tag{transition:border-color .12s}}
 
+/* buildings */
+.bbar{display:flex;flex-wrap:wrap;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:6px;align-self:flex-start;max-width:100%}
+.bchip{border:0;background:none;padding:7px 16px;border-radius:10px;font-weight:600;color:#46554B;cursor:pointer}
+.bchip:hover{background:var(--sunk)}
+.bchip[aria-selected=true]{background:var(--accent);color:#fff}
+.bhead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:14px 0 4px;border-top:2px solid var(--line);font-size:1.05rem}
+.bhead:first-child{border-top:0;padding-top:8px}
+.bhead span{color:var(--muted);font-size:.88rem}
+.rpf{grid-template-columns:minmax(64px,auto) minmax(0,1fr)}
 /* green looped */
 body{font-size:15.5px;color:var(--fg)}
 h1{font-size:2rem;font-weight:700;letter-spacing:-.01em}h2{font-size:1.25rem;font-weight:700}
@@ -297,10 +306,18 @@ const seen={};let sb=null,dl=null,canWrite=true,ready=false,month=todayStr().sli
 const VIEWS={home:'ภาพรวม',rooms:'ห้องพัก',tenants:'ผู้เช่า',contracts:'สัญญา',meter:'จดมิเตอร์',bills:'ทำบิล',setup:'ตั้งค่า'};
 const view=()=>{const h=location.hash.slice(1);return VIEWS[h]?h:'home'};
 const $=s=>document.querySelector(s);
-const rooms=()=>Object.values(S.rooms).sort((a,b)=>String(a.number).localeCompare(String(b.number),'th',{numeric:true}));
+const BLD=()=>{const b=S.setup.buildings;return Array.isArray(b)&&b.length?b:[{id:'b1',name:'หลังที่ 1'}]};
+const multi=()=>BLD().length>1;
+const roomBld=r=>(r&&BLD().some(b=>b.id===r.building))?r.building:BLD()[0].id;
+const bldName=id=>BLD().find(b=>b.id===id)?.name||'';
+let bld=(()=>{try{return localStorage.getItem('bld')||'all'}catch(e){return 'all'}})();
+const curB=()=>bld!=='all'&&BLD().some(b=>b.id===bld)?bld:'all';
+const inB=rid=>curB()==='all'||roomBld(S.rooms[rid])===curB();
+const allRooms=()=>Object.values(S.rooms).sort((a,b)=>String(a.number).localeCompare(String(b.number),'th',{numeric:true}));
+const rooms=()=>allRooms().filter(r=>inB(r.id));
 const tenantOf=rid=>Object.values(S.tenants).find(t=>t.status==='active'&&t.roomId===rid);
-const activeTenants=()=>Object.values(S.tenants).filter(t=>t.status==='active');
-const roomNo=rid=>S.rooms[rid]?.number??'-';
+const activeTenants=()=>Object.values(S.tenants).filter(t=>t.status==='active'&&inB(t.roomId));
+const roomNo=rid=>{const r=S.rooms[rid];if(!r)return '-';return r.number+(multi()&&curB()==='all'?' ('+bldName(roomBld(r))+')':'')};
 const rate=k=>Number(S.setup[k])||0;
 const rates=()=>({water:rate('waterRate'),elec:rate('elecRate'),waterMin:rate('waterMin'),elecMin:rate('elecMin'),common:rate('common')});
 const meterId=(m,r)=>m+'_'+r;
@@ -319,12 +336,12 @@ function buildBill(rid,m,old){
   const t=tenantOf(rid),room=S.rooms[rid],r=reading(rid,m);if(!t||!readingOk(r))return null;
   const R=rates(),rent=Number(t.rent??room.rent)||0,extras=old?.extras||[];
   const c=calcBill({rent,water:{prev:r.waterPrev,cur:r.waterCur},elec:{prev:r.elecPrev,cur:r.elecCur},rates:R,extras});
-  return {month:m,roomId:rid,roomNumber:room.number,tenantId:t.id,tenantName:t.name,billNo:(Number(m.slice(0,4))+543)+m.slice(5,7)+'-'+room.number,rent,
+  return {month:m,roomId:rid,roomNumber:room.number,tenantId:t.id,tenantName:t.name,billNo:(Number(m.slice(0,4))+543)+m.slice(5,7)+'-'+(multi()?(BLD().findIndex(b=>b.id===roomBld(room))+1)+'-':'')+room.number,buildingName:multi()?bldName(roomBld(room)):'',rent,
     water:{prev:r.waterPrev,cur:r.waterCur},elec:{prev:r.elecPrev,cur:r.elecCur},rates:R,extras,...c,
     issuedAt:old?.issuedAt||todayStr(),dueDate:old?.dueDate||dueDateFor(m),status:'unpaid',sample:old?.sample||undefined};
 }
 const isLate=b=>b.status==='unpaid'&&b.dueDate<todayStr();
-const allBills=()=>Object.values(S.bills);
+const allBills=()=>Object.values(S.bills).filter(b=>inB(b.roomId));
 
 /* ---------- writes ---------- */
 function clean(o){return JSON.parse(JSON.stringify(o))}
@@ -365,29 +382,33 @@ function vHome(){
   const ending=act.filter(t=>t.contractEnd&&daysTo(t.contractEnd)<=60).sort((a,b)=>a.contractEnd.localeCompare(b.contractEnd));
   const noMeter=act.filter(t=>!readingOk(reading(t.roomId,month)));
   const lateRooms=new Set(late.map(b=>b.roomId)),endRooms=new Set(ending.map(t=>t.roomId));
-  const floors={};rs.forEach(r=>(floors[r.floor||'-']??=[]).push(r));
-  const plan=Object.keys(floors).sort((a,b)=>Number(a)-Number(b)).map(f=>`<div class="floor"><span>ชั้น ${esc(f)}</span><div class="tags">${floors[f].map(r=>{
+  const planOf=list=>{const floors={};list.forEach(r=>(floors[r.floor||'-']??=[]).push(r));return Object.keys(floors).sort((a,b)=>Number(a)-Number(b)).map(f=>`<div class="floor"><span>ชั้น ${esc(f)}</span><div class="tags">${floors[f].map(r=>{
     const t=tenantOf(r.id);const c=r.closed?'off':!t?'free':lateRooms.has(r.id)?'late':endRooms.has(r.id)?'end':'on';
-    return `<button class="tag ${c}" data-act="${t?'editTenant':r.closed?'editRoom':'newTenant'}" data-id="${t?t.id:r.id}">${c==='late'?'<span class="owe">ค้าง</span>':''}<b>${esc(r.number)}</b><small>${r.closed?'ปิดซ่อม':t?esc(t.name):'ว่าง'}</small><small class="ty">${esc(r.type)||'&nbsp;'}</small></button>`}).join('')}</div></div>`).join('');
+    return `<button class="tag ${c}" data-act="${t?'editTenant':r.closed?'editRoom':'newTenant'}" data-id="${t?t.id:r.id}">${c==='late'?'<span class="owe">ค้าง</span>':''}<b>${esc(r.number)}</b><small>${r.closed?'ปิดซ่อม':t?esc(t.name):'ว่าง'}</small><small class="ty">${esc(r.type)||'&nbsp;'}</small></button>`}).join('')}</div></div>`).join('')};
+  const groups=multi()&&curB()==='all'?BLD().map(b=>({b,list:rs.filter(r=>roomBld(r)===b.id)})).filter(g=>g.list.length):[{list:rs}];
+  const plan=groups.map(g=>(g.b?`<div class="bhead"><b>${esc(g.b.name)}</b><span>${g.list.filter(r=>tenantOf(r.id)).length}/${g.list.filter(r=>!r.closed).length} ห้องมีผู้เช่า</span></div>`:'')+planOf(g.list)).join('');
+  const bsum=multi()&&curB()==='all'?`<div class="tw"><table><thead><tr><th>หลัง</th><th class="num">ห้องมีผู้เช่า</th><th class="num">ห้องว่าง</th><th class="num">รับแล้วเดือนนี้</th><th class="num">ค้างรับ</th><th></th></tr></thead><tbody>${BLD().map(b=>{const L=allRooms().filter(r=>roomBld(r)===b.id),ids=new Set(L.map(r=>r.id)),occB=L.filter(r=>tenantOf(r.id)).length,openB=L.filter(r=>!r.closed).length,
+    bb=Object.values(S.bills).filter(x=>ids.has(x.roomId)),pd=bb.filter(x=>x.month===month&&x.status==='paid').reduce((a,x)=>a+x.total,0),ow=bb.filter(x=>x.status==='unpaid').reduce((a,x)=>a+x.total,0);
+    return `<tr><td><b>${esc(b.name)}</b></td><td class="num">${occB}/${openB}</td><td class="num">${openB-occB}</td><td class="num">${baht(pd)}</td><td class="num" style="${ow?'color:var(--crit)':''}">${baht(ow)}</td><td class="num"><button class="btn sm" data-act="setB" data-id="${b.id}">จัดการ</button></td></tr>`}).join('')}</tbody></table></div>`:'';
   const todo=[
-    ...late.map(b=>`<li><div>ห้อง ${esc(b.roomNumber)} ค้างบิล ${monthLabel(b.month)}<small>${baht(b.total)} บาท ครบกำหนด ${thDate(b.dueDate)}</small></div><button class="btn sm" data-act="openBill" data-id="${b.id}">ดูบิล</button></li>`),
+    ...late.map(b=>`<li><div>ห้อง ${esc(roomNo(b.roomId))} ค้างบิล ${monthLabel(b.month)}<small>${baht(b.total)} บาท ครบกำหนด ${thDate(b.dueDate)}</small></div><button class="btn sm" data-act="openBill" data-id="${b.id}">ดูบิล</button></li>`),
     ...ending.map(t=>{const[s]=contractState(t);return `<li><div>สัญญาห้อง ${esc(roomNo(t.roomId))} ${esc(t.name)}<small>${s} สิ้นสุด ${thDate(t.contractEnd)}</small></div><button class="btn sm" data-act="editTenant" data-id="${t.id}">ต่อสัญญา</button></li>`}),
     ...(noMeter.length?[`<li><div>ยังไม่จดมิเตอร์ ${noMeter.length} ห้อง<small>${monthLabel(month)}</small></div><a class="btn sm" href="#meter">จดมิเตอร์</a></li>`]:[])
   ].join('');
-  return `<div class="head"><div><h1>ภาพรวมหอพัก</h1></div>${monthBar()}</div>${sampleNote()}
+  return `<div class="head"><div><h1>ภาพรวม${curB()==='all'?(multi()?'ทุกหลัง':'หอพัก'):' '+esc(bldName(curB()))}</h1></div>${monthBar()}</div>${sampleNote()}
   <div class="stats">
     <div class="stat"><b>${occ}/${open}</b><span>ห้องมีผู้เช่า</span></div>
     <div class="stat"><b>${baht(paid)}</b><span>รับแล้วของ${TM[+month.slice(5)-1]}</span></div>
     <div class="stat ${late.length?'crit':''}"><b>${baht(owed)}</b><span>ยอดค้างรับทั้งหมด</span></div>
     <div class="stat"><b>${ending.length}</b><span>สัญญาใกล้หมด (60 วัน)</span></div>
-  </div>
+  </div>${bsum}
   <div class="two"><section class="panel"><h2>ผังห้องพัก</h2>${rs.length?`<div class="plan">${plan}</div>
     <div class="legend"><span><i style="background:var(--surface);border-color:var(--accent)"></i>มีผู้เช่า</span><span><i style="background:var(--crit-soft);border-color:var(--crit)"></i>ค้างชำระ</span><span><i style="background:var(--warn-soft);border-color:var(--warn)"></i>สัญญาใกล้หมด</span><span><i style="background:var(--ok-soft);border-color:var(--ok)"></i>ว่าง</span></div>`
     :`<div class="empty">ยังไม่มีห้องพัก เพิ่มห้องก่อนเริ่มใช้งาน<a class="btn pri" href="#rooms">เพิ่มห้อง</a></div>`}</section>
   <section class="panel"><h2>งานที่ต้องตาม</h2>${todo?`<ul class="todo">${todo}</ul>`:'<div class="empty">ไม่มีงานค้าง</div>'}</section></div>`;
 }
 function vRooms(){
-  const rows=rooms().map(r=>{const t=tenantOf(r.id);return `<tr><td class="nowrap"><b>${esc(r.number)}</b></td><td>${esc(r.floor)}</td><td>${esc(r.type)}</td><td class="num">${baht(r.rent)}</td>
+  const rows=rooms().map(r=>{const t=tenantOf(r.id);return `<tr><td class="nowrap"><b>${esc(roomNo(r.id))}</b></td><td>${esc(r.floor)}</td><td>${esc(r.type)}</td><td class="num">${baht(r.rent)}</td>
     <td>${r.closed?'<span class="pill warn">ปิดซ่อม</span>':t?'<span class="pill info">มีผู้เช่า</span>':'<span class="pill">ว่าง</span>'}</td><td>${t?esc(t.name):'-'}</td>
     <td class="nowrap">${r.code?`<code>${esc(r.code)}</code> <button class="btn sm" data-act="copyCode" data-id="${r.id}">คัดลอก</button>`:'-'}</td><td class="num nowrap"><button class="btn sm" data-act="editRoom" data-id="${r.id}">แก้ไข</button></td></tr>`}).join('');
   const noCode=rooms().filter(r=>!r.code).length;
@@ -396,7 +417,7 @@ function vRooms(){
 }
 function vTenants(){
   const q=query.trim().toLowerCase();
-  const list=Object.values(S.tenants).filter(t=>!q||[t.name,t.phone,roomNo(t.roomId)].join(' ').toLowerCase().includes(q))
+  const list=Object.values(S.tenants).filter(t=>inB(t.roomId)).filter(t=>!q||[t.name,t.phone,roomNo(t.roomId)].join(' ').toLowerCase().includes(q))
     .sort((a,b)=>(a.status===b.status?String(roomNo(a.roomId)).localeCompare(String(roomNo(b.roomId)),'th',{numeric:true}):a.status==='active'?-1:1));
   const rows=list.map(t=>`<tr><td class="nowrap"><b>${esc(roomNo(t.roomId))}</b></td><td>${esc(t.name)}<small>${esc(t.phone)}</small></td><td class="nowrap">${thDT(t.moveInAt)}</td>
     <td>${t.status==='active'?'<span class="pill ok">พักอยู่</span>':`<span class="pill">ย้ายออก ${thDate(t.moveOutAt)}</span>`}</td>
@@ -425,7 +446,7 @@ function vMeter(){
 }
 function billRows(){
   const out=[];const seen=new Set();
-  allBills().filter(b=>b.month===month).forEach(b=>{seen.add(b.roomId);out.push({rid:b.roomId,no:b.roomNumber,name:b.tenantName,b})});
+  allBills().filter(b=>b.month===month).forEach(b=>{seen.add(b.roomId);out.push({rid:b.roomId,no:S.rooms[b.roomId]?roomNo(b.roomId):b.roomNumber,name:b.tenantName,b})});
   activeTenants().forEach(t=>{if(!seen.has(t.roomId))out.push({rid:t.roomId,no:roomNo(t.roomId),name:t.name,r:reading(t.roomId,month)})});
   return out.sort((a,b)=>String(a.no).localeCompare(String(b.no),'th',{numeric:true}));
 }
@@ -444,6 +465,11 @@ function vBills(){
 function vSetup(){
   const s=S.setup,v=k=>esc(s[k]??'');const fld=(k,l,t='text',x='')=>`<label class="f">${l}<input name="${k}" type="${t}" value="${v(k)}" ${t==='number'?'step="any" min="0"':''} ${x}></label>`;
   return `<div class="head"><div><h1>ตั้งค่าหอพัก</h1><p>อัตราที่แก้ใหม่มีผลกับบิลที่ออกต่อจากนี้ บิลเดิมคงยอดเดิม</p></div></div>${sampleNote()}
+  <form data-form="blds" class="panel" style="max-width:640px"><fieldset><legend>อาคาร / หลัง</legend>
+  ${BLD().map(b=>`<label class="f">ชื่อหลัง<input name="${b.id}" value="${esc(b.name)}" required></label>`).join('')}
+  <label class="f">เพิ่มหลังใหม่<input id="newB" placeholder="เช่น หลัง B"></label></fieldset>
+  <div class="row"><button class="btn" ${canWrite?'':'disabled'}>บันทึกชื่อหลัง</button><button class="btn" type="button" data-act="addB">เพิ่มหลัง</button></div>
+  <p style="color:var(--muted)">ห้องเดิมที่ยังไม่ได้ระบุหลัง จะอยู่ใน${esc(BLD()[0].name)} แก้ได้ที่ปุ่มแก้ไขของแต่ละห้อง</p></form>
   <form data-form="setup" class="panel" style="max-width:640px">
   <fieldset><legend>ข้อมูลบนหัวบิล</legend>${fld('name','ชื่อหอพัก')}${fld('phone','เบอร์โทร')}<label class="f full">ที่อยู่<input name="address" value="${v('address')}"></label></fieldset>
   <fieldset><legend>อัตราค่าบริการ</legend>${fld('waterRate','ค่าน้ำ (บาท/หน่วย)','number')}${fld('waterMin','ค่าน้ำขั้นต่ำ (บาท/เดือน)','number')}${fld('elecRate','ค่าไฟ (บาท/หน่วย)','number')}${fld('elecMin','ค่าไฟขั้นต่ำ (บาท/เดือน)','number')}${fld('common','ค่าส่วนกลาง (บาท/เดือน)','number')}${fld('dueDay','ครบกำหนดชำระวันที่ของเดือนถัดไป','number','max="28"')}</fieldset>
@@ -466,7 +492,7 @@ function paint(){
   renderNav();
   if(denied){main.innerHTML='<div class="empty">บัญชีนี้ยังไม่ได้รับสิทธิ์ เพิ่มอีเมลนี้ในตาราง staff ของ Supabase ก่อน</div>';return}
   const a=document.activeElement,id=a?.id,val=a?.value,pos=a?.selectionStart,y=scrollY;
-  main.innerHTML=RENDER[view()]();
+  main.innerHTML=(multi()?`<div class="bbar" role="tablist" aria-label="เลือกหลัง"><button class="bchip" data-act="setB" data-id="all" aria-selected="${curB()==='all'}">ทุกหลัง</button>${BLD().map(b=>`<button class="bchip" data-act="setB" data-id="${b.id}" aria-selected="${curB()===b.id}">${esc(b.name)}</button>`).join('')}</div>`:'')+RENDER[view()]();
   if(id&&main.contains(document.getElementById(id))){const e=document.getElementById(id);if(e.tagName==='INPUT'){e.value=val;e.focus();try{e.setSelectionRange(pos,pos)}catch(_){}}}
   scrollTo(0,y);
 }
@@ -476,21 +502,21 @@ const openDlg=h=>{$('#dlgBody').innerHTML=h;const d=$('#dlg');if(!d.open)d.showM
 const closeDlg=()=>$('#dlg').close();
 const dHead=t=>`<header><h2>${esc(t)}</h2><button type="button" class="btn sm" data-act="close">ปิด</button></header>`;
 function roomForm(r={}){openDlg(`<form class="dlg" data-form="room" data-id="${r.id||''}">${dHead(r.id?'แก้ไขห้อง '+r.number:'เพิ่มห้อง')}
-  <fieldset><label class="f">เลขห้อง<input name="number" required value="${esc(r.number??'')}"></label><label class="f">ชั้น<input name="floor" required value="${esc(r.floor??'')}"></label>
+  <fieldset>${multi()?`<label class="f">หลัง<select name="building">${BLD().map(b=>`<option value="${b.id}" ${b.id===(r.id?roomBld(r):(curB()==='all'?BLD()[0].id:curB()))?'selected':''}>${esc(b.name)}</option>`).join('')}</select></label>`:''}<label class="f">เลขห้อง<input name="number" required value="${esc(r.number??'')}"></label><label class="f">ชั้น<input name="floor" required value="${esc(r.floor??'')}"></label>
   <label class="f">ประเภทห้อง<input name="type" placeholder="พัดลม, แอร์" value="${esc(r.type??'')}"></label><label class="f">ค่าเช่า/เดือน<input name="rent" type="number" min="0" step="any" required value="${r.rent??''}"></label>
   <label class="f">เลขมิเตอร์น้ำตั้งต้น<input name="waterStart" type="number" min="0" step="any" value="${r.waterStart??0}"></label><label class="f">เลขมิเตอร์ไฟตั้งต้น<input name="elecStart" type="number" min="0" step="any" value="${r.elecStart??0}"></label>
   <label class="f full"><span><input type="checkbox" name="closed" style="width:auto" ${r.closed?'checked':''}> ปิดซ่อม ไม่รับผู้เช่า</span></label></fieldset>
   <div class="actions">${r.id?`<button type="button" class="btn danger l" data-act="delRoom" data-id="${r.id}">ลบห้อง</button>`:''}<button class="btn pri">บันทึกห้อง</button></div></form>`)}
-const nextNo=()=>rooms().reduce((m,r)=>Math.max(m,/^\d+$/.test(r.number)?Number(r.number):0),0)+1;
-function bulkForm(){const st=nextNo();openDlg(`<form class="dlg" data-form="bulk">${dHead('เพิ่มห้องหลายห้อง')}<fieldset>
+const nextNo=()=>allRooms().filter(r=>roomBld(r)===(curB()==='all'?BLD()[0].id:curB())).reduce((m,r)=>Math.max(m,/^\d+$/.test(r.number)?Number(r.number):0),0)+1;
+function bulkForm(){const st=nextNo();openDlg(`<form class="dlg" data-form="bulk">${dHead('เพิ่มห้องหลายห้อง')}<fieldset>${multi()?`<label class="f">หลัง<select name="building">${BLD().map(b=>`<option value="${b.id}" ${b.id===(curB()==='all'?BLD()[0].id:curB())?'selected':''}>${esc(b.name)}</option>`).join('')}</select></label>`:''}
   <label class="f">เลขห้องเริ่มต้น<input name="start" type="number" min="1" required value="${st}"></label><label class="f">จำนวนห้อง<input name="count" type="number" min="1" max="200" required value="${Math.max(1,Math.min(100,101-st))}"></label>
   <label class="f">ชั้น<input name="floor" type="number" min="1" required value="1"></label>
   <label class="f">ค่าเช่า/เดือน<input name="rent" type="number" min="0" step="any" required></label><label class="f">ประเภทห้อง<input name="type"></label></fieldset>
   <p class="soft" style="color:var(--muted)">เลขห้องเรียงต่อกัน เช่น เริ่ม 1 จำนวน 100 จะได้ห้อง 1 ถึง 100 ถ้าแต่ละชั้นมีหลายห้อง สร้างทีละชั้นได้ เช่น ชั้น 1 เริ่ม 1 จำนวน 20 แล้วชั้น 2 เริ่ม 21</p><div class="actions"><button class="btn pri">สร้างห้อง</button></div></form>`)}
 function tenantForm(t={},presetRoom){
   const isNew=!t.id,rid=t.roomId||presetRoom||'';
-  const fl={};rooms().forEach(r=>(fl[r.floor||'-']??=[]).push(r));
-  const opts=Object.keys(fl).sort((a,b)=>Number(a)-Number(b)).map(f=>`<div class="rpf"><span>ชั้น ${esc(f)}</span><div class="rpg">${fl[f].map(r=>{const who=tenantOf(r.id),taken=who&&who.id!==t.id,busy=r.closed||taken||t.status==='moved_out';
+  const fl={};rooms().forEach(r=>(fl[(multi()&&curB()==='all'?bldName(roomBld(r))+' · ':'')+'ชั้น '+(r.floor||'-')]??=[]).push(r));
+  const opts=Object.keys(fl).sort((a,b)=>a.localeCompare(b,'th',{numeric:true})).map(f=>`<div class="rpf"><span>${esc(f)}</span><div class="rpg">${fl[f].map(r=>{const who=tenantOf(r.id),taken=who&&who.id!==t.id,busy=r.closed||taken||t.status==='moved_out';
     return `<label class="rpc ${busy?'off':''}"><input type="radio" name="roomId" value="${r.id}" required ${r.id===rid?'checked':''} ${busy?'disabled':''}><span><b>${esc(r.number)}</b><small>${r.closed?'ปิดซ่อม':taken?'มีผู้เช่า':units(r.rent)}</small></span></label>`}).join('')}</div></div>`).join('');
   const v=k=>esc(t[k]??'');
   const preRoom=S.rooms[rid];
@@ -524,10 +550,10 @@ function billLines(b){
 function billDlg(b){
   const s=S.setup,open=b.status==='unpaid'&&canWrite;
   const pp=b.status==='unpaid'&&ppPayload(s.promptpay,b.total);
-  openDlg(`<div class="dlg">${dHead('บิลห้อง '+b.roomNumber)}
+  openDlg(`<div class="dlg">${dHead('บิล'+(b.buildingName?' '+b.buildingName:'')+' ห้อง '+b.roomNumber)}
   <div class="paper">${b.status==='paid'?'<div class="stamp">ชำระแล้ว</div>':''}
     <div class="top"><div><h3>${esc(s.name||'หอพัก')}</h3><small>${esc(s.address)} ${esc(s.phone)}</small></div><div style="text-align:right"><b>ใบแจ้งค่าเช่า</b><br><small>เลขที่ ${esc(b.billNo)}</small></div></div>
-    <div class="top"><div>ห้อง <b>${esc(b.roomNumber)}</b> ${esc(b.tenantName)}</div><div class="soft">ประจำเดือน ${monthLabel(b.month)}</div></div>
+    <div class="top"><div>${b.buildingName?esc(b.buildingName)+' ':''}ห้อง <b>${esc(b.roomNumber)}</b> ${esc(b.tenantName)}</div><div class="soft">ประจำเดือน ${monthLabel(b.month)}</div></div>
     <div style="overflow-x:auto"><table><thead><tr><th>รายการ</th><th class="num">บาท</th></tr></thead><tbody>${billLines(b).map(([a,d,n])=>`<tr><td>${esc(a)}${d?`<small>${esc(d)}</small>`:''}</td><td class="num">${baht(n)}</td></tr>`).join('')}</tbody></table></div>
     <div class="total"><span>รวมทั้งสิ้น</span><span>${baht(b.total)} บาท</span></div>
     <div class="foot"><span id="qrSlot"></span><div>${b.status==='paid'?`ชำระเมื่อ ${thDate(b.paidAt)} ${esc(b.payMethod||'')}`:`ชำระภายใน ${thDate(b.dueDate)}`}<br><span class="soft">${esc(s.bank)}</span><br><span class="soft">${esc(s.billNote)}</span></div></div>
@@ -539,7 +565,7 @@ function billDlg(b){
   ${canWrite?(b.status==='paid'?`<button class="btn" data-act="unpay" data-id="${b.id}">ยกเลิกการรับเงิน</button>`:`<button class="btn" data-act="recalc" data-id="${b.id}">คำนวณใหม่จากมิเตอร์</button><button class="btn danger" data-act="delBill" data-id="${b.id}">ลบบิล</button>`):''}</div></div>`);
   if(pp){const c=window.QRCode&&makeQR(pp,224);if(c)$('#qrSlot').append(c)}
 }
-function billText(b){const s=S.setup;return [`${s.name||'หอพัก'} แจ้งค่าเช่าห้อง ${b.roomNumber}`,`ประจำเดือน ${monthLabel(b.month)}`,...billLines(b).map(([a,d,n])=>`${a}${d?` (${d})`:''}: ${baht(n)} บาท`),`รวม ${baht(b.total)} บาท`,`ชำระภายใน ${thDate(b.dueDate)}`,s.promptpay?`พร้อมเพย์ ${s.promptpay}`:'',s.bank||''].filter(Boolean).join('\n')}
+function billText(b){const s=S.setup;return [`${s.name||'หอพัก'} แจ้งค่าเช่า${b.buildingName?' '+b.buildingName:''} ห้อง ${b.roomNumber}`,`ประจำเดือน ${monthLabel(b.month)}`,...billLines(b).map(([a,d,n])=>`${a}${d?` (${d})`:''}: ${baht(n)} บาท`),`รวม ${baht(b.total)} บาท`,`ชำระภายใน ${thDate(b.dueDate)}`,s.promptpay?`พร้อมเพย์ ${s.promptpay}`:'',s.bank||''].filter(Boolean).join('\n')}
 async function billPng(b){
   const s=S.setup,W=760,lines=billLines(b),F='"IBM Plex Sans Thai","Noto Sans Thai",sans-serif';
   try{await document.fonts.load('16px "IBM Plex Sans Thai"','ก')}catch(e){}
@@ -550,7 +576,7 @@ async function billPng(b){
   const T=(t,x,yy,f,al='left',col='#1A2B29')=>{g.font=f;g.textAlign=al;g.fillStyle=col;g.fillText(t,x,yy)};
   T(s.name||'หอพัก',P,y,`600 30px ${F}`);T('ใบแจ้งค่าเช่า',W-P,y,`600 24px ${F}`,'right');y+=32;
   T(`${s.address||''} ${s.phone||''}`.trim(),P,y,`400 18px ${F}`,'left','#5C6E6B');T('เลขที่ '+b.billNo,W-P,y,`400 18px ${F}`,'right','#5C6E6B');y+=54;
-  T(`ห้อง ${b.roomNumber}  ${b.tenantName}`,P,y,`600 22px ${F}`);T('ประจำเดือน '+monthLabel(b.month),W-P,y,`400 20px ${F}`,'right');y+=26;
+  T(`${b.buildingName?b.buildingName+'  ':''}ห้อง ${b.roomNumber}  ${b.tenantName}`,P,y,`600 22px ${F}`);T('ประจำเดือน '+monthLabel(b.month),W-P,y,`400 20px ${F}`,'right');y+=26;
   g.strokeStyle='#1A2B29';g.lineWidth=2;g.beginPath();g.moveTo(P,y);g.lineTo(W-P,y);g.stroke();y+=36;
   lines.forEach(([a,d,n])=>{T(a,P,y,`500 21px ${F}`);T(baht(n),W-P,y,`500 21px ${F}`,'right');if(d)T(d,P,y+22,`400 16px ${F}`,'left','#5C6E6B');y+=54});
   g.beginPath();g.moveTo(P,y-14);g.lineTo(W-P,y-14);g.stroke();y+=24;
@@ -570,9 +596,11 @@ const ACT={
   logout:async()=>{await sb.auth.signOut();location.reload()},
   genCodes:async()=>{for(const r of rooms().filter(x=>!x.code)){const{id,...d}=r;await put('rooms',id,{...d,code:newCode()})}toast('สร้างรหัสแล้ว')},
   copyCode:e=>{const r=S.rooms[e.dataset.id],t=`ดูบิลห้อง ${r.number}\n${billLink()}\nเลขห้อง ${r.number}\nรหัส ${r.code}`;navigator.clipboard.writeText(t).then(()=>toast('คัดลอกข้อความแจ้งผู้เช่าแล้ว'),()=>toast('คัดลอกไม่สำเร็จ'))},
-  renumber:async()=>{const list=rooms().slice().sort((a,b)=>(Number(a.floor)||0)-(Number(b.floor)||0)||String(a.number).localeCompare(String(b.number),'th',{numeric:true}));
+  renumber:async()=>{if(multi()&&curB()==='all')return toast('เลือกหลังด้านบนก่อน แล้วค่อยเรียงเลขห้องของหลังนั้น');const list=rooms().slice().sort((a,b)=>(Number(a.floor)||0)-(Number(b.floor)||0)||String(a.number).localeCompare(String(b.number),'th',{numeric:true}));
     if(!await ask('เรียงเลขห้องใหม่?',`ห้องทั้ง ${list.length} ห้องจะได้เลข 1 ถึง ${list.length} เรียงตามชั้นและเลขเดิม เช่น ${list[0].number} เป็น 1 ผู้เช่า สัญญา และรหัสดูบิลยังอยู่กับห้องเดิม บิลที่ออกไปแล้วยังแสดงเลขห้องเดิม`,'เรียงเลขใหม่',false))return;
     for(let i=0;i<list.length;i++){const{id,...d}=list[i];if(d.number!==String(i+1))await put('rooms',id,{...d,number:String(i+1)})}toast('เรียงเลขห้องใหม่แล้ว')},
+  setB:e=>{bld=e.dataset.id;try{localStorage.setItem('bld',bld)}catch(x){}scrollTo(0,0);paint()},
+  addB:()=>{const n=$('#newB').value.trim();if(!n)return toast('ใส่ชื่อหลังก่อน');saveB([...BLD(),{id:'b'+Date.now().toString(36),name:n}])},
   editPrev:e=>prevForm(e.dataset.id),
   newRoom:()=>roomForm(),bulkRoom:bulkForm,editRoom:e=>roomForm(S.rooms[e.dataset.id]),
   delRoom:async e=>{const id=e.dataset.id;if(tenantOf(id))return toast('ห้องนี้มีผู้เช่าอยู่ ต้องย้ายออกก่อนจึงลบได้');closeDlg();if(await ask('ลบห้อง '+roomNo(id)+'?','ลบแล้วกู้คืนไม่ได้ บิลเดิมยังอยู่','ลบห้อง'))await del('rooms',id)},
@@ -595,12 +623,13 @@ const ACT={
   clearSample:async()=>{if(!await ask('ลบข้อมูลตัวอย่าง?','ห้อง ผู้เช่า มิเตอร์ และบิลตัวอย่างจะถูกลบทั้งหมด ข้อมูลที่คุณเพิ่มเองยังอยู่','ลบข้อมูลตัวอย่าง'))return;
     for(const c of COLS)for(const x of Object.values(S[c]))if(x.sample)await del(c,x.id);toast('ลบข้อมูลตัวอย่างแล้ว')}
 };
+async function saveB(list){const n={...S.setup,buildings:list};delete n.id;if(await put('setup','main',n))toast('บันทึกรายชื่อหลังแล้ว')}
 async function saveExtras(b,extras){const c=calcBill({rent:b.rent,water:b.water,elec:b.elec,rates:b.rates,extras});const {id,...r}=b;const n={...r,...c,extras};await put('bills',id,n);billDlg({...n,id})}
 const FORM={
-  room:async(d,id)=>{const data={number:d.number.trim(),floor:d.floor.trim(),type:d.type.trim(),rent:num(d.rent)||0,waterStart:num(d.waterStart)||0,elecStart:num(d.elecStart)||0,closed:!!d.closed};
-    if(rooms().some(r=>r.number===data.number&&r.id!==id))return toast('มีห้องเลขนี้แล้ว');
+  room:async(d,id)=>{const bid=d.building||(id?roomBld(S.rooms[id]):(curB()==='all'?BLD()[0].id:curB()));const data={building:bid,number:d.number.trim(),floor:d.floor.trim(),type:d.type.trim(),rent:num(d.rent)||0,waterStart:num(d.waterStart)||0,elecStart:num(d.elecStart)||0,closed:!!d.closed};
+    if(allRooms().some(r=>r.number===data.number&&r.id!==id&&roomBld(r)===bid))return toast('หลังนี้มีห้องเลขนี้แล้ว');
     data.code=(id&&S.rooms[id].code)||newCode();if(id&&S.rooms[id].sample)data.sample=true;await put('rooms',id||newId(),data);closeDlg();toast('บันทึกห้องแล้ว')},
-  bulk:async d=>{const f=num(d.floor),n=num(d.count),st=num(d.start);let made=0;for(let i=0;i<n;i++){const no=String(st+i);if(rooms().some(r=>r.number===no))continue;await put('rooms',newId(),{number:no,floor:String(f),type:d.type.trim(),rent:num(d.rent)||0,waterStart:0,elecStart:0,closed:false,code:newCode()});made++}closeDlg();toast(`สร้างแล้ว ${made} ห้อง`)},
+  bulk:async d=>{const bid=d.building||(curB()==='all'?BLD()[0].id:curB()),f=num(d.floor),n=num(d.count),st=num(d.start);let made=0;for(let i=0;i<n;i++){const no=String(st+i);if(allRooms().some(r=>r.number===no&&roomBld(r)===bid))continue;await put('rooms',newId(),{building:bid,number:no,floor:String(f),type:d.type.trim(),rent:num(d.rent)||0,waterStart:0,elecStart:0,closed:false,code:newCode()});made++}closeDlg();toast(`สร้างแล้ว ${made} ห้อง`)},
   tenant:async(d,id)=>{const old=id?S.tenants[id]:null;const{waterIn,elecIn,...f}=d;
     const data={...old,...f,name:f.name.trim(),rent:num(f.rent)||0,deposit:num(f.deposit)||0,status:old?.status||'active'};delete data.id;
     const tid=id||newId();await put('tenants',tid,data);
@@ -612,7 +641,8 @@ const FORM={
   prevMeter:async(d,rid)=>{const mid=meterId(month,rid),r=reading(rid,month),{id:_,...old}=S.meters[mid]||{};
     if(await put('meters',mid,{...r,...old,roomId:rid,month,waterPrev:num(d.waterPrev)||0,elecPrev:num(d.elecPrev)||0,readAt:old.readAt||nowLocal()})){closeDlg();toast('แก้เลขครั้งก่อนแล้ว')}},
   pay:async(d,id)=>{const{id:_,...b}=S.bills[id];await put('bills',id,{...b,status:'paid',paidAt:d.paidAt,payMethod:d.payMethod});closeDlg();toast('บันทึกรับเงินแล้ว')},
-  setup:async d=>{const n={...S.setup,...d};['waterRate','waterMin','elecRate','elecMin','common','dueDay'].forEach(k=>n[k]=num(d[k])||0);delete n.id;await put('setup','main',n);toast('บันทึกการตั้งค่าแล้ว')}
+  blds:async d=>{await saveB(BLD().map(b=>({...b,name:(d[b.id]||b.name).trim()})))},
+  setup:async d=>{const n={...S.setup,...d,buildings:S.setup.buildings};if(!n.buildings)delete n.buildings;['waterRate','waterMin','elecRate','elecMin','common','dueDay'].forEach(k=>n[k]=num(d[k])||0);delete n.id;await put('setup','main',n);toast('บันทึกการตั้งค่าแล้ว')}
 };
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const f=ACT[b.dataset.act];if(f){e.preventDefault();f(b)}});
 document.addEventListener('submit',e=>{const f=e.target;if(!f.dataset.form)return;e.preventDefault();const d=Object.fromEntries(new FormData(f));FORM[f.dataset.form](d,f.dataset.id||'')});
