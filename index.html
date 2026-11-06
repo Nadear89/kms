@@ -336,7 +336,7 @@ function buildBill(rid,m,old){
   const t=tenantOf(rid),room=S.rooms[rid],r=reading(rid,m);if(!t||!readingOk(r))return null;
   const R=rates(),rent=Number(t.rent??room.rent)||0,extras=old?.extras||[];
   const c=calcBill({rent,water:{prev:r.waterPrev,cur:r.waterCur},elec:{prev:r.elecPrev,cur:r.elecCur},rates:R,extras});
-  return {month:m,roomId:rid,roomNumber:room.number,tenantId:t.id,tenantName:t.name,billNo:(Number(m.slice(0,4))+543)+m.slice(5,7)+'-'+(multi()?(BLD().findIndex(b=>b.id===roomBld(room))+1)+'-':'')+room.number,buildingName:multi()?bldName(roomBld(room)):'',rent,
+  return {month:m,roomId:rid,roomNumber:room.number,tenantId:t.id,tenantName:t.name,billNo:(Number(m.slice(0,4))+543)+m.slice(5,7)+'-'+(multi()?(BLD().findIndex(b=>b.id===roomBld(room))+1)+'-':'')+room.number,buildingName:multi()?bldName(roomBld(room)):'',buildingAddress:BLD().find(x=>x.id===roomBld(room))?.address||'',rent,
     water:{prev:r.waterPrev,cur:r.waterCur},elec:{prev:r.elecPrev,cur:r.elecCur},rates:R,extras,...c,
     issuedAt:old?.issuedAt||todayStr(),dueDate:old?.dueDate||dueDateFor(m),status:'unpaid',sample:old?.sample||undefined};
 }
@@ -466,14 +466,14 @@ function vSetup(){
   const s=S.setup,v=k=>esc(s[k]??'');const fld=(k,l,t='text',x='')=>`<label class="f">${l}<input name="${k}" type="${t}" value="${v(k)}" ${t==='number'?'step="any" min="0"':''} ${x}></label>`;
   return `<div class="head"><div><h1>ตั้งค่าหอพัก</h1><p>อัตราที่แก้ใหม่มีผลกับบิลที่ออกต่อจากนี้ บิลเดิมคงยอดเดิม</p></div></div>${sampleNote()}
   <form data-form="blds" class="panel" style="max-width:640px"><fieldset><legend>อาคาร / หลัง</legend>
-  ${BLD().map(b=>`<label class="f">ชื่อหลัง<input name="${b.id}" value="${esc(b.name)}" required></label>`).join('')}
-  <label class="f">เพิ่มหลังใหม่<input id="newB" placeholder="เช่น หลัง B"></label></fieldset>
+  ${BLD().map((b,i)=>`<label class="f">ชื่อหลังที่ ${i+1}<input name="${b.id}" value="${esc(b.name)}" required></label><label class="f">ที่อยู่หลังที่ ${i+1}<input name="addr_${b.id}" value="${esc(b.address||'')}" placeholder="ว่างไว้ = ใช้ที่อยู่หลัก"></label>`).join('')}
+  <label class="f full">เพิ่มหลังใหม่<input id="newB" placeholder="เช่น หลัง B"></label></fieldset>
   <div class="row"><button class="btn" ${canWrite?'':'disabled'}>บันทึกชื่อหลัง</button><button class="btn" type="button" data-act="addB">เพิ่มหลัง</button></div>
   <p style="color:var(--muted)">ห้องเดิมที่ยังไม่ได้ระบุหลัง จะอยู่ใน${esc(BLD()[0].name)} แก้ได้ที่ปุ่มแก้ไขของแต่ละห้อง</p></form>
   <form data-form="setup" class="panel" style="max-width:640px">
-  <fieldset><legend>ข้อมูลบนหัวบิล</legend>${fld('name','ชื่อหอพัก')}${fld('phone','เบอร์โทร')}<label class="f full">ที่อยู่<input name="address" value="${v('address')}"></label></fieldset>
+  <fieldset><legend>ข้อมูลบนหัวบิล</legend>${fld('name','ชื่อหอพัก')}${fld('phone','เบอร์โทร')}<label class="f full">ที่อยู่หลัก (ใช้กับหลังที่ไม่ได้ใส่ที่อยู่แยก)<input name="address" value="${v('address')}"></label></fieldset>
   <fieldset><legend>อัตราค่าบริการ</legend>${fld('waterRate','ค่าน้ำ (บาท/หน่วย)','number')}${fld('waterMin','ค่าน้ำขั้นต่ำ (บาท/เดือน)','number')}${fld('elecRate','ค่าไฟ (บาท/หน่วย)','number')}${fld('elecMin','ค่าไฟขั้นต่ำ (บาท/เดือน)','number')}${fld('common','ค่าส่วนกลาง (บาท/เดือน)','number')}${fld('dueDay','ครบกำหนดชำระวันที่ของเดือนถัดไป','number','max="28"')}</fieldset>
-  <fieldset><legend>ช่องทางรับเงิน</legend>${fld('promptpay','พร้อมเพย์ (เบอร์ 10 หลัก หรือเลขบัตร 13 หลัก)')}${fld('bank','บัญชีธนาคาร')}<label class="f full">หมายเหตุท้ายบิล<input name="billNote" value="${v('billNote')}"></label></fieldset>
+  <fieldset><legend>บัญชีรับเงิน</legend>${fld('bankName','ธนาคาร','text','placeholder="เช่น กสิกรไทย"')}${fld('accNo','เลขบัญชี','text','inputmode="numeric" placeholder="เช่น 123-4-56789-0"')}<label class="f full">ชื่อบัญชี<input name="accName" value="${v('accName')}"></label>${fld('promptpay','พร้อมเพย์ (ไม่ใส่ก็ได้ ถ้าใส่บิลจะมี QR)')}<label class="f full">หมายเหตุท้ายบิล<input name="billNote" value="${v('billNote')}"></label></fieldset>
   <div class="row"><button class="btn pri" ${canWrite?'':'disabled'}>บันทึกการตั้งค่า</button><button class="btn" type="button" data-act="backup">สำรองข้อมูลเป็นไฟล์</button><label class="btn">นำเข้าไฟล์สำรอง<input type="file" id="imp" accept=".json" hidden></label></div></form>`;
 }
 const RENDER={home:vHome,rooms:vRooms,tenants:vTenants,contracts:vContracts,meter:vMeter,bills:vBills,setup:vSetup};
@@ -552,11 +552,11 @@ function billDlg(b){
   const pp=b.status==='unpaid'&&ppPayload(s.promptpay,b.total);
   openDlg(`<div class="dlg">${dHead('บิล'+(b.buildingName?' '+b.buildingName:'')+' ห้อง '+b.roomNumber)}
   <div class="paper">${b.status==='paid'?'<div class="stamp">ชำระแล้ว</div>':''}
-    <div class="top"><div><h3>${esc(s.name||'หอพัก')}</h3><small>${esc(s.address)} ${esc(s.phone)}</small></div><div style="text-align:right"><b>ใบแจ้งค่าเช่า</b><br><small>เลขที่ ${esc(b.billNo)}</small></div></div>
+    <div class="top"><div><h3>${esc(s.name||'หอพัก')}</h3><small>${esc(b.buildingAddress||s.address)} ${esc(s.phone)}</small></div><div style="text-align:right"><b>ใบแจ้งค่าเช่า</b><br><small>เลขที่ ${esc(b.billNo)}</small></div></div>
     <div class="top"><div>${b.buildingName?esc(b.buildingName)+' ':''}ห้อง <b>${esc(b.roomNumber)}</b> ${esc(b.tenantName)}</div><div class="soft">ประจำเดือน ${monthLabel(b.month)}</div></div>
     <div style="overflow-x:auto"><table><thead><tr><th>รายการ</th><th class="num">บาท</th></tr></thead><tbody>${billLines(b).map(([a,d,n])=>`<tr><td>${esc(a)}${d?`<small>${esc(d)}</small>`:''}</td><td class="num">${baht(n)}</td></tr>`).join('')}</tbody></table></div>
     <div class="total"><span>รวมทั้งสิ้น</span><span>${baht(b.total)} บาท</span></div>
-    <div class="foot"><span id="qrSlot"></span><div>${b.status==='paid'?`ชำระเมื่อ ${thDate(b.paidAt)} ${esc(b.payMethod||'')}`:`ชำระภายใน ${thDate(b.dueDate)}`}<br><span class="soft">${esc(s.bank)}</span><br><span class="soft">${esc(s.billNote)}</span></div></div>
+    <div class="foot"><span id="qrSlot"></span><div>${b.status==='paid'?`ชำระเมื่อ ${thDate(b.paidAt)} ${esc(b.payMethod||'')}`:`ชำระภายใน ${thDate(b.dueDate)}`}<br><b style="color:var(--ink)">${esc(s.bank)}</b><br><span class="soft">${esc(s.billNote)}</span></div></div>
   </div>
   ${open?`<div class="panel"><h2>รายการเพิ่มเติม</h2><p style="color:var(--muted)">ค่าปรับ ค่าซ่อม หรือส่วนลด ใส่ยอดติดลบได้</p><div id="xs">${(b.extras||[]).map((x,i)=>`<div class="xrow"><input aria-label="ชื่อรายการ" id="xl${i}" value="${esc(x.label)}"><input aria-label="จำนวนเงิน" id="xa${i}" type="number" step="any" value="${x.amount}"><button class="btn sm" data-act="xDel" data-i="${i}" data-id="${b.id}">ลบ</button></div>`).join('')}</div>
     <div class="xrow"><input id="xLabel" aria-label="ชื่อรายการใหม่" placeholder="เช่น ค่าปรับล่าช้า"><input id="xAmt" aria-label="จำนวนเงินใหม่" type="number" step="any" placeholder="บาท"><button class="btn sm" data-act="xAdd" data-id="${b.id}">เพิ่ม</button></div></div>
@@ -575,14 +575,14 @@ async function billPng(b){
   g.fillStyle='#fff';g.fillRect(0,0,W,H);g.fillStyle='#1A2B29';let y=64;const P=48;
   const T=(t,x,yy,f,al='left',col='#1A2B29')=>{g.font=f;g.textAlign=al;g.fillStyle=col;g.fillText(t,x,yy)};
   T(s.name||'หอพัก',P,y,`600 30px ${F}`);T('ใบแจ้งค่าเช่า',W-P,y,`600 24px ${F}`,'right');y+=32;
-  T(`${s.address||''} ${s.phone||''}`.trim(),P,y,`400 18px ${F}`,'left','#5C6E6B');T('เลขที่ '+b.billNo,W-P,y,`400 18px ${F}`,'right','#5C6E6B');y+=54;
+  T(`${b.buildingAddress||s.address||''} ${s.phone||''}`.trim(),P,y,`400 18px ${F}`,'left','#5C6E6B');T('เลขที่ '+b.billNo,W-P,y,`400 18px ${F}`,'right','#5C6E6B');y+=54;
   T(`${b.buildingName?b.buildingName+'  ':''}ห้อง ${b.roomNumber}  ${b.tenantName}`,P,y,`600 22px ${F}`);T('ประจำเดือน '+monthLabel(b.month),W-P,y,`400 20px ${F}`,'right');y+=26;
   g.strokeStyle='#1A2B29';g.lineWidth=2;g.beginPath();g.moveTo(P,y);g.lineTo(W-P,y);g.stroke();y+=36;
   lines.forEach(([a,d,n])=>{T(a,P,y,`500 21px ${F}`);T(baht(n),W-P,y,`500 21px ${F}`,'right');if(d)T(d,P,y+22,`400 16px ${F}`,'left','#5C6E6B');y+=54});
   g.beginPath();g.moveTo(P,y-14);g.lineTo(W-P,y-14);g.stroke();y+=24;
   T('รวมทั้งสิ้น',P,y,`600 28px ${F}`);T(baht(b.total)+' บาท',W-P,y,`600 28px ${F}`,'right');y+=44;
   T(b.status==='paid'?`ชำระแล้วเมื่อ ${thDate(b.paidAt)}`:`ชำระภายใน ${thDate(b.dueDate)}`,P,y,`500 20px ${F}`,'left',b.status==='paid'?'#1C7A4A':'#1A2B29');y+=28;
-  if(s.bank)T(s.bank,P,y,`400 18px ${F}`,'left','#5C6E6B');y+=14;
+  if(s.bank)T(s.bank,P,y,`600 19px ${F}`,'left','#1A2B29');y+=14;
   if(qr)g.drawImage(qr,W/2-120,y,240,240);
   const blob=await new Promise(r=>c.toBlob(r,'image/png'));
   await dl.save({filename:`bill-${b.billNo}.png`,data:blob});
@@ -641,8 +641,8 @@ const FORM={
   prevMeter:async(d,rid)=>{const mid=meterId(month,rid),r=reading(rid,month),{id:_,...old}=S.meters[mid]||{};
     if(await put('meters',mid,{...r,...old,roomId:rid,month,waterPrev:num(d.waterPrev)||0,elecPrev:num(d.elecPrev)||0,readAt:old.readAt||nowLocal()})){closeDlg();toast('แก้เลขครั้งก่อนแล้ว')}},
   pay:async(d,id)=>{const{id:_,...b}=S.bills[id];await put('bills',id,{...b,status:'paid',paidAt:d.paidAt,payMethod:d.payMethod});closeDlg();toast('บันทึกรับเงินแล้ว')},
-  blds:async d=>{await saveB(BLD().map(b=>({...b,name:(d[b.id]||b.name).trim()})))},
-  setup:async d=>{const n={...S.setup,...d,buildings:S.setup.buildings};if(!n.buildings)delete n.buildings;['waterRate','waterMin','elecRate','elecMin','common','dueDay'].forEach(k=>n[k]=num(d[k])||0);delete n.id;await put('setup','main',n);toast('บันทึกการตั้งค่าแล้ว')}
+  blds:async d=>{await saveB(BLD().map(b=>({...b,name:(d[b.id]||b.name).trim(),address:(d['addr_'+b.id]??b.address??'').trim()})))},
+  setup:async d=>{const n={...S.setup,...d,buildings:S.setup.buildings};if(!n.buildings)delete n.buildings;if(n.accNo?.trim())n.bank=`โอนเข้าบัญชี ${n.bankName||''} เลขที่ ${n.accNo.trim()}${n.accName?' ชื่อบัญชี '+n.accName:''}`.replace(/\s+/g,' ');['waterRate','waterMin','elecRate','elecMin','common','dueDay'].forEach(k=>n[k]=num(d[k])||0);delete n.id;await put('setup','main',n);toast('บันทึกการตั้งค่าแล้ว')}
 };
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const f=ACT[b.dataset.act];if(f){e.preventDefault();f(b)}});
 document.addEventListener('submit',e=>{const f=e.target;if(!f.dataset.form)return;e.preventDefault();const d=Object.fromEntries(new FormData(f));FORM[f.dataset.form](d,f.dataset.id||'')});
