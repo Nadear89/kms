@@ -2,27 +2,17 @@
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>ดูบิลค่าห้อง</title>
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png"><link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai+Looped:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
 <style>
 :root{
-  --bg:#EEF2F1; --surface:#FBFCFC; --sunk:#E3E9E7; --line:#CBD6D3; --fg:#14302D; --muted:#55706B;
-  --accent:#0E6A5F; --accent-ink:#F2FBF9; --accent-soft:#D3EAE5; --brass:#A9701A; --brass-soft:#F5E6C8;
-  --ok:#1C7A4A; --ok-soft:#D8F0E2; --warn:#9A6200; --warn-soft:#FBEBC8; --crit:#B3322B; --crit-soft:#F9DEDB;
-  --shadow:0 18px 50px rgba(15,50,45,.22);
-  --display:"Chakra Petch","IBM Plex Sans Thai",system-ui,sans-serif;
-  --body:"IBM Plex Sans Thai","Noto Sans Thai",system-ui,sans-serif;
-  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --bg:#F6F7F3; --surface:#FFFFFF; --sunk:#F0F3EE; --line:#E2E7DF; --fg:#16271D; --muted:#56655B;
+  --accent:#1D5B3B; --accent-ink:#FFFFFF; --accent-soft:#E6F0E8; --brass:#1D5B3B; --brass-soft:#EEF4EC;
+  --room:#1D5B3B; --ok:#1F7A45; --ok-soft:#E3F3E8; --warn:#A86A00; --warn-soft:#FCF1DA; --crit:#C23A2B; --crit-soft:#FBE6E3;
+  --shadow:0 18px 50px rgba(20,45,30,.18);
+  --display:"IBM Plex Sans Thai Looped","IBM Plex Sans Thai",system-ui,sans-serif;
+  --body:"IBM Plex Sans Thai Looped","IBM Plex Sans Thai",system-ui,sans-serif;
+  --mono:"IBM Plex Sans Thai Looped","IBM Plex Sans Thai",system-ui,sans-serif;
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#0F1817; --surface:#162220; --sunk:#1D2C2A; --line:#2F4441; --fg:#E2EDEA; --muted:#93ABA6;
-  --accent:#55C7B4; --accent-ink:#06211D; --accent-soft:#1C403B; --brass:#E0AE5A; --brass-soft:#3D3019;
-  --ok:#62D098; --ok-soft:#173A29; --warn:#EDB95A; --warn-soft:#3E3016; --crit:#F58A82; --crit-soft:#4A2120;
-  --shadow:0 18px 50px rgba(0,0,0,.55); color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#0F1817; --surface:#162220; --sunk:#1D2C2A; --line:#2F4441; --fg:#E2EDEA; --muted:#93ABA6;
-  --accent:#55C7B4; --accent-ink:#06211D; --accent-soft:#1C403B; --brass:#E0AE5A; --brass-soft:#3D3019;
-  --ok:#62D098; --ok-soft:#173A29; --warn:#EDB95A; --warn-soft:#3E3016; --crit:#F58A82; --crit-soft:#4A2120;
-  --shadow:0 18px 50px rgba(0,0,0,.55); color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--fg);font:400 16px/1.6 var(--body)}
 .w{max-width:480px;margin:0 auto;padding-block:32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
@@ -48,6 +38,7 @@ table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}th{f
 .paper .foot canvas{width:112px;height:112px;flex:none}
 .paper .stamp{position:absolute;right:20px;top:64px;border:3px solid #1C7A4A;color:#1C7A4A;font:700 1.1rem var(--display);padding:2px 12px;border-radius:6px;transform:rotate(-8deg);background:#fff}
 
+.btn.pri{font-weight:600;color:#fff}.btn,input,select{border-radius:10px}h1{font-weight:700}
 </style></head><body><div class="w" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
