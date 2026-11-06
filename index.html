@@ -391,7 +391,7 @@ function vRooms(){
     <td>${r.closed?'<span class="pill warn">ปิดซ่อม</span>':t?'<span class="pill info">มีผู้เช่า</span>':'<span class="pill">ว่าง</span>'}</td><td>${t?esc(t.name):'-'}</td>
     <td class="nowrap">${r.code?`<code>${esc(r.code)}</code> <button class="btn sm" data-act="copyCode" data-id="${r.id}">คัดลอก</button>`:'-'}</td><td class="num nowrap"><button class="btn sm" data-act="editRoom" data-id="${r.id}">แก้ไข</button></td></tr>`}).join('');
   const noCode=rooms().filter(r=>!r.code).length;
-  return `<div class="head"><div><h1>ห้องพัก</h1><p>${rooms().length} ห้อง</p></div><div class="row">${noCode?`<button class="btn" data-act="genCodes">สร้างรหัสดูบิล ${noCode} ห้อง</button>`:''}<button class="btn" data-act="bulkRoom">เพิ่มหลายห้อง</button><button class="btn pri" data-act="newRoom">เพิ่มห้อง</button></div></div>${sampleNote()}
+  return `<div class="head"><div><h1>ห้องพัก</h1><p>${rooms().length} ห้อง</p></div><div class="row">${rooms().length&&rooms().some((r,i)=>r.number!==String(i+1))?'<button class="btn" data-act="renumber">เรียงเลขห้องใหม่ 1-'+rooms().length+'</button>':''}${noCode?`<button class="btn" data-act="genCodes">สร้างรหัสดูบิล ${noCode} ห้อง</button>`:''}<button class="btn" data-act="bulkRoom">เพิ่มหลายห้อง</button><button class="btn pri" data-act="newRoom">เพิ่มห้อง</button></div></div>${sampleNote()}
   ${rows?`<div class="tw"><table><thead><tr><th>ห้อง</th><th>ชั้น</th><th>ประเภท</th><th class="num">ค่าเช่า/เดือน</th><th>สถานะ</th><th>ผู้เช่า</th><th>รหัสดูบิล</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="empty">ยังไม่มีห้องพัก กด "เพิ่มหลายห้อง" เพื่อสร้างทั้งชั้นในครั้งเดียว</div>'}`;
 }
 function vTenants(){
@@ -481,10 +481,12 @@ function roomForm(r={}){openDlg(`<form class="dlg" data-form="room" data-id="${r
   <label class="f">เลขมิเตอร์น้ำตั้งต้น<input name="waterStart" type="number" min="0" step="any" value="${r.waterStart??0}"></label><label class="f">เลขมิเตอร์ไฟตั้งต้น<input name="elecStart" type="number" min="0" step="any" value="${r.elecStart??0}"></label>
   <label class="f full"><span><input type="checkbox" name="closed" style="width:auto" ${r.closed?'checked':''}> ปิดซ่อม ไม่รับผู้เช่า</span></label></fieldset>
   <div class="actions">${r.id?`<button type="button" class="btn danger l" data-act="delRoom" data-id="${r.id}">ลบห้อง</button>`:''}<button class="btn pri">บันทึกห้อง</button></div></form>`)}
-function bulkForm(){openDlg(`<form class="dlg" data-form="bulk">${dHead('เพิ่มห้องหลายห้อง')}<fieldset>
-  <label class="f">ชั้น<input name="floor" type="number" min="1" required value="1"></label><label class="f">จำนวนห้องบนชั้นนี้<input name="count" type="number" min="1" max="60" required value="10"></label>
+const nextNo=()=>rooms().reduce((m,r)=>Math.max(m,/^\d+$/.test(r.number)?Number(r.number):0),0)+1;
+function bulkForm(){const st=nextNo();openDlg(`<form class="dlg" data-form="bulk">${dHead('เพิ่มห้องหลายห้อง')}<fieldset>
+  <label class="f">เลขห้องเริ่มต้น<input name="start" type="number" min="1" required value="${st}"></label><label class="f">จำนวนห้อง<input name="count" type="number" min="1" max="200" required value="${Math.max(1,Math.min(100,101-st))}"></label>
+  <label class="f">ชั้น<input name="floor" type="number" min="1" required value="1"></label>
   <label class="f">ค่าเช่า/เดือน<input name="rent" type="number" min="0" step="any" required></label><label class="f">ประเภทห้อง<input name="type"></label></fieldset>
-  <p class="soft" style="color:var(--muted)">เลขห้องเรียงจากเลขชั้น เช่น ชั้น 2 จะได้ 201, 202, 203</p><div class="actions"><button class="btn pri">สร้างห้อง</button></div></form>`)}
+  <p class="soft" style="color:var(--muted)">เลขห้องเรียงต่อกัน เช่น เริ่ม 1 จำนวน 100 จะได้ห้อง 1 ถึง 100 ถ้าแต่ละชั้นมีหลายห้อง สร้างทีละชั้นได้ เช่น ชั้น 1 เริ่ม 1 จำนวน 20 แล้วชั้น 2 เริ่ม 21</p><div class="actions"><button class="btn pri">สร้างห้อง</button></div></form>`)}
 function tenantForm(t={},presetRoom){
   const isNew=!t.id,rid=t.roomId||presetRoom||'';
   const fl={};rooms().forEach(r=>(fl[r.floor||'-']??=[]).push(r));
@@ -568,6 +570,9 @@ const ACT={
   logout:async()=>{await sb.auth.signOut();location.reload()},
   genCodes:async()=>{for(const r of rooms().filter(x=>!x.code)){const{id,...d}=r;await put('rooms',id,{...d,code:newCode()})}toast('สร้างรหัสแล้ว')},
   copyCode:e=>{const r=S.rooms[e.dataset.id],t=`ดูบิลห้อง ${r.number}\n${billLink()}\nเลขห้อง ${r.number}\nรหัส ${r.code}`;navigator.clipboard.writeText(t).then(()=>toast('คัดลอกข้อความแจ้งผู้เช่าแล้ว'),()=>toast('คัดลอกไม่สำเร็จ'))},
+  renumber:async()=>{const list=rooms().slice().sort((a,b)=>(Number(a.floor)||0)-(Number(b.floor)||0)||String(a.number).localeCompare(String(b.number),'th',{numeric:true}));
+    if(!await ask('เรียงเลขห้องใหม่?',`ห้องทั้ง ${list.length} ห้องจะได้เลข 1 ถึง ${list.length} เรียงตามชั้นและเลขเดิม เช่น ${list[0].number} เป็น 1 ผู้เช่า สัญญา และรหัสดูบิลยังอยู่กับห้องเดิม บิลที่ออกไปแล้วยังแสดงเลขห้องเดิม`,'เรียงเลขใหม่',false))return;
+    for(let i=0;i<list.length;i++){const{id,...d}=list[i];if(d.number!==String(i+1))await put('rooms',id,{...d,number:String(i+1)})}toast('เรียงเลขห้องใหม่แล้ว')},
   editPrev:e=>prevForm(e.dataset.id),
   newRoom:()=>roomForm(),bulkRoom:bulkForm,editRoom:e=>roomForm(S.rooms[e.dataset.id]),
   delRoom:async e=>{const id=e.dataset.id;if(tenantOf(id))return toast('ห้องนี้มีผู้เช่าอยู่ ต้องย้ายออกก่อนจึงลบได้');closeDlg();if(await ask('ลบห้อง '+roomNo(id)+'?','ลบแล้วกู้คืนไม่ได้ บิลเดิมยังอยู่','ลบห้อง'))await del('rooms',id)},
@@ -595,7 +600,7 @@ const FORM={
   room:async(d,id)=>{const data={number:d.number.trim(),floor:d.floor.trim(),type:d.type.trim(),rent:num(d.rent)||0,waterStart:num(d.waterStart)||0,elecStart:num(d.elecStart)||0,closed:!!d.closed};
     if(rooms().some(r=>r.number===data.number&&r.id!==id))return toast('มีห้องเลขนี้แล้ว');
     data.code=(id&&S.rooms[id].code)||newCode();if(id&&S.rooms[id].sample)data.sample=true;await put('rooms',id||newId(),data);closeDlg();toast('บันทึกห้องแล้ว')},
-  bulk:async d=>{const f=num(d.floor),n=num(d.count);let made=0;for(let i=1;i<=n;i++){const no=f+pad(i);if(rooms().some(r=>r.number===no))continue;await put('rooms',newId(),{number:no,floor:String(f),type:d.type.trim(),rent:num(d.rent)||0,waterStart:0,elecStart:0,closed:false,code:newCode()});made++}closeDlg();toast(`สร้างแล้ว ${made} ห้อง`)},
+  bulk:async d=>{const f=num(d.floor),n=num(d.count),st=num(d.start);let made=0;for(let i=0;i<n;i++){const no=String(st+i);if(rooms().some(r=>r.number===no))continue;await put('rooms',newId(),{number:no,floor:String(f),type:d.type.trim(),rent:num(d.rent)||0,waterStart:0,elecStart:0,closed:false,code:newCode()});made++}closeDlg();toast(`สร้างแล้ว ${made} ห้อง`)},
   tenant:async(d,id)=>{const old=id?S.tenants[id]:null;const{waterIn,elecIn,...f}=d;
     const data={...old,...f,name:f.name.trim(),rent:num(f.rent)||0,deposit:num(f.deposit)||0,status:old?.status||'active'};delete data.id;
     const tid=id||newId();await put('tenants',tid,data);
