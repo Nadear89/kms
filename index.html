@@ -366,7 +366,7 @@ function vHome(){
   const noMeter=act.filter(t=>!readingOk(reading(t.roomId,month)));
   const lateRooms=new Set(late.map(b=>b.roomId)),endRooms=new Set(ending.map(t=>t.roomId));
   const floors={};rs.forEach(r=>(floors[r.floor||'-']??=[]).push(r));
-  const plan=Object.keys(floors).sort((a,b)=>Number(b)-Number(a)).map(f=>`<div class="floor"><span>ชั้น ${esc(f)}</span><div class="tags">${floors[f].map(r=>{
+  const plan=Object.keys(floors).sort((a,b)=>Number(a)-Number(b)).map(f=>`<div class="floor"><span>ชั้น ${esc(f)}</span><div class="tags">${floors[f].map(r=>{
     const t=tenantOf(r.id);const c=r.closed?'off':!t?'free':lateRooms.has(r.id)?'late':endRooms.has(r.id)?'end':'on';
     return `<button class="tag ${c}" data-act="${t?'editTenant':r.closed?'editRoom':'newTenant'}" data-id="${t?t.id:r.id}">${c==='late'?'<span class="owe">ค้าง</span>':''}<b>${esc(r.number)}</b><small>${r.closed?'ปิดซ่อม':t?esc(t.name):'ว่าง'}</small><small class="ty">${esc(r.type)||'&nbsp;'}</small></button>`}).join('')}</div></div>`).join('');
   const todo=[
