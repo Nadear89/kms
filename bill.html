@@ -118,7 +118,7 @@ async function billPng(b){
 
 
 let bills=[];const sb=window.supabase&&window.DORM_CONFIG&&!DORM_CONFIG.url.includes('YOUR-PROJECT')?supabase.createClient(DORM_CONFIG.url,DORM_CONFIG.anonKey):null;
-function login(msg=''){$('#app').innerHTML=`<h1>ดูบิลค่าห้อง</h1><p class="m">ใส่เลขห้องและรหัสที่ได้รับจากหอพัก</p>${msg?`<p class="err">${esc(msg)}</p>`:''}<form id="f" style="display:flex;flex-direction:column;gap:12px"><label>เลขห้อง<input id="room" required autocomplete="off"></label><label>รหัสห้อง<input id="code" inputmode="numeric" required autocomplete="off"></label><button class="btn pri">ดูบิล</button></form>`;
+function login(msg=''){$('#app').innerHTML=`<img src="favicon-192.png" alt="" width="64" height="64" style="border-radius:14px"><h1>ดูบิลค่าห้อง</h1><p class="m">ใส่เลขห้องและรหัสที่ได้รับจากหอพัก</p>${msg?`<p class="err">${esc(msg)}</p>`:''}<form id="f" style="display:flex;flex-direction:column;gap:12px"><label>เลขห้อง<input id="room" required autocomplete="off"></label><label>รหัสห้อง<input id="code" inputmode="numeric" required autocomplete="off"></label><button class="btn pri">ดูบิล</button></form>`;
   $('#f').onsubmit=async e=>{e.preventDefault();if(!sb)return login('ระบบยังไม่พร้อมใช้งาน');const{data,error}=await sb.rpc('get_bills',{p_room:$('#room').value.trim(),p_code:$('#code').value.trim()});
     if(error)return login('เปิดบิลไม่ได้ ตรวจอินเทอร์เน็ตแล้วลองอีกครั้ง');if(data.error==='locked')return login('ลองผิดหลายครั้ง รอ 15 นาทีแล้วลองใหม่');if(data.error)return login('เลขห้องหรือรหัสไม่ถูกต้อง');
     S.setup=data.setup||{};bills=data.bills||[];show(0)}}
