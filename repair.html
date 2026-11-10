@@ -1,0 +1,83 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>แจ้งซ่อม</title>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png"><link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai+Looped:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#F6F7F3; --surface:#FFFFFF; --sunk:#F0F3EE; --line:#E2E7DF; --fg:#16271D; --muted:#56655B;
+  --accent:#1D5B3B; --accent-ink:#FFFFFF; --accent-soft:#E6F0E8; --brass:#1D5B3B; --brass-soft:#EEF4EC;
+  --room:#1D5B3B; --ok:#1F7A45; --ok-soft:#E3F3E8; --warn:#A86A00; --warn-soft:#FCF1DA; --crit:#C23A2B; --crit-soft:#FBE6E3;
+  --shadow:0 18px 50px rgba(20,45,30,.18);
+  --display:"IBM Plex Sans Thai Looped","IBM Plex Sans Thai",system-ui,sans-serif;
+  --body:"IBM Plex Sans Thai Looped","IBM Plex Sans Thai",system-ui,sans-serif;
+  --mono:"IBM Plex Sans Thai Looped","IBM Plex Sans Thai",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:400 16px/1.6 var(--body)}
+.w{max-width:520px;margin:0 auto;padding-block:24px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+h1,h2{font-family:var(--display);margin:0;line-height:1.25}h1{font-size:1.5rem;font-weight:700}
+p{margin:0}.m{color:var(--muted)}.err{color:var(--crit);font-weight:500}
+.brandrow{display:flex;gap:12px;align-items:center}.brandrow img{width:52px;height:52px;border-radius:12px}
+form,.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:16px}
+.q{display:flex;flex-direction:column;gap:6px}
+.q>span{font-weight:600}.q>span i{display:inline-flex;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-style:normal;font-size:.8rem;align-items:center;justify-content:center;margin-right:8px}
+.q small{color:var(--muted)}
+input,select,textarea{font:inherit;padding:11px 12px;border:1px solid #CBD5CC;border-radius:10px;background:var(--surface);color:var(--fg);width:100%}
+textarea{min-height:96px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}@media(max-width:380px){.two{grid-template-columns:1fr}}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chips button{font:inherit;font-size:.88rem;border:1px solid var(--line);background:var(--sunk);border-radius:999px;padding:4px 12px;cursor:pointer;color:var(--fg)}
+.chips button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.files{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.fi{position:relative;border:1px solid var(--line);border-radius:10px;overflow:hidden;aspect-ratio:1;background:var(--sunk);display:flex;align-items:center;justify-content:center;font-size:.8rem;color:var(--muted);max-width:100%}
+.fi img,.fi video{width:100%;height:100%;object-fit:cover}
+.fi button{position:absolute;top:4px;right:4px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;cursor:pointer;font-size:14px}
+.add{border:1.5px dashed #AEBBB1;border-radius:10px;padding:14px;text-align:center;cursor:pointer;color:var(--accent);font-weight:600;position:relative}
+.add input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.btn{font:inherit;font-weight:700;border:0;background:var(--accent);color:#fff;padding:14px;border-radius:12px;cursor:pointer;font-size:1.05rem}
+.btn:disabled{opacity:.6}.btn.ghost{background:var(--surface);color:var(--accent);border:1px solid var(--line)}
+.done{text-align:center;align-items:center}.done .ok{width:64px;height:64px;border-radius:50%;background:var(--ok-soft);color:var(--ok);font-size:2rem;display:flex;align-items:center;justify-content:center}
+</style></head><body><div class="w" id="app"><p class="m">กำลังโหลด…</p></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+const $=s=>document.querySelector(s);const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sb=window.supabase&&window.DORM_CONFIG&&!DORM_CONFIG.url.includes('YOUR-PROJECT')?supabase.createClient(DORM_CONFIG.url,DORM_CONFIG.anonKey):null;
+const DEV=['แอร์','ไฟ/หลอดไฟ','ปลั๊กไฟ','ก๊อกน้ำ/ท่อ','ชักโครก/ห้องน้ำ','เครื่องทำน้ำอุ่น','ประตู/กุญแจ','หน้าต่าง/มุ้ง','เฟอร์นิเจอร์','อินเทอร์เน็ต'];
+let CFG={name:'',buildings:[]},files=[],sending=false;
+const save=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}},load=k=>{try{return localStorage.getItem(k)||''}catch(e){return ''}};
+function form(msg=''){const q=new URLSearchParams(location.search),B=CFG.buildings,pre=q.get('b')||load('rp_b');
+  $('#app').innerHTML=`<div class="brandrow"><img src="favicon-192.png" alt=""><div><h1>แจ้งซ่อม</h1><p class="m">${esc(CFG.name||'หอพัก')} · กรอก 5 ข้อแล้วกดส่ง</p></div></div>
+  <form id="f" novalidate>${msg?`<p class="err" role="alert">${esc(msg)}</p>`:''}
+  <label class="q"><span><i>1</i>เลขห้องและสถานที่</span><div class="two">${B.length?`<select id="bld" required aria-label="สถานที่"><option value="">เลือกสถานที่</option>${B.map(b=>`<option value="${esc(b.id)}" ${b.id===pre?'selected':''}>${esc(b.name)}</option>`).join('')}</select>`:''}<input id="room" required placeholder="เลขห้อง เช่น 85/86" value="${esc(q.get('r')||load('rp_r'))}" autocomplete="off" aria-label="เลขห้อง"></div></label>
+  <div class="q"><span><i>2</i>อุปกรณ์ที่เสีย</span><div class="chips" id="devc">${DEV.map(d=>`<button type="button" data-d="${d}" aria-pressed="false">${d}</button>`).join('')}</div><input id="dev" required placeholder="หรือพิมพ์เอง" aria-label="อุปกรณ์ที่เสีย"></div>
+  <label class="q"><span><i>3</i>อาการ</span><textarea id="sym" required placeholder="เช่น แอร์เปิดได้แต่ไม่เย็น มีน้ำหยด"></textarea></label>
+  <div class="q"><span><i>4</i>ชื่อและเบอร์โทรติดต่อกลับ</span><div class="two"><input id="nm" required placeholder="ชื่อ" value="${esc(load('rp_n'))}" aria-label="ชื่อ"><input id="ph" required inputmode="tel" placeholder="เบอร์โทร" value="${esc(load('rp_p'))}" aria-label="เบอร์โทร"></div></div>
+  <div class="q"><span><i>5</i>แนบรูปหรือวิดีโอ</span><small>ไม่เกิน 5 ไฟล์ วิดีโอไฟล์ละไม่เกิน 50 MB</small><div class="files" id="fl"></div><label class="add" id="addb">＋ เพิ่มรูป / วิดีโอ<input type="file" id="fin" accept="image/*,video/*" multiple></label></div>
+  <button class="btn" id="go">ส่งแจ้งซ่อม</button><p id="st" class="m" role="status"></p></form>`;
+  $('#devc').onclick=e=>{const b=e.target.closest('[data-d]');if(!b)return;$('#dev').value=b.dataset.d;document.querySelectorAll('#devc button').forEach(x=>x.setAttribute('aria-pressed',x===b))};
+  $('#fin').onchange=async e=>{for(const f of e.target.files){if(files.length>=5)break;const v=f.type.startsWith('video/');if(v&&f.size>50*1024*1024){$('#st').textContent=f.name+' ใหญ่เกิน 50 MB ลองถ่ายให้สั้นลง';continue}
+      if(!v&&!f.type.startsWith('image/'))continue;files.push({file:f,video:v,url:URL.createObjectURL(f)})}e.target.value='';drawFiles()};
+  $('#f').onsubmit=e=>{e.preventDefault();send()};drawFiles()}
+function drawFiles(){$('#fl').innerHTML=files.map((x,i)=>`<div class="fi">${x.video?`<video src="${x.url}" muted playsinline></video>`:`<img src="${x.url}" alt="">`}<button type="button" aria-label="ลบไฟล์" data-i="${i}">✕</button></div>`).join('');
+  $('#fl').onclick=e=>{const b=e.target.closest('[data-i]');if(b){files.splice(+b.dataset.i,1);drawFiles()}};$('#addb').hidden=files.length>=5}
+async function shrink(file){const bmp=await createImageBitmap(file);const k=Math.min(1,1600/Math.max(bmp.width,bmp.height));const c=document.createElement('canvas');c.width=Math.round(bmp.width*k);c.height=Math.round(bmp.height*k);c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);return await new Promise((r,j)=>c.toBlob(x=>x?r(x):j(),'image/jpeg',.82))}
+async function send(){if(sending)return;const v=id=>($(id)?.value||'').trim(),st=$('#st');
+  const need=[[CFG.buildings.length&&!v('#bld'),'เลือกสถานที่'],[!v('#room'),'ใส่เลขห้อง'],[!v('#dev'),'ใส่อุปกรณ์ที่เสีย'],[!v('#sym'),'ใส่อาการ'],[!v('#nm'),'ใส่ชื่อ'],[!v('#ph'),'ใส่เบอร์โทร']].find(x=>x[0]);
+  if(need){st.textContent='ยังไม่ครบ: '+need[1];st.className='err';return}
+  sending=true;$('#go').disabled=true;st.className='m';const media=[];
+  try{for(let i=0;i<files.length;i++){const x=files[i];st.textContent=`กำลังอัปโหลดไฟล์ ${i+1}/${files.length}…`;let blob=x.file,ext='jpg',ct='image/jpeg';
+      if(x.video){ct=x.file.type||'video/mp4';ext=ct.includes('quicktime')?'mov':ct.includes('webm')?'webm':'mp4';if(!/mp4|quicktime|webm/.test(ct))ct='video/mp4'}else{blob=await shrink(x.file)}
+      const path='r/'+crypto.randomUUID()+'.'+ext;const up=await sb.storage.from('repairs').upload(path,blob,{contentType:ct,upsert:false});if(up.error)throw new Error('upload');media.push({path,type:x.video?'video':'image'})}
+    st.textContent='กำลังส่งแจ้งซ่อม…';
+    const{data,error}=await sb.rpc('submit_repair',{p_building:v('#bld'),p_room:v('#room'),p_device:v('#dev'),p_symptom:v('#sym'),p_name:v('#nm'),p_phone:v('#ph'),p_media:media});
+    if(error)throw new Error('rpc');if(data?.error){sending=false;$('#go').disabled=false;st.className='err';st.textContent=data.error==='room'?'ไม่พบเลขห้องนี้ในสถานที่ที่เลือก ตรวจเลขห้องอีกครั้ง':data.error==='limit'?'ห้องนี้แจ้งหลายครั้งแล้วในชั่วโมงนี้ ติดต่อหอพักโดยตรง':'กรอกข้อมูลให้ครบ';return}
+    save('rp_b',v('#bld'));save('rp_r',v('#room'));save('rp_n',v('#nm'));save('rp_p',v('#ph'));
+    const bn=CFG.buildings.find(b=>b.id===v('#bld'))?.name||'';
+    $('#app').innerHTML=`<div class="card done"><div class="ok">✓</div><h1>ส่งแจ้งซ่อมแล้ว</h1><p>${esc(bn)} ห้อง ${esc(v('#room')||'')}</p><p class="m">หอพักได้รับเรื่องแล้ว จะติดต่อกลับที่เบอร์ที่ให้ไว้</p><button class="btn ghost" id="again">แจ้งซ่อมรายการอื่น</button></div>`;
+    files=[];$('#again').onclick=()=>form()}
+  catch(e){sending=false;$('#go').disabled=false;st.className='err';st.textContent='ส่งไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วลองอีกครั้ง'}}
+(async()=>{if(!sb){$('#app').innerHTML='<p class="err">ระบบยังไม่พร้อมใช้งาน</p>';return}
+  const{data,error}=await sb.rpc('get_repair_setup');if(!error&&data)CFG={name:data.name||'',buildings:data.buildings||[]};form(error?'ระบบแจ้งซ่อมยังไม่เปิดใช้งาน ติดต่อหอพักโดยตรง':'')})();
+</script></body></html>
