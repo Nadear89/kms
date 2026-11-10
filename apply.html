@@ -57,7 +57,7 @@ function form(msg=''){const B=CFG.buildings,q=new URLSearchParams(location.searc
   <label class="q"><span><i>2</i>ชื่อ-นามสกุล</span><input id="nm" required autocomplete="name"></label>
   <label class="q"><span><i>3</i>เลขบัตรประจำตัวประชาชน</span><input id="idc" required inputmode="numeric" maxlength="17" placeholder="13 หลัก"></label>
   <label class="q"><span><i>4</i>ที่อยู่ตามบัตรประชาชน</span><textarea id="adr" required placeholder="บ้านเลขที่ หมู่ ถนน ตำบล อำเภอ จังหวัด"></textarea></label>
-  <div class="q"><span><i>5</i>ช่องทางติดต่อ</span><div class="two"><input id="ph" required inputmode="tel" placeholder="เบอร์โทร" aria-label="เบอร์โทร"><input id="ln" placeholder="LINE ID (ถ้ามี)" aria-label="LINE ID"></div></div>
+  <div class="q"><span><i>5</i>ช่องทางติดต่อ</span><div class="two"><input id="ph" required inputmode="tel" placeholder="เบอร์โทร" aria-label="เบอร์โทร"><input id="ln" required placeholder="LINE ID" aria-label="LINE ID"></div></div>
   <label class="q"><span><i>6</i>ผู้ติดต่อฉุกเฉิน <small class="opt">(ไม่บังคับ)</small></span><input id="em" placeholder="ชื่อ ความสัมพันธ์ เบอร์โทร"></label>
   <label class="q"><span><i>7</i>วันที่จะเข้าพัก</span><input id="mi" type="date"></label>
   <div class="q"><span><i>8</i>รูปบัตรประชาชน <small class="opt">(ไม่บังคับ)</small></span><img id="idp" class="idp" hidden alt="ตัวอย่างรูปบัตร"><label class="add">＋ ถ่าย / เลือกรูปบัตร<input type="file" id="fin" accept="image/*"></label></div>
@@ -68,7 +68,7 @@ function form(msg=''){const B=CFG.buildings,q=new URLSearchParams(location.searc
   $('#f').onsubmit=e=>{e.preventDefault();send()}}
 async function shrink(file){const bmp=await createImageBitmap(file);const k=Math.min(1,1600/Math.max(bmp.width,bmp.height));const c=document.createElement('canvas');c.width=Math.round(bmp.width*k);c.height=Math.round(bmp.height*k);c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);return await new Promise((r,j)=>c.toBlob(x=>x?r(x):j(),'image/jpeg',.85))}
 async function send(){if(sending)return;const v=id=>($(id)?.value||'').trim(),st=$('#st');
-  const need=[[CFG.buildings.length&&!v('#bld'),'เลือกสถานที่'],[!v('#nm'),'ใส่ชื่อ-นามสกุล'],[!idOk(v('#idc')),'เลขบัตรประชาชนไม่ถูกต้อง'],[!v('#adr'),'ใส่ที่อยู่ตามบัตร'],[!v('#ph'),'ใส่เบอร์โทร'],[!$('#ok').checked,'กดยินยอมการเก็บข้อมูล']].find(x=>x[0]);
+  const need=[[CFG.buildings.length&&!v('#bld'),'เลือกสถานที่'],[!v('#nm'),'ใส่ชื่อ-นามสกุล'],[!idOk(v('#idc')),'เลขบัตรประชาชนไม่ถูกต้อง'],[!v('#adr'),'ใส่ที่อยู่ตามบัตร'],[!v('#ph'),'ใส่เบอร์โทร'],[!v('#ln'),'ใส่ LINE ID'],[!$('#ok').checked,'กดยินยอมการเก็บข้อมูล']].find(x=>x[0]);
   if(need){st.textContent='ยังไม่ครบ: '+need[1];st.className='err';return}
   sending=true;$('#go').disabled=true;st.className='m';
   try{let path='';if(photo){st.textContent='กำลังอัปโหลดรูปบัตร…';path='i/'+crypto.randomUUID()+'.jpg';const up=await sb.storage.from('idcards').upload(path,photo,{contentType:'image/jpeg',upsert:false});if(up.error)path=''}
