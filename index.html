@@ -259,6 +259,13 @@ hr.fsep{grid-column:1/-1;border:0;border-top:1px dashed var(--line);margin:2px 0
 @media(max-width:1100px){.sgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.mgrid,.lgrid{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:700px){.steps{grid-template-columns:repeat(2,minmax(0,1fr))}.rcs{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}}
 @media(max-width:420px){.sgrid{grid-template-columns:minmax(0,1fr)}.sv{font-size:1.7rem}}
+.pgrp{display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);border-radius:12px;padding:12px}
+.pgh{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:6px;max-height:260px;overflow:auto}
+.pk{position:relative;cursor:pointer}.pk input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.pk span{display:block;text-align:center;padding:6px 4px;border:1px solid var(--line);border-radius:8px;font-weight:600;background:var(--surface)}
+.pk input:checked+span{background:var(--accent);border-color:var(--accent);color:#fff}
+.pk input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
 /* room states */
 .s-on{--c:#1D5B3B;--b:#FFFFFF;--l:#B9D4C1}
 .s-free{--c:#6F7D73;--b:#F3F5F2;--l:#C3CCC4}
@@ -602,7 +609,7 @@ function vRooms(){
     <td><span class="pill s-${roomState(r)}">${ST[roomState(r)]}</span></td><td>${t?esc(t.name):'-'}</td>
     <td class="nowrap">${r.code?`<code>${esc(r.code)}</code> <button class="btn sm" data-act="copyCode" data-id="${r.id}">คัดลอก</button>`:'-'}</td><td class="num nowrap"><button class="btn sm" data-act="editRoom" data-id="${r.id}">แก้ไข</button></td></tr>`}).join('');
   const noCode=rooms().filter(r=>!r.code).length;
-  return `<div class="head"><div><h1>ห้องพัก</h1><p>${rooms().length} ห้อง</p></div><div class="row">${rooms().length&&rooms().some((r,i)=>r.number!==String(i+1))?'<button class="btn" data-act="renumber">เรียงเลขห้องใหม่ 1-'+rooms().length+'</button>':''}${noCode?`<button class="btn" data-act="genCodes">สร้างรหัสดูบิล ${noCode} ห้อง</button>`:''}<button class="btn" data-act="bulkRoom">เพิ่มหลายห้อง</button><button class="btn pri" data-act="newRoom">เพิ่มห้อง</button></div></div>${sampleNote()}
+  return `<div class="head"><div><h1>ห้องพัก</h1><p>${rooms().length} ห้อง</p></div><div class="row">${multi()?'<button class="btn" data-act="assignB">จัดห้องเข้าหลัง</button>':''}${rooms().length&&rooms().some((r,i)=>r.number!==String(i+1))?'<button class="btn" data-act="renumber">เรียงเลขห้องใหม่ 1-'+rooms().length+'</button>':''}${noCode?`<button class="btn" data-act="genCodes">สร้างรหัสดูบิล ${noCode} ห้อง</button>`:''}<button class="btn" data-act="bulkRoom">เพิ่มหลายห้อง</button><button class="btn pri" data-act="newRoom">เพิ่มห้อง</button></div></div>${sampleNote()}
   ${rows?`<div class="tw"><table><thead><tr><th>ห้อง</th><th>ชั้น</th><th>ประเภท</th><th class="num">ค่าเช่า/เดือน</th><th>สถานะ</th><th>ผู้เช่า</th><th>รหัสดูบิล</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="empty">ยังไม่มีห้องพัก กด "เพิ่มหลายห้อง" เพื่อสร้างทั้งชั้นในครั้งเดียว</div>'}`;
 }
 function vTenants(){
@@ -656,7 +663,7 @@ function vSetup(){
   const s=S.setup,v=k=>esc(s[k]??'');const fld=(k,l,t='text',x='')=>`<label class="f">${l}<input name="${k}" type="${t}" value="${v(k)}" ${t==='number'?'step="any" min="0"':''} ${x}></label>`;
   return `<div class="head"><div><h1>ตั้งค่าหอพัก</h1><p>อัตราที่แก้ใหม่มีผลกับบิลที่ออกต่อจากนี้ บิลเดิมคงยอดเดิม</p></div></div>${sampleNote()}
   <form data-form="blds" class="panel" style="max-width:640px"><fieldset><legend>อาคาร / หลัง</legend>
-  ${BLD().map((b,i)=>`<label class="f">ชื่อหลังที่ ${i+1}<input name="${b.id}" value="${esc(b.name)}" required></label><label class="f">ชื่อบนหัวบิล<input name="bn_${b.id}" value="${esc(b.billName||'')}" placeholder="ว่างไว้ = ชื่อหอพักหลัก"></label><label class="f full">ที่อยู่<input name="addr_${b.id}" value="${esc(b.address||'')}" placeholder="ว่างไว้ = ที่อยู่หลัก"></label><label class="f">เบอร์โทร<input name="ph_${b.id}" value="${esc(b.phone||'')}" inputmode="tel" placeholder="ว่างไว้ = เบอร์หลัก"></label><span class="f"></span>`).join('<hr class="fsep">')}
+  ${BLD().map((b,i)=>`<label class="f">ชื่อหลังที่ ${i+1} · ${allRooms().filter(r=>roomBld(r)===b.id).length} ห้อง<input name="${b.id}" value="${esc(b.name)}" required></label><label class="f">ชื่อบนหัวบิล<input name="bn_${b.id}" value="${esc(b.billName||'')}" placeholder="ว่างไว้ = ชื่อหอพักหลัก"></label><label class="f full">ที่อยู่<input name="addr_${b.id}" value="${esc(b.address||'')}" placeholder="ว่างไว้ = ที่อยู่หลัก"></label><label class="f">เบอร์โทร<input name="ph_${b.id}" value="${esc(b.phone||'')}" inputmode="tel" placeholder="ว่างไว้ = เบอร์หลัก"></label><span class="f"></span>`).join('<hr class="fsep">')}
   <label class="f full">เพิ่มหลังใหม่<input id="newB" placeholder="เช่น หลัง B"></label></fieldset>
   <div class="row"><button class="btn" ${canWrite?'':'disabled'}>บันทึกชื่อหลัง</button><button class="btn" type="button" data-act="addB">เพิ่มหลัง</button></div>
   <p style="color:var(--muted)">ห้องเดิมที่ยังไม่ได้ระบุหลัง จะอยู่ใน${esc(BLD()[0].name)} แก้ได้ที่ปุ่มแก้ไขของแต่ละห้อง</p></form>
@@ -726,6 +733,11 @@ function moveOutForm(t){openDlg(`<form class="dlg" data-form="moveOut" data-id="
   <fieldset><label class="f">วันเวลาย้ายออก<input name="moveOutAt" type="datetime-local" required value="${nowLocal()}"></label><label class="f">คืนเงินประกัน (บาท)<input name="depositReturned" type="number" min="0" step="any" value="${t.deposit??0}"></label>
   <label class="f">เลขมิเตอร์น้ำวันออก<input name="waterOut" type="number" min="0" step="any"></label><label class="f">เลขมิเตอร์ไฟวันออก<input name="elecOut" type="number" min="0" step="any"></label></fieldset>
   <div class="actions"><button class="btn danger">ยืนยันย้ายออก</button></div></form>`)}
+function assignForm(){const L=allRooms();
+  openDlg(`<form class="dlg" data-form="assign">${dHead('จัดห้องเข้าหลัง')}<p style="color:var(--muted)">ติ๊กห้องที่อยู่ผิดหลัง แล้วเลือกหลังที่ถูกต้อง บิลของห้องนั้นจะใช้ชื่อ ที่อยู่ และเบอร์โทรของหลังใหม่ทันที</p>
+  ${BLD().map(b=>{const g=L.filter(r=>roomBld(r)===b.id);return `<div class="pgrp"><div class="pgh"><b>ตอนนี้อยู่ ${esc(b.name)} · ${g.length} ห้อง</b>${g.length?`<button type="button" class="btn sm" data-act="selGrp" data-id="${b.id}">เลือกทั้งหลัง</button>`:''}</div><div class="pick" data-g="${b.id}">${g.map(r=>`<label class="pk"><input type="checkbox" class="ak" value="${r.id}"><span>${esc(r.number)}</span></label>`).join('')||'<span style="color:var(--muted)">ไม่มีห้อง</span>'}</div></div>`}).join('')}
+  <div class="pgrp"><label class="f">ย้ายห้องที่เลือกไปที่<select name="to">${BLD().map(b=>`<option value="${b.id}">${esc(b.name)}</option>`).join('')}</select></label><p id="akN" style="color:var(--muted)">ยังไม่ได้เลือกห้อง</p></div>
+  <div class="actions"><button type="button" class="btn l" data-act="selNone">ล้างที่เลือก</button><button class="btn pri">ย้ายห้อง</button></div></form>`)}
 function prevForm(rid){const r=reading(rid,month),b=S.bills[meterId(month,rid)];
   openDlg(`<form class="dlg" data-form="prevMeter" data-id="${rid}">${dHead('แก้เลขครั้งก่อน ห้อง '+roomNo(rid))}<p>ใช้เมื่อเปลี่ยนมิเตอร์ใหม่ หรือเลขเดือนก่อนจดผิด มีผลกับ${monthLabel(month)}</p>
   <fieldset><label class="f">มิเตอร์น้ำครั้งก่อน<input name="waterPrev" type="number" min="0" step="any" required value="${r.waterPrev}"></label><label class="f">มิเตอร์ไฟครั้งก่อน<input name="elecPrev" type="number" min="0" step="any" required value="${r.elecPrev}"></label></fieldset>
@@ -820,6 +832,9 @@ const ACT={
   checkIn:e=>{const r=S.rooms[e.dataset.id],v=r.reservation||{};tenantForm({name:v.name,phone:v.phone,note:v.deposit?'เงินจอง '+v.deposit+' บาท':(v.note||''),moveInAt:v.date&&v.date>=todayStr()?v.date+'T12:00':''},r.id)},
   okSlip:async e=>{const{id,...b}=S.bills[e.dataset.id];if(await put('bills',id,{...b,status:'paid',paidAt:todayStr(),payMethod:'โอนธนาคาร (สลิป)'})){closeDlg();toast('ยืนยันรับเงินแล้ว')}},
   rejectSlip:async e=>{const{id,slip,...b}=S.bills[e.dataset.id];closeDlg();if(await ask('สลิปไม่ถูกต้อง?','ระบบจะลบสลิปนี้ออกจากบิล ผู้เช่าส่งสลิปใหม่ได้จากลิงก์เดิม','ลบสลิป')){if(await put('bills',id,b)){sb.storage.from('slips').remove([slip.path]).catch(()=>{});toast('ลบสลิปแล้ว แจ้งผู้เช่าส่งใหม่')}}},
+  assignB:()=>assignForm(),
+  selGrp:e=>{const box=document.querySelector(`.pick[data-g="${e.dataset.id}"]`);const all=[...box.querySelectorAll('.ak')];const on=!all.every(x=>x.checked);all.forEach(x=>x.checked=on);akCount()},
+  selNone:()=>{document.querySelectorAll('.ak').forEach(x=>x.checked=false);akCount()},
   editPrev:e=>prevForm(e.dataset.id),
   newRoom:()=>roomForm(),bulkRoom:bulkForm,editRoom:e=>roomForm(S.rooms[e.dataset.id]),
   delRoom:async e=>{const id=e.dataset.id;if(tenantOf(id))return toast('ห้องนี้มีผู้เช่าอยู่ ต้องย้ายออกก่อนจึงลบได้');closeDlg();if(await ask('ลบห้อง '+roomNo(id)+'?','ลบแล้วกู้คืนไม่ได้ บิลเดิมยังอยู่','ลบห้อง'))await del('rooms',id)},
@@ -863,9 +878,13 @@ const FORM={
   blds:async d=>{await saveB(BLD().map(b=>({...b,name:(d[b.id]||b.name).trim(),address:(d['addr_'+b.id]??b.address??'').trim(),billName:(d['bn_'+b.id]??b.billName??'').trim(),phone:(d['ph_'+b.id]??b.phone??'').trim()})))},
   notice:async(d,id)=>{const{id:_,...t}=S.tenants[id];if(d.planOut<d.noticeAt)return toast('วันย้ายออกต้องไม่ก่อนวันที่แจ้ง');if(await put('tenants',id,{...t,noticeAt:d.noticeAt,planOut:d.planOut,noticeNote:d.noticeNote.trim()})){closeDlg();toast('บันทึกแจ้งออกแล้ว')}},
   resv:async(d,id)=>{const rid=id||d.room;if(!rid)return toast('เลือกห้องก่อน');const{id:_,...r}=S.rooms[rid];if(await put('rooms',rid,{...r,reservation:{name:d.name.trim(),phone:d.phone.trim(),date:d.date,deposit:num(d.deposit)||0,note:d.note.trim()}})){closeDlg();toast('บันทึกการจองแล้ว')}},
+  assign:async d=>{const ids=[...document.querySelectorAll('.ak:checked')].map(x=>x.value);if(!ids.length)return toast('เลือกห้องก่อน');let n=0;
+    for(const id of ids){const{id:_,...r}=S.rooms[id];if(roomBld(r)===d.to)continue;if(await put('rooms',id,{...r,building:d.to}))n++}closeDlg();toast(`ย้ายแล้ว ${n} ห้องไป${bldName(d.to)}`)},
   setup:async d=>{const n={...S.setup,...d,buildings:S.setup.buildings};if(!n.buildings)delete n.buildings;if(n.accNo?.trim())n.bank=`โอนเข้าบัญชี ${n.bankName||''} เลขที่ ${n.accNo.trim()}${n.accName?' ชื่อบัญชี '+n.accName:''}`.replace(/\s+/g,' ');['waterRate','waterMin','elecRate','elecMin','common','dueDay'].forEach(k=>n[k]=num(d[k])||0);delete n.id;await put('setup','main',n);toast('บันทึกการตั้งค่าแล้ว')}
 };
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const f=ACT[b.dataset.act];if(f){e.preventDefault();f(b)}});
+function akCount(){const n=document.querySelectorAll('.ak:checked').length,e=document.getElementById('akN');if(e)e.textContent=n?`เลือกแล้ว ${n} ห้อง`:'ยังไม่ได้เลือกห้อง'}
+document.addEventListener('change',e=>{if(e.target.classList?.contains('ak'))akCount()});
 document.addEventListener('submit',e=>{const f=e.target;if(!f.dataset.form)return;e.preventDefault();const d=Object.fromEntries(new FormData(f));FORM[f.dataset.form](d,f.dataset.id||'')});
 document.addEventListener('input',e=>{if(e.target.id==='q'){query=e.target.value;paint()}});
 async function importFile(file){const d=JSON.parse(await file.text()),rows=[];
