@@ -1,0 +1,82 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>ขอทำสัญญาเช่า</title>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png"><link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai+Looped:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#F6F7F3; --surface:#FFFFFF; --sunk:#F0F3EE; --line:#E2E7DF; --fg:#16271D; --muted:#56655B;
+  --accent:#1D5B3B; --accent-ink:#FFFFFF; --accent-soft:#E6F0E8; --brass:#1D5B3B; --brass-soft:#EEF4EC;
+  --room:#1D5B3B; --ok:#1F7A45; --ok-soft:#E3F3E8; --warn:#A86A00; --warn-soft:#FCF1DA; --crit:#C23A2B; --crit-soft:#FBE6E3;
+  --shadow:0 18px 50px rgba(20,45,30,.18);
+  --display:"IBM Plex Sans Thai Looped","IBM Plex Sans Thai",system-ui,sans-serif;
+  --body:"IBM Plex Sans Thai Looped","IBM Plex Sans Thai",system-ui,sans-serif;
+  --mono:"IBM Plex Sans Thai Looped","IBM Plex Sans Thai",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:400 16px/1.6 var(--body)}
+.w{max-width:520px;margin:0 auto;padding-block:24px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+h1,h2{font-family:var(--display);margin:0;line-height:1.25}h1{font-size:1.5rem;font-weight:700}
+p{margin:0}.m{color:var(--muted)}.err{color:var(--crit);font-weight:500}
+.brandrow{display:flex;gap:12px;align-items:center}.brandrow img{width:52px;height:52px;border-radius:12px}
+form,.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:16px}
+.q{display:flex;flex-direction:column;gap:6px}
+.q>span{font-weight:600}.q>span i{display:inline-flex;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-style:normal;font-size:.8rem;align-items:center;justify-content:center;margin-right:8px}
+.q small{color:var(--muted)}
+input,select,textarea{font:inherit;padding:11px 12px;border:1px solid #CBD5CC;border-radius:10px;background:var(--surface);color:var(--fg);width:100%}
+textarea{min-height:96px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}@media(max-width:380px){.two{grid-template-columns:1fr}}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chips button{font:inherit;font-size:.88rem;border:1px solid var(--line);background:var(--sunk);border-radius:999px;padding:4px 12px;cursor:pointer;color:var(--fg)}
+.chips button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.files{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.fi{position:relative;border:1px solid var(--line);border-radius:10px;overflow:hidden;aspect-ratio:1;background:var(--sunk);display:flex;align-items:center;justify-content:center;font-size:.8rem;color:var(--muted);max-width:100%}
+.fi img,.fi video{width:100%;height:100%;object-fit:cover}
+.fi button{position:absolute;top:4px;right:4px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;cursor:pointer;font-size:14px}
+.add{border:1.5px dashed #AEBBB1;border-radius:10px;padding:14px;text-align:center;cursor:pointer;color:var(--accent);font-weight:600;position:relative}
+.add input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.btn{font:inherit;font-weight:700;border:0;background:var(--accent);color:#fff;padding:14px;border-radius:12px;cursor:pointer;font-size:1.05rem}
+.btn:disabled{opacity:.6}.btn.ghost{background:var(--surface);color:var(--accent);border:1px solid var(--line)}
+.done{text-align:center;align-items:center}.done .ok{width:64px;height:64px;border-radius:50%;background:var(--ok-soft);color:var(--ok);font-size:2rem;display:flex;align-items:center;justify-content:center}
+
+.ck{display:flex;gap:10px;align-items:flex-start;font-size:.92rem;color:var(--muted)}.ck input{width:22px;height:22px;flex:none;margin-top:2px}
+.idp{max-height:200px;border-radius:10px;border:1px solid var(--line);align-self:flex-start}
+.opt{font-weight:400;color:var(--muted);font-size:.85rem}
+</style></head><body><div class="w" id="app"><p class="m">กำลังโหลด…</p></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+const $=s=>document.querySelector(s);const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sb=window.supabase&&window.DORM_CONFIG&&!DORM_CONFIG.url.includes('YOUR-PROJECT')?supabase.createClient(DORM_CONFIG.url,DORM_CONFIG.anonKey):null;
+let CFG={name:'',buildings:[]},photo=null,sending=false;
+const idOk=v=>{const d=v.replace(/\D/g,'');if(d.length!==13)return false;let s=0;for(let i=0;i<12;i++)s+=+d[i]*(13-i);return (11-s%11)%10===+d[12]};
+function form(msg=''){const B=CFG.buildings,q=new URLSearchParams(location.search);
+  $('#app').innerHTML=`<div class="brandrow"><img src="favicon-192.png" alt=""><div><h1>ขอทำสัญญาเช่า</h1><p class="m">${esc(CFG.name||'หอพัก')} · กรอกข้อมูลเพื่อจัดทำสัญญา</p></div></div>
+  <form id="f" novalidate>${msg?`<p class="err" role="alert">${esc(msg)}</p>`:''}
+  <label class="q"><span><i>1</i>สถานที่และห้องที่ตกลงไว้</span><div class="two">${B.length?`<select id="bld" aria-label="สถานที่"><option value="">เลือกสถานที่</option>${B.map(b=>`<option value="${esc(b.id)}" ${b.id===q.get('b')?'selected':''}>${esc(b.name)}</option>`).join('')}</select>`:''}<input id="room" placeholder="เลขห้อง (ถ้าทราบ)" value="${esc(q.get('r')||'')}" aria-label="เลขห้อง"></div></label>
+  <label class="q"><span><i>2</i>ชื่อ-นามสกุล</span><input id="nm" required autocomplete="name"></label>
+  <label class="q"><span><i>3</i>เลขบัตรประจำตัวประชาชน</span><input id="idc" required inputmode="numeric" maxlength="17" placeholder="13 หลัก"></label>
+  <label class="q"><span><i>4</i>ที่อยู่ตามบัตรประชาชน</span><textarea id="adr" required placeholder="บ้านเลขที่ หมู่ ถนน ตำบล อำเภอ จังหวัด"></textarea></label>
+  <div class="q"><span><i>5</i>ช่องทางติดต่อ</span><div class="two"><input id="ph" required inputmode="tel" placeholder="เบอร์โทร" aria-label="เบอร์โทร"><input id="ln" placeholder="LINE ID (ถ้ามี)" aria-label="LINE ID"></div></div>
+  <label class="q"><span><i>6</i>ผู้ติดต่อฉุกเฉิน <small class="opt">(ไม่บังคับ)</small></span><input id="em" placeholder="ชื่อ ความสัมพันธ์ เบอร์โทร"></label>
+  <label class="q"><span><i>7</i>วันที่จะเข้าพัก</span><input id="mi" type="date"></label>
+  <div class="q"><span><i>8</i>รูปบัตรประชาชน <small class="opt">(ไม่บังคับ)</small></span><img id="idp" class="idp" hidden alt="ตัวอย่างรูปบัตร"><label class="add">＋ ถ่าย / เลือกรูปบัตร<input type="file" id="fin" accept="image/*"></label></div>
+  <label class="q"><span>หมายเหตุ <small class="opt">(ไม่บังคับ)</small></span><input id="nt" placeholder="เช่น จำนวนผู้พัก มีรถ"></label>
+  <label class="ck"><input type="checkbox" id="ok"><span>ยินยอมให้หอพักเก็บข้อมูลนี้เพื่อจัดทำสัญญาเช่าและติดต่อกลับ</span></label>
+  <button class="btn" id="go">ส่งข้อมูลทำสัญญา</button><p id="st" class="m" role="status"></p></form>`;
+  $('#fin').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{photo=await shrink(f);$('#idp').src=URL.createObjectURL(photo);$('#idp').hidden=false}catch(x){photo=null;$('#st').textContent='เปิดรูปนี้ไม่ได้ ลองไฟล์ JPG หรือ PNG'}};
+  $('#f').onsubmit=e=>{e.preventDefault();send()}}
+async function shrink(file){const bmp=await createImageBitmap(file);const k=Math.min(1,1600/Math.max(bmp.width,bmp.height));const c=document.createElement('canvas');c.width=Math.round(bmp.width*k);c.height=Math.round(bmp.height*k);c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);return await new Promise((r,j)=>c.toBlob(x=>x?r(x):j(),'image/jpeg',.85))}
+async function send(){if(sending)return;const v=id=>($(id)?.value||'').trim(),st=$('#st');
+  const need=[[CFG.buildings.length&&!v('#bld'),'เลือกสถานที่'],[!v('#nm'),'ใส่ชื่อ-นามสกุล'],[!idOk(v('#idc')),'เลขบัตรประชาชนไม่ถูกต้อง'],[!v('#adr'),'ใส่ที่อยู่ตามบัตร'],[!v('#ph'),'ใส่เบอร์โทร'],[!$('#ok').checked,'กดยินยอมการเก็บข้อมูล']].find(x=>x[0]);
+  if(need){st.textContent='ยังไม่ครบ: '+need[1];st.className='err';return}
+  sending=true;$('#go').disabled=true;st.className='m';
+  try{let path='';if(photo){st.textContent='กำลังอัปโหลดรูปบัตร…';path='i/'+crypto.randomUUID()+'.jpg';const up=await sb.storage.from('idcards').upload(path,photo,{contentType:'image/jpeg',upsert:false});if(up.error)path=''}
+    st.textContent='กำลังส่งข้อมูล…';
+    const{data,error}=await sb.rpc('submit_application',{p:{building:v('#bld'),roomNumber:v('#room'),name:v('#nm'),idCard:v('#idc'),address:v('#adr'),phone:v('#ph'),line:v('#ln'),emergency:v('#em'),moveIn:v('#mi'),note:v('#nt'),idPhoto:path}});
+    if(error)throw 0;if(data?.error){sending=false;$('#go').disabled=false;st.className='err';st.textContent=data.error==='limit'?'ส่งหลายครั้งแล้ว ติดต่อหอพักโดยตรง':'กรอกข้อมูลให้ครบ';return}
+    $('#app').innerHTML=`<div class="card done"><div class="ok">✓</div><h1>ส่งข้อมูลแล้ว</h1><p>หอพักได้รับข้อมูลแล้ว จะติดต่อกลับเพื่อนัดทำสัญญา</p><p class="m">ค่าเช่าและเงินประกันจะแจ้งตามที่ตกลงกันในวันทำสัญญา</p></div>`}
+  catch(e){sending=false;$('#go').disabled=false;st.className='err';st.textContent='ส่งไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วลองอีกครั้ง'}}
+(async()=>{if(!sb){$('#app').innerHTML='<p class="err">ระบบยังไม่พร้อมใช้งาน</p>';return}
+  const{data,error}=await sb.rpc('get_repair_setup');if(!error&&data)CFG={name:data.name||'',buildings:data.buildings||[]};form()})();
+</script></body></html>

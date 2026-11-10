@@ -3,7 +3,7 @@
 <title>หลังบ้านหอพัก</title>
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png"><link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai+Looped:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai+Looped:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@400;700&display=swap">
 <style>
 /* Layout: a dorm office key board. The building is drawn floor by floor, each room a key tag; the meter page is a plain ledger with one water row and one power row per room. */
 :root{
@@ -273,6 +273,13 @@ hr.fsep{grid-column:1/-1;border:0;border-top:1px dashed var(--line);margin:2px 0
 .rpmedia{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}.rpm{border:1px solid var(--line);border-radius:10px;overflow:hidden;min-height:80px;display:flex;align-items:center;justify-content:center;color:var(--muted);background:var(--sunk)}
 .rpm img,.rpm video{width:100%;max-height:260px;object-fit:cover;display:block}
 .sel{user-select:all}
+#printArea{display:none}
+@media print{@page{size:A4;margin:16mm 18mm}html,body{background:#fff!important}:root{padding:0!important}body>*:not(#printArea){display:none!important}#printArea{display:block!important}}
+.ct{color:#000;font:15.5pt/1.5 "Sarabun","TH Sarabun New",serif}
+.ct h1{text-align:center;font:700 20pt "Sarabun",serif;margin:0 0 10pt}
+.ct p{margin:0 0 5pt;text-indent:1.2cm;text-align:justify}.ct p.r{text-align:right;text-indent:0}.ct p.sub{text-indent:0;padding-left:2.2cm}
+.ct .cf{border-bottom:1px dotted #000;padding:0 6px;font-weight:700;display:inline}
+.ct .sig{display:grid;grid-template-columns:1fr 1fr;gap:28pt 20pt;margin-top:30pt;text-align:center;page-break-inside:avoid}
 /* room states */
 .s-on{--c:#1D5B3B;--b:#FFFFFF;--l:#B9D4C1}
 .s-free{--c:#6F7D73;--b:#F3F5F2;--l:#C3CCC4}
@@ -427,8 +434,8 @@ const daysTo=s=>Math.round((new Date(s+'T00:00:00')-new Date(todayStr()+'T00:00:
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 /* ---------- state ---------- */
-const COLS=['rooms','tenants','meters','bills','repairs'];
-const S={rooms:{},tenants:{},meters:{},bills:{},repairs:{},setup:{}};
+const COLS=['rooms','tenants','meters','bills','repairs','applications'];
+const S={rooms:{},tenants:{},meters:{},bills:{},repairs:{},applications:{},setup:{}};
 const seen={};let sb=null,dl=null,canWrite=true,ready=false,month=todayStr().slice(0,7),query='',denied=false;
 const VIEWS={home:'ภาพรวม',rooms:'ห้องพัก',tenants:'ผู้เช่า',contracts:'สัญญา',meter:'จดมิเตอร์',bills:'ทำบิล',repairs:'แจ้งซ่อม',setup:'ตั้งค่า'};
 const view=()=>{const h=location.hash.slice(1);return VIEWS[h]?h:'home'};
@@ -534,7 +541,7 @@ function vHome(){
   const noContract=act.filter(t=>!t.contractEnd).length;
   const bar=(v,n)=>`<div class="pbar"><i style="width:${n?Math.min(100,v/n*100):0}%"></i></div>`;
   const stat=(k,tint,label,big,unit,sub,extra='')=>`<div class="scard"><div class="sh"><span class="si ${tint}">${ic(k)}</span>${label}</div><div class="sv">${big}<small>${unit}</small></div>${extra}<div class="ss">${sub}</div></div>`;
-  const alerts=[slips.length?`<button class="chipa blue" data-act="planFilter" data-id="owe">${ic('slip',16)} สลิปรอตรวจ ${slips.length} รายการ →</button>`:'',noContract?`<a class="chipa" href="#contracts">${ic('cal',16)} ผู้เช่ายังไม่มีวันสิ้นสุดสัญญา ${noContract} ราย →</a>`:''].join('');
+  const alerts=[apps().length?`<a class="chipa blue" href="#tenants">${ic('slip',16)} คำขอทำสัญญาใหม่ ${apps().length} ราย →</a>`:'',slips.length?`<button class="chipa blue" data-act="planFilter" data-id="owe">${ic('slip',16)} สลิปรอตรวจ ${slips.length} รายการ →</button>`:'',noContract?`<a class="chipa" href="#contracts">${ic('cal',16)} ผู้เช่ายังไม่มีวันสิ้นสุดสัญญา ${noContract} ราย →</a>`:''].join('');
   const step=(n,t,v,of,sub,link,done)=>`<div class="step"><div class="stt"><span class="sn ${done?'done':''}">${done?'✓':n}</span><b>${t}</b></div>${of!=null?bar(v,of):''}<div class="ss">${sub}</div>${link}</div>`;
   const rowsLate=owedList.slice(0,6).map(b=>`<button class="lrow" data-act="openBill" data-id="${b.id}"><b class="rn">${esc(roomNo(b.roomId))}</b><span class="lt">${esc(b.tenantName)}<small>${TMS[+b.month.slice(5)-1]} ${String(+b.month.slice(0,4)+543).slice(2)}</small></span><span class="pill ${b.slip?'s-resv':isLate(b)?'crit':'due'}">${b.slip?'รอตรวจสลิป':(isLate(b)?'เกิน ':'ครบ ')+dmy(b.dueDate)}</span><b class="amt">${baht(b.total)}</b></button>`).join('');
   const rowsN=notices.slice(0,6).map(t=>{const d=t.planOut||t.contractEnd,n=daysTo(d);return `<button class="lrow" data-act="roomMenu" data-id="${t.roomId}"><b class="rn">${esc(roomNo(t.roomId))}</b><span class="lt">${esc(t.name)}<small>${t.planOut?'แจ้งย้ายออก':'สัญญาสิ้นสุด'} ${dmy(d)}</small></span><span class="pill s-${t.planOut?(n<=30?'soon':'notice'):'notice'}">${n<0?'เลย '+(-n)+' วัน':'อีก '+n+' วัน'}</span></button>`}).join('');
@@ -549,7 +556,7 @@ function vHome(){
     return `<button class="rc s-${st}" data-act="roomMenu" data-id="${r.id}">${warn}<b>${esc(r.number)}</b>
       <span class="who">${t?ic('user',14)+' '+esc(t.name):st==='resv'?'จอง: '+esc(rv.name):ST[st]}</span>
       ${t?`<span class="sub">${ic('cal',13)} ${t.planOut?'ออก '+dmy(t.planOut):'ถึง '+dmy(t.contractEnd)}</span>`:st==='resv'&&rv.date?`<span class="sub">${ic('cal',13)} เข้า ${dmy(rv.date)}</span>`:''}
-      <span class="rent">${baht0(t?.rent??r.rent)} ฿/เดือน</span>
+      ${t?`<span class="rent">${baht0(t.rent)} ฿/เดือน</span>`:''}
       <span class="chips">${r.type?`<span class="ch">${esc(r.type)}</span>`:''}${ow?`<span class="ch red">${ic('alert',13)} ${lt?'ค้างจ่าย':'รอชำระ'}</span>`:''}${repRooms.has(r.id)?'<span class="ch org">🔧 แจ้งซ่อม</span>':''}</span></button>`};
   const planOf=list=>{const floors={};list.forEach(r=>(floors[r.floor||'-']??=[]).push(r));
     return Object.keys(floors).sort((a,b)=>Number(a)-Number(b)).map(f=>`<div class="fl"><span class="flc">ชั้น ${esc(f)}</span><div class="rcs ${planMode==='mini'?'m':''}">${floors[f].map(card).join('')}</div></div>`).join('')};
@@ -613,7 +620,7 @@ function resvForm(rid){const r=rid?S.rooms[rid]:null,v=r?.reservation||{};
   <label class="f">วันที่จะเข้าพัก<input name="date" type="date" value="${v.date||''}"></label><label class="f">เงินจอง (บาท)<input name="deposit" type="number" min="0" step="any" value="${v.deposit??''}"></label>
   <label class="f full">หมายเหตุ<input name="note" value="${esc(v.note||'')}"></label></fieldset><div class="actions"><button class="btn pri">บันทึกการจอง</button></div></form>`)}
 function vRooms(){
-  const rows=rooms().map(r=>{const t=tenantOf(r.id);return `<tr><td class="nowrap"><b>${esc(roomNo(r.id))}</b></td><td>${esc(r.floor)}</td><td>${esc(r.type)}</td><td class="num">${baht(r.rent)}</td>
+  const rows=rooms().map(r=>{const t=tenantOf(r.id);return `<tr><td class="nowrap"><b>${esc(roomNo(r.id))}</b></td><td>${esc(r.floor)}</td><td>${esc(r.type)}</td><td class="num">${t?baht(t.rent):'-'}</td>
     <td><span class="pill s-${roomState(r)}">${ST[roomState(r)]}</span></td><td>${t?esc(t.name):'-'}</td>
     <td class="nowrap">${r.code?`<code>${esc(r.code)}</code> <button class="btn sm" data-act="copyCode" data-id="${r.id}">คัดลอก</button>`:'-'}</td><td class="num nowrap"><button class="btn sm" data-act="editRoom" data-id="${r.id}">แก้ไข</button></td></tr>`}).join('');
   const noCode=rooms().filter(r=>!r.code).length;
@@ -627,12 +634,12 @@ function vTenants(){
   const rows=list.map(t=>`<tr><td class="nowrap"><b>${esc(roomNo(t.roomId))}</b></td><td>${esc(t.name)}<small>${esc(t.phone)}</small></td><td class="nowrap">${thDT(t.moveInAt)}</td>
     <td>${t.status==='active'?'<span class="pill ok">พักอยู่</span>':`<span class="pill">ย้ายออก ${thDate(t.moveOutAt)}</span>`}</td>
     <td class="num nowrap"><button class="btn sm" data-act="editTenant" data-id="${t.id}">เปิด</button></td></tr>`).join('');
-  return `<div class="head"><div><h1>ผู้เช่า</h1><p>พักอยู่ ${activeTenants().length} คน</p></div><div class="row"><input class="search" id="q" type="search" placeholder="ค้นหาชื่อ เบอร์ หรือห้อง" value="${esc(query)}" aria-label="ค้นหาผู้เช่า"><button class="btn pri" data-act="newTenant">รับผู้เช่าใหม่</button></div></div>${sampleNote()}
+  return `<div class="head"><div><h1>ผู้เช่า</h1><p>พักอยู่ ${activeTenants().length} คน</p></div><div class="row"><input class="search" id="q" type="search" placeholder="ค้นหาชื่อ เบอร์ หรือห้อง" value="${esc(query)}" aria-label="ค้นหาผู้เช่า"><button class="btn pri" data-act="newTenant">รับผู้เช่าใหม่</button></div></div>${sampleNote()}${appsBox()}
   ${rows?`<div class="tw"><table><thead><tr><th>ห้อง</th><th>ผู้เช่า</th><th>วันเวลาเข้าพัก</th><th>สถานะ</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`:`<div class="empty">${q?'ไม่พบผู้เช่าที่ตรงกับคำค้น':'ยังไม่มีผู้เช่า กด "รับผู้เช่าใหม่" เพื่อเริ่ม'}</div>`}`;
 }
 function vContracts(){
   const list=activeTenants().sort((a,b)=>(a.contractEnd||'9').localeCompare(b.contractEnd||'9'));
-  const rows=list.map(t=>{const[s,c]=contractState(t);return `<tr><td class="nowrap"><b>${esc(roomNo(t.roomId))}</b></td><td>${esc(t.name)}<small>เลขที่ ${esc(t.contractNo||'-')}</small></td><td class="nowrap">${thDate(t.contractStart)}</td><td class="nowrap">${thDate(t.contractEnd)}</td><td><span class="pill ${c}">${s}</span></td><td class="num">${baht(t.deposit)}</td><td class="num">${baht(t.rent)}</td><td class="num"><button class="btn sm" data-act="editTenant" data-id="${t.id}">แก้ไข</button></td></tr>`}).join('');
+  const rows=list.map(t=>{const[s,c]=contractState(t);return `<tr><td class="nowrap"><b>${esc(roomNo(t.roomId))}</b></td><td>${esc(t.name)}<small>เลขที่ ${esc(t.contractNo||'-')}</small></td><td class="nowrap">${thDate(t.contractStart)}</td><td class="nowrap">${thDate(t.contractEnd)}</td><td><span class="pill ${c}">${s}</span></td><td class="num">${baht(t.deposit)}</td><td class="num">${baht(t.rent)}</td><td class="num nowrap"><button class="btn sm" data-act="printC" data-id="${t.id}">🖨 พิมพ์</button> <button class="btn sm" data-act="editTenant" data-id="${t.id}">แก้ไข</button></td></tr>`}).join('');
   const dep=list.reduce((a,t)=>a+(Number(t.deposit)||0),0);
   return `<div class="head"><div><h1>สัญญาเช่า</h1><p>เงินประกันที่ถือไว้ ${baht(dep)} บาท</p></div></div>${sampleNote()}
   ${rows?`<div class="tw"><table><thead><tr><th>ห้อง</th><th>ผู้เช่า</th><th>เริ่ม</th><th>สิ้นสุด</th><th>สถานะ</th><th class="num">เงินประกัน</th><th class="num">ค่าเช่า</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="empty">สัญญาจะแสดงที่นี่เมื่อรับผู้เช่าเข้าห้องแล้ว</div>'}`;
@@ -676,13 +683,16 @@ function vSetup(){
   <div class="row"><button class="btn" ${canWrite?'':'disabled'}>บันทึกชื่อหลัง</button><button class="btn" type="button" data-act="addB">เพิ่มหลัง</button></div>
   <p style="color:var(--muted)">ห้องเดิมที่ยังไม่ได้ระบุหลัง จะอยู่ใน${esc(BLD()[0].name)} แก้ได้ที่ปุ่มแก้ไขของแต่ละห้อง</p></form>
   <form data-form="linecfg" id="lineForm" class="panel" style="max-width:640px"><fieldset><legend>แจ้งซ่อมและแจ้งเตือน LINE</legend>
-  <div class="f full">ลิงก์สำหรับ Rich Menu ของ LINE OA${[['ดูบิล / จ่ายเงิน','bill.html'],['แจ้งซ่อม','repair.html'],['ติดต่อหอพัก','contact.html']].map(([l,f])=>`<div class="row" style="align-items:center"><span style="min-width:7.5em">${l}</span><input readonly value="${esc(new URL(f,location.href).href)}" style="flex:1" onclick="this.select()"><button type="button" class="btn sm" data-act="copyText" data-id="${esc(new URL(f,location.href).href)}">คัดลอก</button></div>`).join('')}</div>
+  <div class="f full">ลิงก์สำหรับ Rich Menu ของ LINE OA${[['ดูบิล / จ่ายเงิน','bill.html'],['แจ้งซ่อม','repair.html'],['ติดต่อหอพัก','contact.html'],['ทำสัญญา','apply.html']].map(([l,f])=>`<div class="row" style="align-items:center"><span style="min-width:7.5em">${l}</span><input readonly value="${esc(new URL(f,location.href).href)}" style="flex:1" onclick="this.select()"><button type="button" class="btn sm" data-act="copyText" data-id="${esc(new URL(f,location.href).href)}">คัดลอก</button></div>`).join('')}</div>
   <label class="f full">Channel access token (Messaging API)<input name="token" type="password" autocomplete="off" placeholder="วาง token ยาว ๆ จาก LINE Developers"></label>
   <label class="f full">User ID ผู้รับแจ้งเตือน (ขึ้นต้นด้วย U คั่นหลายคนด้วยจุลภาค)<input name="admin_ids" autocomplete="off" placeholder="U1234abcd..."></label>
   <p id="lineMsg" class="f full" role="status"></p></fieldset>
   <div class="row"><button class="btn" ${canWrite?'':'disabled'}>บันทึกการแจ้งเตือน</button><button type="button" class="btn" data-act="testLine">ส่งข้อความทดสอบ</button></div></form>
   <form data-form="setup" class="panel" style="max-width:640px">
   <fieldset><legend>ข้อมูลบนหัวบิล</legend>${fld('name','ชื่อหอพักหลัก')}${fld('phone','เบอร์โทรหลัก')}${fld('line','LINE ของหอ (ID เช่น @mydorm หรือลิงก์)')}<label class="f full">ที่อยู่หลัก (ใช้กับหลังที่ไม่ได้ใส่ที่อยู่แยก)<input name="address" value="${v('address')}"></label></fieldset>
+  <fieldset><legend>ข้อมูลในสัญญาเช่า</legend><label class="f">ชื่อผู้ให้เช่า<input name="ownerName" value="${v('ownerName')}" placeholder="นางขวัญตา โพธิ์โสภา"></label><label class="f">ค่าปรับชำระช้า (บาท/วัน)<input name="lateFee" type="number" min="0" step="any" value="${v('lateFee')}" placeholder="50"></label>
+  <label class="f full">ที่อยู่ผู้ให้เช่า<input name="ownerAddress" value="${v('ownerAddress')}" placeholder="บ้านเลขที่ 1295/1 ถ.ราชการรถไฟ ต.เมืองเหนือ อ.เมืองศรีสะเกษ จ.ศรีสะเกษ"></label>
+  <label class="f">พยานคนที่ 1<input name="witness1" value="${v('witness1')}" placeholder="นางสิริยาภรณ์ ธนาเจริญวานิชย์"></label><label class="f">พยานคนที่ 2<input name="witness2" value="${v('witness2')}" placeholder="นางสาวพิมพิลักษณ์ สุพิณ"></label></fieldset>
   <fieldset><legend>อัตราค่าบริการ</legend>${fld('waterRate','ค่าน้ำ (บาท/หน่วย)','number')}${fld('waterMin','ค่าน้ำขั้นต่ำ (บาท/เดือน)','number')}${fld('elecRate','ค่าไฟ (บาท/หน่วย)','number')}${fld('elecMin','ค่าไฟขั้นต่ำ (บาท/เดือน)','number')}${fld('common','ค่าส่วนกลาง (บาท/เดือน)','number')}${fld('dueDay','ครบกำหนดชำระวันที่ของเดือนถัดไป','number','max="28"')}</fieldset>
   <fieldset><legend>บัญชีรับเงิน</legend>${fld('bankName','ธนาคาร','text','placeholder="เช่น กสิกรไทย"')}${fld('accNo','เลขบัญชี','text','inputmode="numeric" placeholder="เช่น 123-4-56789-0"')}<label class="f full">ชื่อบัญชี<input name="accName" value="${v('accName')}"></label>${fld('promptpay','พร้อมเพย์ (ไม่ใส่ก็ได้ ถ้าใส่บิลจะมี QR)')}<label class="f full">หมายเหตุท้ายบิล<input name="billNote" value="${v('billNote')}"></label></fieldset>
   <div class="row"><button class="btn pri" ${canWrite?'':'disabled'}>บันทึกการตั้งค่า</button><button class="btn" type="button" data-act="backup">สำรองข้อมูลเป็นไฟล์</button><label class="btn">นำเข้าไฟล์สำรอง<input type="file" id="imp" accept=".json" hidden></label></div></form>`;
@@ -692,8 +702,8 @@ const ICON={"home": "<path d=\"M3 10.5 12 3l9 7.5\"/><path d=\"M5 9v12h14V9\"/><
 const ico=k=>`<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg>`;
 ICON.repairs='<path d="M14.7 6.3a4 4 0 0 0-5.4 5.2L4 16.8V20h3.2l5.3-5.3a4 4 0 0 0 5.2-5.4l-2.5 2.5-2.3-.5-.5-2.3z"/>';
 function renderNav(){
-  const late=allBills().filter(isLate).length,rnew=openRepairs().filter(x=>x.status==='new').length;
-  $('#nav').innerHTML=Object.entries(VIEWS).map(([k,l])=>`<a href="#${k}" ${view()===k?'aria-current="page"':''}>${ico(k)}<span>${l}</span>${k==='bills'&&late?`<span class="n">${late}</span>`:''}${k==='repairs'&&rnew?`<span class="n">${rnew}</span>`:''}</a>`).join('');
+  const late=allBills().filter(isLate).length,rnew=openRepairs().filter(x=>x.status==='new').length,napp=apps().length;
+  $('#nav').innerHTML=Object.entries(VIEWS).map(([k,l])=>`<a href="#${k}" ${view()===k?'aria-current="page"':''}>${ico(k)}<span>${l}</span>${k==='bills'&&late?`<span class="n">${late}</span>`:''}${k==='repairs'&&rnew?`<span class="n">${rnew}</span>`:''}${k==='tenants'&&napp?`<span class="n">${napp}</span>`:''}</a>`).join('');
   $('#logoutBtn').innerHTML=ico('logout')+'<span>ออกจากระบบ</span>';
   $('#brand').innerHTML='<img src="favicon-192.png" alt="" class="logo"><span>'+esc(S.setup.name||'หอพัก')+'<small>ระบบหลังบ้าน</small></span>';
 }
@@ -730,20 +740,22 @@ function tenantForm(t={},presetRoom){
   const isNew=!t.id,rid=t.roomId||presetRoom||'';
   const fl={};rooms().forEach(r=>(fl[(multi()&&curB()==='all'?bldName(roomBld(r))+' · ':'')+'ชั้น '+(r.floor||'-')]??=[]).push(r));
   const opts=Object.keys(fl).sort((a,b)=>a.localeCompare(b,'th',{numeric:true})).map(f=>`<div class="rpf"><span>${esc(f)}</span><div class="rpg">${fl[f].map(r=>{const who=tenantOf(r.id),taken=who&&who.id!==t.id,busy=r.closed||taken||t.status==='moved_out';
-    return `<label class="rpc ${busy?'off':''}"><input type="radio" name="roomId" value="${r.id}" required ${r.id===rid?'checked':''} ${busy?'disabled':''}><span><b>${esc(r.number)}</b><small>${r.closed?'ปิดซ่อม':taken?'มีผู้เช่า':units(r.rent)}</small></span></label>`}).join('')}</div></div>`).join('');
+    return `<label class="rpc ${busy?'off':''}"><input type="radio" name="roomId" value="${r.id}" required ${r.id===rid?'checked':''} ${busy?'disabled':''}><span><b>${esc(r.number)}</b><small>${r.closed?'ปิดซ่อม':taken?'มีผู้เช่า':'ว่าง'}</small></span></label>`}).join('')}</div></div>`).join('');
   const v=k=>esc(t[k]??'');
   const preRoom=S.rooms[rid];
   openDlg(`<form class="dlg" data-form="tenant" data-id="${t.id||''}">${dHead(isNew?'รับผู้เช่าใหม่':t.name)}
   <fieldset><legend>ผู้เช่า</legend><label class="f">ชื่อ-นามสกุล<input name="name" required value="${v('name')}"></label><label class="f">เบอร์โทร<input name="phone" inputmode="tel" value="${v('phone')}"></label>
   <label class="f">เลขบัตรประชาชน<input name="idCard" inputmode="numeric" value="${v('idCard')}"></label><label class="f">LINE ID<input name="line" value="${v('line')}"></label>
-  <label class="f full">ผู้ติดต่อฉุกเฉิน<input name="emergency" value="${v('emergency')}"></label></fieldset>
+  <label class="f full">ที่อยู่ตามบัตรประชาชน<input name="address" value="${v('address')}"></label>
+  <label class="f full">ผู้ติดต่อฉุกเฉิน<input name="emergency" value="${v('emergency')}"></label>${t.appId?`<input type="hidden" name="appId" value="${esc(t.appId)}">`:''}</fieldset>
   <fieldset><legend>การเข้าพัก</legend><div class="rp" role="radiogroup" aria-label="เลือกห้อง">เลือกห้อง${opts}</div><label class="f full">วันเวลาเข้าพัก<input name="moveInAt" type="datetime-local" required value="${v('moveInAt')||nowLocal()}"></label>
   ${isNew?`<label class="f">เลขมิเตอร์น้ำวันเข้า<input name="waterIn" id="tW" type="number" min="0" step="any" value="${preRoom?.waterStart??0}"></label><label class="f">เลขมิเตอร์ไฟวันเข้า<input name="elecIn" id="tE" type="number" min="0" step="any" value="${preRoom?.elecStart??0}"></label>`:''}</fieldset>
-  <fieldset><legend>สัญญาเช่า</legend><label class="f">เลขที่สัญญา<input name="contractNo" value="${v('contractNo')}"></label><label class="f">ค่าเช่า/เดือน<input name="rent" id="tRent" type="number" min="0" step="any" required value="${t.rent??preRoom?.rent??''}"></label>
+  <fieldset><legend>สัญญาเช่า</legend><label class="f">เลขที่สัญญา<input name="contractNo" value="${v('contractNo')}"></label><label class="f">ค่าเช่า/เดือน ตามที่ตกลง<input name="rent" id="tRent" type="number" min="0" step="any" required value="${t.rent??''}" placeholder="ใช้ราคานี้ออกบิล"></label>
   <label class="f">วันเริ่มสัญญา<input name="contractStart" type="date" value="${v('contractStart')||todayStr()}"></label><label class="f">วันสิ้นสุดสัญญา<input name="contractEnd" type="date" value="${v('contractEnd')}"></label>
+  <div class="f full"><span>ตั้งวันสิ้นสุดจากวันเริ่ม</span><div class="row">${[3,6,12].map(m=>`<button type="button" class="btn sm" data-act="cEnd" data-m="${m}">${m===12?'1 ปี':m+' เดือน'}</button>`).join('')}</div></div>
   <label class="f">เงินประกัน<input name="deposit" type="number" min="0" step="any" value="${t.deposit??''}"></label><label class="f">หมายเหตุ<input name="note" value="${v('note')}"></label></fieldset>
   ${t.status==='moved_out'?`<p style="color:var(--muted)">ย้ายออก ${thDT(t.moveOutAt)} คืนเงินประกัน ${baht(t.depositReturned)} บาท</p>`:''}
-  <div class="actions">${t.status==='active'?`<button type="button" class="btn danger l" data-act="moveOut" data-id="${t.id}">บันทึกย้ายออก</button>`:''}<button class="btn pri" ${canWrite?'':'disabled'}>${isNew?'รับเข้าพัก':'บันทึก'}</button></div></form>`);
+  <div class="actions">${t.status==='active'?`<button type="button" class="btn danger l" data-act="moveOut" data-id="${t.id}">บันทึกย้ายออก</button>`:''}${t.id?`<button type="button" class="btn" data-act="printC" data-id="${t.id}">🖨 พิมพ์สัญญา</button>`:''}<button class="btn pri" ${canWrite?'':'disabled'}>${isNew?'รับเข้าพัก':'บันทึก'}</button></div></form>`);
 }
 function moveOutForm(t){openDlg(`<form class="dlg" data-form="moveOut" data-id="${t.id}">${dHead('ย้ายออก: '+t.name)}<p>ห้อง ${esc(roomNo(t.roomId))} จะกลับเป็นห้องว่าง ประวัติและบิลเดิมยังอยู่ครบ</p>
   <fieldset><label class="f">วันเวลาย้ายออก<input name="moveOutAt" type="datetime-local" required value="${nowLocal()}"></label><label class="f">คืนเงินประกัน (บาท)<input name="depositReturned" type="number" min="0" step="any" value="${t.deposit??0}"></label>
@@ -779,6 +791,58 @@ function newRepairForm(){openDlg(`<form class="dlg" data-form="repairNew">${dHea
 async function loadLineCfg(){const f=document.getElementById('lineForm');if(!f||!sb)return;const{data,error}=await sb.from('line_cfg').select('token,admin_ids').eq('id',1).maybeSingle();
   const m=document.getElementById('lineMsg');if(error){m.textContent='ยังไม่ได้รันไฟล์ dorm-update-repair.sql ใน Supabase';return}
   f.admin_ids.value=data?.admin_ids||'';m.textContent=data?.token?'ตั้งค่า token แล้ว (ซ่อนไว้) ใส่ใหม่เฉพาะเมื่อต้องการเปลี่ยน':'ยังไม่ได้ใส่ token'}
+const apps=()=>Object.values(S.applications).filter(a=>a.status==='new').sort((a,b)=>String(b.at).localeCompare(String(a.at)));
+function appsBox(){const L=apps();if(!L.length)return '';
+  return `<section class="card"><div class="ch2"><span class="ti b">${ico('contracts')}</span><h2>คำขอทำสัญญาใหม่ ${L.length} ราย</h2><button class="lk" data-act="copyText" data-id="${esc(new URL('apply.html',location.href).href)}">คัดลอกลิงก์ฟอร์ม</button></div><div class="cb lst">${L.map(a=>`<button class="lrow" data-act="appDlg" data-id="${a.id}"><b class="rn">${esc(a.roomNumber||'-')}</b><span class="lt">${esc(a.name)} · ${esc(a.phone)}<small>${a.buildingName?esc(a.buildingName)+' · ':''}เข้าพัก ${a.moveIn?dmy(a.moveIn):'-'} · ส่งเมื่อ ${thDT(a.at)}</small></span><span class="pill s-resv">รอทำสัญญา</span></button>`).join('')}</div></section>`}
+function appDlg(id){const a=S.applications[id];if(!a)return;
+  openDlg(`<div class="dlg">${dHead('คำขอทำสัญญา: '+a.name)}
+  <div class="rpinfo"><div><small>สถานที่ / ห้องที่ตกลง</small><b>${esc(a.buildingName||'-')} · ห้อง ${esc(a.roomNumber||'ยังไม่ระบุ')}</b></div><div><small>เลขบัตรประชาชน</small><span class="sel">${esc(a.idCard)}</span></div>
+  <div><small>ที่อยู่ตามบัตร</small><span>${esc(a.address)}</span></div><div><small>ติดต่อ</small><span>โทร <b class="sel">${esc(a.phone)}</b>${a.line?' · LINE '+esc(a.line):''}</span></div>
+  ${a.emergency?`<div><small>ผู้ติดต่อฉุกเฉิน</small><span>${esc(a.emergency)}</span></div>`:''}<div><small>วันที่จะเข้าพัก</small><span>${a.moveIn?thDate(a.moveIn):'-'}</span></div>${a.note?`<div><small>หมายเหตุ</small><span>${esc(a.note)}</span></div>`:''}</div>
+  ${a.idPhoto?`<div class="rpmedia"><div class="rpm" id="idPh">กำลังโหลดรูปบัตร…</div></div>`:''}
+  <div class="actions"><button class="btn danger l" data-act="appCancel" data-id="${id}">ยกเลิกคำขอ</button><button class="btn pri" data-act="appToTenant" data-id="${id}">ทำสัญญา / รับเข้าพัก</button></div></div>`);
+  if(a.idPhoto)sb.storage.from('idcards').createSignedUrl(a.idPhoto,3600).then(({data,error})=>{const e=$('#idPh');if(!e)return;e.innerHTML=error||!data?'เปิดรูปไม่ได้':`<a href="${data.signedUrl}" target="_blank" rel="noopener"><img src="${data.signedUrl}" alt="รูปบัตรประชาชน"></a>`})}
+const THN=['','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า'];
+function readInt(s){s=String(s).replace(/^0+/,'');if(!s)return '';if(s.length>6){const lo=s.slice(-6).replace(/^0+/,'');return readInt(s.slice(0,-6))+'ล้าน'+(lo==='1'?'เอ็ด':readInt(lo))}
+  const P=['','สิบ','ร้อย','พัน','หมื่น','แสน'];let o='';const L=s.length;
+  for(let i=0;i<L;i++){const d=+s[i],p=L-1-i;if(!d)continue;o+=p===1&&d===1?'สิบ':p===1&&d===2?'ยี่สิบ':p===0&&d===1&&L>1?'เอ็ด':THN[d]+P[p]}return o}
+function bahtText(n){const v=Math.round(Number(n||0)*100),b=Math.floor(v/100),st=v%100;if(!v)return 'ศูนย์บาทถ้วน';return (b?readInt(b)+'บาท':'')+(st?readInt(st)+'สตางค์':'ถ้วน')}
+const thLong=d=>{if(!d)return {d:'……',m:'……………',y:'……'};const[y,m,x]=d.slice(0,10).split('-').map(Number);return {d:x,m:TM[m-1],y:y+543}};
+function monthsBetween(a,b){if(!a||!b)return '';const s=new Date(a+'T00:00:00'),e=new Date(b+'T00:00:00');e.setDate(e.getDate()+1);let m=(e.getFullYear()-s.getFullYear())*12+e.getMonth()-s.getMonth();if(e.getDate()<s.getDate())m--;return m>0?m:''}
+function contractHTML(t){const s=S.setup,r=S.rooms[t.roomId]||{},bid=roomBld(r),B=BLD().find(x=>x.id===bid)||{};
+  const F=v=>`<span class="cf">${esc(v??'')||'&nbsp;'.repeat(18)}</span>`,sd=thLong(t.contractStart||todayStr()),ed=thLong(t.contractEnd),st=thLong(t.contractStart);
+  const place=B.billName||(multi()?B.name:'')||s.name||'ห้องพักขวัญเมืองศรี',owner=s.ownerName||'นางขวัญตา โพธิ์โสภา',oaddr=s.ownerAddress||'บ้านเลขที่ 1295/1 ถ.ราชการรถไฟ ต.เมืองเหนือ อ.เมืองศรีสะเกษ จ.ศรีสะเกษ';
+  const addr=B.address||s.address||'1295/1 ถนนเทพา ตำบลเมืองเหนือ อำเภอเมืองศรีสะเกษ จังหวัดศรีสะเกษ',fee=s.lateFee??50,mo=monthsBetween(t.contractStart,t.contractEnd);
+  const P=(n,txt)=>`<p class="cl"><b>ข้อ ${n}</b>&nbsp; ${txt}</p>`;
+  return `<div class="ct"><h1>สัญญาเช่าห้องพักอาศัย</h1>
+  <p class="r">สัญญานี้ทำขึ้นที่ ${F(place)} เมื่อวันที่ ${F(sd.d)} เดือน ${F(sd.m)} พ.ศ. ${F(sd.y)}</p>
+  <p>ระหว่าง ${esc(owner)} อยู่${esc(oaddr)} ต่อไปในสัญญานี้จะเรียกว่า “ผู้ให้เช่า” ฝ่ายหนึ่ง</p>
+  <p>กับ ${F(t.name)} เลขประจำตัวประชาชน ${F(t.idCard)} อยู่บ้านเลขที่ ${F(t.address)} เบอร์โทรศัพท์ ${F(t.phone)} ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ผู้เช่า” อีกฝ่ายหนึ่ง</p>
+  <p>ทั้งสองฝ่ายตกลงทำสัญญากันโดยมีข้อความดังต่อไปนี้</p>
+  ${P('๑',`ผู้เช่าตกลงเช่าและผู้ให้เช่าตกลงให้เช่าห้องพักอาศัยห้องเลขที่ ${F(r.number)} ชั้นที่ ${F(r.floor)} ของ ${F(place)} ซึ่งตั้งอยู่ที่ ${F(addr)} เพื่อใช้เป็นที่พักอาศัย ในอัตราค่าเช่าเดือนละ ${F(baht(t.rent))} บาท (${F(bahtText(t.rent))}) ค่าเช่านี้ไม่รวมถึงค่าไฟฟ้า ค่าน้ำประปา ค่าโทรศัพท์ ซึ่งผู้เช่าต้องชำระแก่ผู้ให้เช่าตามอัตราที่กำหนดไว้ในสัญญาข้อ ๔`)}
+  ${P('๒',`ผู้เช่าตกลงเช่าห้องพักอาศัยตามสัญญาข้อ ๑ มีกำหนดเวลา ${F(mo)} เดือน นับตั้งแต่วันที่ ${F(t.contractStart?st.d+' '+st.m+' '+st.y:'')} ถึงวันที่ ${F(t.contractEnd?ed.d+' '+ed.m+' '+ed.y:'')}`)}
+  ${P('๓',`การชำระค่าเช่า ผู้เช่าตกลงจะชำระค่าเช่าแก่ผู้ให้เช่าเป็นการล่วงหน้า โดยชำระภายในวันที่ ${Number(s.dueDay)||5} ของทุกเดือนตลอดเวลาอายุการเช่า หากเกินจะมีค่าปรับวันละ ${fee} บาท เกิน 30 วัน ทางหอพักจะมีการตัดน้ำตัดไฟ และเชิญออก`)}
+  ${P('๔','ผู้ให้เช่าคิดค่าไฟฟ้า ค่าน้ำประปา ค่าโทรศัพท์ ในอัตราดังนี้')}<p class="sub">(๑) ค่าไฟฟ้ายูนิตละ ${rate('elecRate')||8} บาท</p><p class="sub">(๒) ค่าน้ำประปาลูกบาศก์เมตรละ ${rate('waterRate')||25} บาท</p>
+  ${P('๕','ผู้เช่าต้องชำระค่าไฟฟ้า ค่าน้ำประปา ค่าโทรศัพท์ ตามจำนวนหน่วยที่ใช้ในแต่ละเดือนและต้องชำระพร้อมกับการชำระค่าเช่าของเดือนถัดไป')}
+  ${P('๖',`เพื่อเป็นการปฏิบัติตามสัญญาเช่า ผู้เช่าตกลงมอบเงินประกันแก่ผู้ให้เช่าไว้เป็นจำนวน ${F(baht(t.deposit))} บาท (${F(bahtText(t.deposit))}) เงินประกันนี้ผู้ให้เช่าจะคืนให้แก่ผู้เช่าเมื่อผู้เช่ามิได้ผิดสัญญา และมิได้ค้างชำระเงินต่างๆ ตามสัญญานี้`)}
+  ${P('๗','ผู้เช่าหากต้องการแจ้งออก ต้องบอกทางหอพักล่วงหน้า 1 เดือน หรือ 30 วัน')}
+  ${P('๘','ผู้เช่าต้องเป็นผู้ดูแลรักษาความสะอาดบริเวณทางเดินส่วนกลางหน้าห้องพักอาศัยของผู้เช่า และผู้เช่าจะต้องไม่นำสิ่งของใดๆ มาวางไว้ในบริเวณทางเดินดังกล่าว')}
+  ${P('๙','ผู้เช่าต้องดูแลห้องพักอาศัยและทรัพย์สินต่างๆ ในห้องพักดังกล่าวเสมือนเป็นทรัพย์สินของตนเอง และต้องรักษาความสะอาดตลอดจนรักษาความสงบเรียบร้อย ไม่ก่อให้เกิดเสียงให้เป็นที่เดือดร้อนรำคาญแก่ผู้อยู่ห้องพักอาศัยข้างเคียง')}
+  ${P('๑๐','ผู้เช่าต้องเป็นผู้รับผิดชอบในบรรดาความสูญหาย เสียหาย หรือบุบสลายอย่างใดๆ อันเกิดแก่ห้องพักอาศัยและทรัพย์สินต่างๆ ในห้องพักดังกล่าว')}
+  ${P('๑๑','ผู้เช่าต้องยอมให้ผู้ให้เช่า หรือตัวแทนของผู้ให้เช่าเข้าตรวจดูห้องพักอาศัยได้เป็นครั้งคราวในระยะเวลาอันสมควร')}
+  ${P('๑๒','ผู้เช่าต้องไม่ทำการดัดแปลง ต่อเติม หรือรื้อถอนห้องพักอาศัยและทรัพย์สินต่างๆ ในห้องพักดังกล่าว ไม่ว่าทั้งหมดหรือบางส่วน หากฝ่าฝืนผู้ให้เช่าจะเรียกให้ผู้เช่าทำทรัพย์สินดังกล่าวให้กลับคืนสู่สภาพเดิม และเรียกให้ผู้เช่ารับผิดชดใช้ค่าเสียหายอันเกิดความสูญหาย เสียหาย หรือบุบสลายใดๆ อันเนื่องมาจากการดัดแปลง ต่อเติม หรือรื้อถอนดังกล่าว')}
+  ${P('๑๓','ผู้เช่าต้องไม่นำบุคคลอื่นนอกจากบุคคลในครอบครัวของผู้เช่าเข้ามาพักอาศัยในห้องพักอาศัย')}
+  ${P('๑๔','ผู้เช่าสัญญาว่าจะปฏิบัติตามระเบียบข้อบังคับของอพาร์ตเม้นต์ท้ายสัญญานี้ ซึ่งคู่สัญญาทั้งสองฝ่ายให้ถือว่าระเบียบข้อบังคับดังกล่าวเป็นส่วนหนึ่งแห่งสัญญาเช่านี้ด้วย หากผู้เช่าละเมิดแล้วผู้ให้เช่าย่อมให้สิทธิตามข้อ ๑๗ และข้อ ๑๘ แห่งสัญญานี้ได้')}
+  ${P('๑๕','ผู้ให้เช่าไม่ต้องรับผิดชอบในความสูญหายหรือความเสียหายอย่างใดๆ อันเกิดขึ้นแก่รถยนต์รวมทั้งทรัพย์สินต่างๆ ในรถยนต์ของผู้เช่า ซึ่งได้นำมาจอดไว้ในที่จอดรถยนต์ที่ผู้ให้เช่าจัดไว้ให้')}
+  ${P('๑๖','ผู้เช่าตกลงว่าการผิดสัญญาเช่าเครื่องเรือนซึ่งผู้เช่าได้ทำไว้กับผู้ให้เช่าต่างหากจากสัญญานี้ ถือว่าเป็นการผิดสัญญานี้ด้วย และโดยนัยเดียวกัน การผิดสัญญานี้ย่อมถือเป็นการผิดสัญญาเช่าเครื่องเรือนด้วย')}
+  ${P('๑๗','หากผู้เช่าประพฤติผิดสัญญาข้อหนึ่งข้อใด หรือหลายข้อก็ดี ผู้เช่าตกลงให้ผู้ให้เช่าใช้สิทธิดังต่อไปนี้ ข้อใดข้อหนึ่งหรือหลายข้อรวมกันก็ได้ คือ')}
+  <p class="sub">(๑) บอกเลิกสัญญาเช่า</p><p class="sub">(๒) เรียกค่าเสียหาย</p><p class="sub">(๓) บอกกล่าวให้ผู้เช่าปฏิบัติตามข้อกำหนดในสัญญาภายในกำหนดเวลาที่ผู้ให้เช่าเห็นสมควร</p><p class="sub">(๔) ตัดกระแสไฟฟ้า น้ำประปา และโทรศัพท์ ได้ในทันที โดยไม่จำเป็นต้องบอกกล่าวแก่ผู้เช่าเป็นการล่วงหน้า</p>
+  ${P('๑๘','ในกรณีที่สัญญาเช่าระงับสิ้นลง ไม่ว่าด้วยเหตุใดๆ ก็ตาม ผู้เช่าต้องส่งมอบห้องพักอาศัยคืนแก่ผู้ให้เช่าทันที หากผู้เช่าไม่ปฏิบัติ ผู้ให้เช่าสิทธิกลับเข้าครอบครองห้องพักอาศัยที่ให้เช่าและขนย้ายบุคคลและทรัพย์สินของผู้เช่าออกจากห้องพักดังกล่าวได้ โดยผู้เช่าเป็นผู้รับผิดชอบในความสูญหายหรือความเสียหายอย่างใดๆ อันเกิดขึ้นแก่ทรัพย์สินของผู้เช่า ทั้งผู้ให้เช่ามีสิทธิริบเงินประกันการเช่า ตามที่ระบุไว้ในสัญญาข้อ ๖ ได้ด้วย')}
+  ${P('๑๙','ในวันทำสัญญานี้ ผู้เช่าได้ตรวจดูห้องพักอาศัยที่เช่าตลอดจนทรัพย์สินต่างๆ ในห้องพักดังกล่าวแล้วเห็นว่ามีสภาพปกติทุกประการ และผู้ให้เช่าได้ส่งมอบห้องพักอาศัยและทรัพย์สินต่างๆ ในห้องพักแก่ผู้เช่าแล้ว')}
+  <p class="cl">คู่สัญญาได้อ่านและเข้าใจข้อความในสัญญานี้โดยตลอดแล้วเห็นว่าถูกต้อง จึงได้ลงลายมือชื่อไว้เป็นสำคัญต่อหน้าพยาน</p>
+  <div class="sig">${[['ผู้เช่า',t.name],['ผู้ให้เช่า',owner],['พยาน',s.witness1||'นางสิริยาภรณ์ ธนาเจริญวานิชย์'],['พยาน',s.witness2||'นางสาวพิมพิลักษณ์ สุพิณ']].map(([r,n])=>`<div>ลงชื่อ.......................................${r}<br>( ${esc(n||'')||'&nbsp;'.repeat(40)} )</div>`).join('')}</div></div>`}
+function printContract(t){if(!t)return;closeDlg();let el=document.getElementById('printArea');if(!el){el=document.createElement('div');el.id='printArea';document.body.append(el)}
+  el.innerHTML=contractHTML(t);const go=()=>setTimeout(()=>window.print(),150);document.fonts?.load?document.fonts.load('16px Sarabun','ก').then(go,go):go()}
 function assignForm(){const L=allRooms();
   openDlg(`<form class="dlg" data-form="assign">${dHead('จัดห้องเข้าหลัง')}<p style="color:var(--muted)">ติ๊กห้องที่อยู่ผิดหลัง แล้วเลือกหลังที่ถูกต้อง บิลของห้องนั้นจะใช้ชื่อ ที่อยู่ และเบอร์โทรของหลังใหม่ทันที</p>
   ${BLD().map(b=>{const g=L.filter(r=>roomBld(r)===b.id);return `<div class="pgrp"><div class="pgh"><b>ตอนนี้อยู่ ${esc(b.name)} · ${g.length} ห้อง</b>${g.length?`<button type="button" class="btn sm" data-act="selGrp" data-id="${b.id}">เลือกทั้งหลัง</button>`:''}</div><div class="pick" data-g="${b.id}">${g.map(r=>`<label class="pk"><input type="checkbox" class="ak" value="${r.id}"><span>${esc(r.number)}</span></label>`).join('')||'<span style="color:var(--muted)">ไม่มีห้อง</span>'}</div></div>`}).join('')}
@@ -887,6 +951,12 @@ const ACT={
   copyRepairLink:()=>navigator.clipboard.writeText(repairLink()).then(()=>toast('คัดลอกลิงก์แล้ว นำไปใส่ใน Rich Menu ของ LINE OA'),()=>toast(repairLink())),
   delRepair:async e=>{const id=e.dataset.id,x=S.repairs[id];closeDlg();if(await ask('ลบรายการแจ้งซ่อม?','ลบแล้วกู้คืนไม่ได้','ลบ')){if(await del('repairs',id)&&x.media?.length)sb.storage.from('repairs').remove(x.media.map(m=>m.path)).catch(()=>{})}},
   testLine:async()=>{const{data,error}=await sb.rpc('test_line_notify');toast(error?'ส่งไม่สำเร็จ ตรวจว่ารันไฟล์ SQL แล้ว':data?'ส่งข้อความทดสอบแล้ว ดูใน LINE ของคุณ':'ยังตั้งค่าไม่ครบ ใส่ token และ User ID ก่อน')},
+  appDlg:e=>appDlg(e.dataset.id),
+  appToTenant:e=>{const a=S.applications[e.dataset.id];const r=allRooms().find(x=>x.number===String(a.roomNumber||'').trim()&&(!a.building||roomBld(x)===a.building)&&!x.closed&&!tenantOf(x.id));
+    tenantForm({name:a.name,phone:a.phone,idCard:a.idCard,address:a.address,line:a.line,emergency:a.emergency,note:a.note||'',moveInAt:a.moveIn?a.moveIn+'T12:00':'',contractStart:a.moveIn||'',appId:a.id},r?.id||'')},
+  appCancel:async e=>{const{id,...a}=S.applications[e.dataset.id];closeDlg();if(await ask('ยกเลิกคำขอนี้?',`คำขอของ ${a.name} จะถูกย้ายออกจากรายการ`,'ยกเลิกคำขอ'))await put('applications',id,{...a,status:'cancel'})},
+  printC:e=>printContract(S.tenants[e.dataset.id]),
+  cEnd:e=>{const f=e.closest('form'),st=f.contractStart.value;if(!st)return toast('ใส่วันเริ่มสัญญาก่อน');const d=new Date(st+'T00:00:00');d.setMonth(d.getMonth()+Number(e.dataset.m));d.setDate(d.getDate()-1);f.contractEnd.value=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())},
   editPrev:e=>prevForm(e.dataset.id),
   newRoom:()=>roomForm(),bulkRoom:bulkForm,editRoom:e=>roomForm(S.rooms[e.dataset.id]),
   delRoom:async e=>{const id=e.dataset.id;if(tenantOf(id))return toast('ห้องนี้มีผู้เช่าอยู่ ต้องย้ายออกก่อนจึงลบได้');closeDlg();if(await ask('ลบห้อง '+roomNo(id)+'?','ลบแล้วกู้คืนไม่ได้ บิลเดิมยังอยู่','ลบห้อง'))await del('rooms',id)},
@@ -916,11 +986,12 @@ const FORM={
     if(allRooms().some(r=>r.number===data.number&&r.id!==id&&roomBld(r)===bid))return toast('หลังนี้มีห้องเลขนี้แล้ว');
     data.code=(id&&S.rooms[id].code)||newCode();if(id&&S.rooms[id].sample)data.sample=true;await put('rooms',id||newId(),data);closeDlg();toast('บันทึกห้องแล้ว')},
   bulk:async d=>{const bid=d.building||(curB()==='all'?BLD()[0].id:curB()),f=num(d.floor),n=num(d.count),st=num(d.start);let made=0;for(let i=0;i<n;i++){const no=String(st+i);if(allRooms().some(r=>r.number===no&&roomBld(r)===bid))continue;await put('rooms',newId(),{building:bid,number:no,floor:String(f),type:d.type.trim(),rent:num(d.rent)||0,waterStart:0,elecStart:0,closed:false,code:newCode()});made++}closeDlg();toast(`สร้างแล้ว ${made} ห้อง`)},
-  tenant:async(d,id)=>{const old=id?S.tenants[id]:null;const{waterIn,elecIn,...f}=d;
+  tenant:async(d,id)=>{const old=id?S.tenants[id]:null;const{waterIn,elecIn,appId,...f}=d;
     const data={...old,...f,name:f.name.trim(),rent:num(f.rent)||0,deposit:num(f.deposit)||0,status:old?.status||'active'};delete data.id;
     const tid=id||newId();await put('tenants',tid,data);
     if(!id){const{id:rid,reservation,...r}=S.rooms[d.roomId];await put('rooms',rid,{...r,waterStart:num(waterIn)||0,elecStart:num(elecIn)||0})}
-    closeDlg();toast(id?'บันทึกแล้ว':'รับผู้เช่าเข้าห้องแล้ว')},
+    if(appId&&S.applications[appId]){const{id:_a,...ap}=S.applications[appId];await put('applications',appId,{...ap,status:'done',tenantId:tid})}
+    if(id){closeDlg();toast('บันทึกแล้ว')}else openDlg(`<div class="dlg">${dHead('รับเข้าพักแล้ว')}<p>${esc(data.name)} ห้อง ${esc(roomNo(data.roomId))} ค่าเช่า ${baht(data.rent)} บาท/เดือน</p><div class="actions"><button class="btn" data-act="close">ปิด</button><button class="btn pri" data-act="printC" data-id="${tid}">🖨 พิมพ์สัญญา</button></div></div>`)},
   moveOut:async(d,id)=>{const{id:_,...t}=S.tenants[id];await put('tenants',id,{...t,status:'moved_out',planOut:null,moveOutAt:d.moveOutAt,depositReturned:num(d.depositReturned)||0});
     const w=num(d.waterOut),e=num(d.elecOut),{id:rid,...r}=S.rooms[t.roomId];await put('rooms',rid,{...r,waterStart:w??r.waterStart,elecStart:e??r.elecStart,code:newCode()});
     closeDlg();toast('บันทึกย้ายออกแล้ว')},
@@ -935,7 +1006,7 @@ const FORM={
   repair:async(d,id)=>{const{id:_,...x}=S.repairs[id];const n={...x,status:d.status,tech:d.tech.trim(),note:d.note.trim()};if(d.status==='done'&&!x.doneAt)n.doneAt=todayStr();if(await put('repairs',id,n)){closeDlg();toast('บันทึกแล้ว')}},
   repairNew:async d=>{const r=S.rooms[d.roomId];if(await put('repairs',newId(),{building:roomBld(r),buildingName:multi()?bldName(roomBld(r)):'',roomId:r.id,roomNumber:r.number,device:d.device.trim(),symptom:d.symptom.trim(),name:d.name.trim(),phone:d.phone.trim(),media:[],status:'new',at:nowLocal()})){closeDlg();toast('บันทึกแจ้งซ่อมแล้ว')}},
   linecfg:async d=>{const v={id:1,admin_ids:d.admin_ids.trim(),site_url:new URL('./',location.href).href};if(d.token.trim())v.token=d.token.trim();const{error}=await sb.from('line_cfg').upsert(v);toast(error?'บันทึกไม่สำเร็จ ตรวจว่ารันไฟล์ SQL แล้ว':'บันทึกการแจ้งเตือน LINE แล้ว');if(!error)loadLineCfg()},
-  setup:async d=>{const n={...S.setup,...d,buildings:S.setup.buildings};if(!n.buildings)delete n.buildings;if(n.accNo?.trim())n.bank=`โอนเข้าบัญชี ${n.bankName||''} เลขที่ ${n.accNo.trim()}${n.accName?' ชื่อบัญชี '+n.accName:''}`.replace(/\s+/g,' ');['waterRate','waterMin','elecRate','elecMin','common','dueDay'].forEach(k=>n[k]=num(d[k])||0);delete n.id;await put('setup','main',n);toast('บันทึกการตั้งค่าแล้ว')}
+  setup:async d=>{const n={...S.setup,...d,buildings:S.setup.buildings};if(!n.buildings)delete n.buildings;if(n.accNo?.trim())n.bank=`โอนเข้าบัญชี ${n.bankName||''} เลขที่ ${n.accNo.trim()}${n.accName?' ชื่อบัญชี '+n.accName:''}`.replace(/\s+/g,' ');['waterRate','waterMin','elecRate','elecMin','common','dueDay'].forEach(k=>n[k]=num(d[k])||0);if(d.lateFee===''||d.lateFee==null)delete n.lateFee;else n.lateFee=num(d.lateFee)||0;delete n.id;await put('setup','main',n);toast('บันทึกการตั้งค่าแล้ว')}
 };
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const f=ACT[b.dataset.act];if(f){e.preventDefault();f(b)}});
 function akCount(){const n=document.querySelectorAll('.ak:checked').length,e=document.getElementById('akN');if(e)e.textContent=n?`เลือกแล้ว ${n} ห้อง`:'ยังไม่ได้เลือกห้อง'}
@@ -949,7 +1020,7 @@ async function importFile(file){const d=JSON.parse(await file.text()),rows=[];
   await refresh();toast(`นำเข้าแล้ว ${rows.length} รายการ`)}
 document.addEventListener('change',async e=>{const t=e.target;
   if(t.id==='imp'&&t.files[0]){importFile(t.files[0]).catch(()=>toast('นำเข้าไม่สำเร็จ ตรวจว่าเป็นไฟล์สำรองของระบบนี้'));t.value=''}
-  if(t.name==='roomId'&&S.rooms[t.value]){const r=S.rooms[t.value];const set=(i,v)=>{const x=document.getElementById(i);if(x)x.value=v};set('tRent',r.rent);set('tW',r.waterStart??0);set('tE',r.elecStart??0)}
+  if(t.name==='roomId'&&S.rooms[t.value]){const r=S.rooms[t.value];const set=(i,v)=>{const x=document.getElementById(i);if(x)x.value=v};set('tW',r.waterStart??0);set('tE',r.elecStart??0)}
   if(t.dataset.m){const rid=t.dataset.room,id=meterId(month,rid),r=reading(rid,month),v=num(t.value);
     if(t.value!==''&&v==null){toast('กรอกเป็นตัวเลขเท่านั้น');return}
     const{id:_,...old}=S.meters[id]||{};await put('meters',id,{...r,...old,roomId:rid,month,[t.dataset.m]:v,readAt:nowLocal()})}
