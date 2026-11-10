@@ -676,7 +676,7 @@ function vSetup(){
   <div class="row"><button class="btn" ${canWrite?'':'disabled'}>บันทึกชื่อหลัง</button><button class="btn" type="button" data-act="addB">เพิ่มหลัง</button></div>
   <p style="color:var(--muted)">ห้องเดิมที่ยังไม่ได้ระบุหลัง จะอยู่ใน${esc(BLD()[0].name)} แก้ได้ที่ปุ่มแก้ไขของแต่ละห้อง</p></form>
   <form data-form="linecfg" id="lineForm" class="panel" style="max-width:640px"><fieldset><legend>แจ้งซ่อมและแจ้งเตือน LINE</legend>
-  <div class="f full">ลิงก์แจ้งซ่อมสำหรับ Rich Menu<div class="row"><input readonly value="${esc(repairLink())}" style="flex:1"><button type="button" class="btn" data-act="copyRepairLink">คัดลอก</button></div></div>
+  <div class="f full">ลิงก์สำหรับ Rich Menu ของ LINE OA${[['ดูบิล / จ่ายเงิน','bill.html'],['แจ้งซ่อม','repair.html'],['ติดต่อหอพัก','contact.html']].map(([l,f])=>`<div class="row" style="align-items:center"><span style="min-width:7.5em">${l}</span><input readonly value="${esc(new URL(f,location.href).href)}" style="flex:1" onclick="this.select()"><button type="button" class="btn sm" data-act="copyText" data-id="${esc(new URL(f,location.href).href)}">คัดลอก</button></div>`).join('')}</div>
   <label class="f full">Channel access token (Messaging API)<input name="token" type="password" autocomplete="off" placeholder="วาง token ยาว ๆ จาก LINE Developers"></label>
   <label class="f full">User ID ผู้รับแจ้งเตือน (ขึ้นต้นด้วย U คั่นหลายคนด้วยจุลภาค)<input name="admin_ids" autocomplete="off" placeholder="U1234abcd..."></label>
   <p id="lineMsg" class="f full" role="status"></p></fieldset>
@@ -883,6 +883,7 @@ const ACT={
   selNone:()=>{document.querySelectorAll('.ak').forEach(x=>x.checked=false);akCount()},
   repairDlg:e=>repairDlg(e.dataset.id),newRepair:()=>newRepairForm(),
   repTab:e=>{repTab=e.dataset.id;paint()},
+  copyText:e=>navigator.clipboard.writeText(e.dataset.id).then(()=>toast('คัดลอกลิงก์แล้ว'),()=>toast(e.dataset.id)),
   copyRepairLink:()=>navigator.clipboard.writeText(repairLink()).then(()=>toast('คัดลอกลิงก์แล้ว นำไปใส่ใน Rich Menu ของ LINE OA'),()=>toast(repairLink())),
   delRepair:async e=>{const id=e.dataset.id,x=S.repairs[id];closeDlg();if(await ask('ลบรายการแจ้งซ่อม?','ลบแล้วกู้คืนไม่ได้','ลบ')){if(await del('repairs',id)&&x.media?.length)sb.storage.from('repairs').remove(x.media.map(m=>m.path)).catch(()=>{})}},
   testLine:async()=>{const{data,error}=await sb.rpc('test_line_notify');toast(error?'ส่งไม่สำเร็จ ตรวจว่ารันไฟล์ SQL แล้ว':data?'ส่งข้อความทดสอบแล้ว ดูใน LINE ของคุณ':'ยังตั้งค่าไม่ครบ ใส่ token และ User ID ก่อน')},
