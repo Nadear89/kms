@@ -296,6 +296,20 @@ dialog:has(.dlg.wide){width:min(900px,calc(100vw - 32px))}
 .rc.late:hover{border-color:#C62828}.ct p.r{text-align:right;text-indent:0}.ct p.sub{text-indent:0;padding-left:2.2cm}
 .ct .cf{border-bottom:1px dotted #000;padding:0 6px;font-weight:700;display:inline}
 .ct .sig{display:grid;grid-template-columns:1fr 1fr;gap:28pt 20pt;margin-top:30pt;text-align:center;page-break-inside:avoid}
+.fastwrap{overflow-x:auto;align-self:flex-start;max-width:100%}
+.fast{border-collapse:collapse;background:var(--surface);min-width:min(560px,100%);font-variant-numeric:tabular-nums}
+.fast th,.fast td{border:1.5px solid #3D4A42;padding:0}
+.fast thead th{background:var(--surface);color:var(--fg);font-size:1.15rem;font-weight:700;padding:6px 14px;text-align:center}
+.fast thead th.fh{font-size:1.3rem}
+.fast th.fr{font-size:1.3rem;font-weight:700;padding:4px 14px;text-align:center;min-width:110px;background:var(--surface)}
+.fast th.fr small{display:block;font-size:.72rem;font-weight:500;color:var(--muted);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 auto}
+.fast tr.ok th.fr{background:#E3F1E8}
+.fast td.fc{min-width:170px;position:relative}
+.fin{width:100%;border:0;background:transparent;font:600 1.25rem var(--body);text-align:right;padding:8px 12px 18px;color:var(--fg)}
+.fin::placeholder{color:#B9C2BC;font-weight:400}
+.fin:focus{outline:3px solid var(--accent);outline-offset:-3px;background:#F2F8F4}
+.fin.bad{background:#FDECEA;color:var(--crit)}
+.fc small{position:absolute;left:10px;bottom:3px;font-size:.72rem;color:var(--muted);pointer-events:none}.fc small.bad{color:var(--crit)}
 /* room states */
 .s-on{--c:#1D5B3B;--b:#DDEFE3;--l:#9FCBAE}
 .s-free{--c:#7C8A80;--b:#EDEFEC;--l:#C3CCC4}
@@ -454,7 +468,7 @@ const COLS=['rooms','tenants','meters','bills','repairs','applications'];
 const S={rooms:{},tenants:{},meters:{},bills:{},repairs:{},applications:{},setup:{}};
 const seen={};let sb=null,dl=null,canWrite=true,ready=false,month=todayStr().slice(0,7),query='',denied=false;
 const VIEWS={home:'ภาพรวม',rooms:'ห้องพัก',tenants:'ผู้เช่า',contracts:'สัญญา',meter:'จดมิเตอร์',bills:'ทำบิล',repairs:'แจ้งซ่อม',setup:'ตั้งค่า'};
-const view=()=>{const h=location.hash.slice(1);return VIEWS[h]?h:'home'};
+const view=()=>{const h=location.hash.slice(1);return VIEWS[h]||h==='meterfast'?h:'home'};
 const $=s=>document.querySelector(s);
 const BLD=()=>{const b=S.setup.buildings;return Array.isArray(b)&&b.length?b:[{id:'b1',name:'หลังที่ 1'}]};
 const multi=()=>BLD().length>1;
@@ -671,9 +685,29 @@ function vMeter(){
     const lead=`<td class="mroom" rowspan="2"><b>${esc(roomNo(rid))}</b><small>${t?esc(t.name):`<span class="pill s-${roomState(rm)}">${ST[roomState(rm)]}</span>`}</small>${b?'<small>ออกบิลแล้ว</small>':''}${canWrite?`<button class="btn sm" data-act="editPrev" data-id="${rid}" aria-label="แก้เลขครั้งก่อน"><span class="long">แก้เลขครั้งก่อน</span><span class="short">แก้ไข</span></button>`:''}</td>`;
     return line(rid,r,'water','น้ำ',lead)+line(rid,r,'elec','ไฟ')}).join('');
   return `<div class="head"><div><h1>จดมิเตอร์น้ำ-ไฟ</h1><p>จดแล้ว ${done} จาก ${list.length} ห้อง (ทุกห้อง รวมห้องว่าง) ระบบบันทึกให้ทันทีเมื่อกรอกช่องถัดไป</p></div><div class="row">${monthBar()}</div></div>${sampleNote()}
-  <div class="row"><button class="btn" data-act="printMeter" data-id="blank">🖨 พิมพ์ใบจดน้ำไฟ</button><button class="btn" data-act="printMeter" data-id="filled">🖨 พิมพ์รายการเลขมิเตอร์</button></div>
+  <div class="row"><a class="btn pri" href="#meterfast">⚡ กรอกเร็ว (แบบตาราง)</a><button class="btn" data-act="printMeter" data-id="blank">🖨 พิมพ์ใบจดน้ำไฟ</button><button class="btn" data-act="printMeter" data-id="filled">🖨 พิมพ์รายการเลขมิเตอร์</button></div>
   ${rows?`<div class="tw"><table class="mtable"><thead><tr><th>ห้อง</th><th>รายการ</th><th class="num">ครั้งก่อน</th><th>ครั้งนี้</th><th class="num">หน่วย</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><td colspan="4">รวมน้ำ</td><td class="munits">${units(totals.water)}</td></tr><tr><td colspan="4">รวมไฟ</td><td class="munits">${units(totals.elec)}</td></tr></tfoot></table></div><div class="row"><a class="btn pri" href="#bills">ไปทำบิล</a></div>`:'<div class="empty">ยังไม่มีห้องพัก เพิ่มห้องก่อน</div>'}`;
 }
+function vMeterFast(){const list=meterRooms(),h=curB()==='all'?(multi()?'ทุกหลัง':(S.setup.name||'หอพัก')):bldName(curB());
+  const done=list.filter(r=>readingOk(reading(r.id,month))).length;
+  const cell=(rm,k)=>{const r=reading(rm.id,month),P=r[k+'Prev'],C=r[k+'Cur'],bad=C!=null&&C<P,u=C!=null&&!bad?round2(C-P):null;
+    return `<td class="fc"><input class="fin ${bad?'bad':''}" id="f-${k}-${rm.id}" data-m="${k}Cur" data-room="${rm.id}" data-k="${k}" inputmode="decimal" autocomplete="off" value="${C??''}" placeholder="${units(P)}" aria-label="ห้อง ${esc(rm.number)} ${k==='water'?'น้ำ':'ไฟ'}" ${canWrite?'':'disabled'}><small class="${bad?'bad':''}">${bad?'น้อยกว่าเดิม '+units(P):'ก่อน '+units(P)+(u!=null?' · ใช้ '+units(u):'')}</small></td>`};
+  return `<div class="head"><div><h1>กรอกมิเตอร์แบบเร็ว</h1><p>พิมพ์ตัวเลขแล้วกด Enter เพื่อลงห้องถัดไป ระบบบันทึกให้ทันที · วางตัวเลขจาก Excel ได้ทั้งคอลัมน์</p></div><div class="row">${monthBar()}<a class="btn" href="#meter">กลับหน้าจดมิเตอร์</a></div></div>
+  <div class="fastwrap"><table class="fast"><thead><tr><th colspan="3" class="fh">${esc(h)}</th></tr><tr><th>เดือน</th><th colspan="2">สิ้นเดือน${TM[+month.slice(5)-1]} ${+month.slice(0,4)+543}</th></tr><tr><th>ห้องที่</th><th>น้ำ</th><th>ไฟ</th></tr></thead>
+  <tbody>${list.map(rm=>{const t=tenantOf(rm.id);return `<tr class="${readingOk(reading(rm.id,month))?'ok':''}"><th class="fr">${esc(rm.number)}<small>${multi()&&curB()==='all'?esc(bldName(roomBld(rm)))+' · ':''}${t?esc(t.name):ST[roomState(rm)]}</small></th>${cell(rm,'water')}${cell(rm,'elec')}</tr>`}).join('')}</tbody></table></div>
+  <p class="m" style="color:var(--muted)">กรอกครบ ${done}/${list.length} ห้อง · เลขสีเทาในช่องคือเลขเดือนก่อน</p><div class="row"><a class="btn pri" href="#bills">ไปทำบิล</a></div>`}
+async function saveMeters(changes){const by={};changes.forEach(([rid,k,v])=>{(by[rid]??={})[k+'Cur']=v});let n=0;
+  for(const rid of Object.keys(by)){const id=meterId(month,rid),r=reading(rid,month),{id:_,...old}=S.meters[id]||{};if(await put('meters',id,{...r,...old,roomId:rid,month,...by[rid],readAt:nowLocal()}))n++}return n}
+document.addEventListener('keydown',e=>{const t=e.target;if(!t.classList?.contains('fin'))return;
+  const go=d=>{const all=[...document.querySelectorAll(`.fin[data-k="${t.dataset.k}"]`)],i=all.indexOf(t),n=all[i+d];if(n){e.preventDefault();n.focus();n.select()}};
+  if(e.key==='Enter'||e.key==='ArrowDown')go(1);else if(e.key==='ArrowUp')go(-1)});
+let finJust=null;document.addEventListener('focusin',e=>{if(e.target.classList?.contains('fin')){e.target.select();finJust=e.target}});
+document.addEventListener('mouseup',e=>{if(finJust&&e.target===finJust){e.preventDefault()}finJust=null});
+document.addEventListener('paste',async e=>{const t=e.target;if(!t.classList?.contains('fin'))return;const txt=(e.clipboardData||window.clipboardData).getData('text');if(!/[\n\t]/.test(txt.trim()))return;e.preventDefault();
+  const lines=txt.replace(/\r/g,'').split('\n').filter((l,i,a)=>l.trim()!==''||i<a.length-1).map(l=>l.split('\t').map(x=>x.trim()));
+  const rows=[...document.querySelectorAll('.fast tbody tr')],start=rows.indexOf(t.closest('tr')),col=t.dataset.k==='water'?0:1,keys=['water','elec'],ch=[];let bad=0;
+  lines.forEach((cells,i)=>{const tr=rows[start+i];if(!tr)return;cells.slice(0,2-col).forEach((raw,j)=>{if(raw==='')return;const v=num(raw);if(v==null){bad++;return}const k=keys[col+j];ch.push([tr.querySelector(`.fin[data-k="${k}"]`).dataset.room,k,v])})});
+  if(!ch.length)return toast('ไม่พบตัวเลขในข้อมูลที่วาง');const n=await saveMeters(ch);toast(`วางแล้ว ${ch.length} ช่อง (${n} ห้อง)${bad?` · ข้าม ${bad} ช่องที่ไม่ใช่ตัวเลข`:''}`)});
 function meterSheet(filled){const list=meterRooms(),h=curB()==='all'?(multi()?'ทุกหลัง':(S.setup.name||'')):bldName(curB());
   const row=(rm,k,lab,lead)=>{const r=reading(rm.id,month),P=r[k+'Prev'],C=r[k+'Cur'],u=C!=null&&C>=P?round2(C-P):null;
     return `<tr>${lead||''}<td class="k">${lab}</td><td class="n">${units(P)}</td><td class="n w">${filled&&C!=null?units(C):''}</td><td class="n">${filled&&u!=null?units(u):''}</td><td></td></tr>`};
@@ -724,13 +758,13 @@ function vSetup(){
   <fieldset><legend>บัญชีรับเงิน</legend>${fld('bankName','ธนาคาร','text','placeholder="เช่น กสิกรไทย"')}${fld('accNo','เลขบัญชี','text','inputmode="numeric" placeholder="เช่น 123-4-56789-0"')}<label class="f full">ชื่อบัญชี<input name="accName" value="${v('accName')}"></label>${fld('promptpay','พร้อมเพย์ (ไม่ใส่ก็ได้ ถ้าใส่บิลจะมี QR)')}<label class="f full">หมายเหตุท้ายบิล<input name="billNote" value="${v('billNote')}"></label></fieldset>
   <div class="row"><button class="btn pri" ${canWrite?'':'disabled'}>บันทึกการตั้งค่า</button><button class="btn" type="button" data-act="backup">สำรองข้อมูลเป็นไฟล์</button><label class="btn">นำเข้าไฟล์สำรอง<input type="file" id="imp" accept=".json" hidden></label></div></form>`;
 }
-const RENDER={repairs:vRepairs,home:vHome,rooms:vRooms,tenants:vTenants,contracts:vContracts,meter:vMeter,bills:vBills,setup:vSetup};
+const RENDER={meterfast:vMeterFast,repairs:vRepairs,home:vHome,rooms:vRooms,tenants:vTenants,contracts:vContracts,meter:vMeter,bills:vBills,setup:vSetup};
 const ICON={"home": "<path d=\"M3 10.5 12 3l9 7.5\"/><path d=\"M5 9v12h14V9\"/><path d=\"M10 21v-6h4v6\"/>", "rooms": "<rect x=\"4\" y=\"3\" width=\"16\" height=\"18\" rx=\"1.5\"/><path d=\"M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2\"/><path d=\"M10 21v-3h4v3\"/>", "tenants": "<circle cx=\"9\" cy=\"8\" r=\"3.5\"/><path d=\"M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5\"/><path d=\"M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.8c1.8.8 3 2.6 3.5 5.2\"/>", "contracts": "<path d=\"M14 3H6v18h12V7z\"/><path d=\"M14 3v4h4\"/><path d=\"M9 12h6M9 16h6\"/>", "meter": "<circle cx=\"12\" cy=\"13\" r=\"8\"/><path d=\"M12 13l4-4\"/><path d=\"M8 6.5 7 5M16 6.5l1-1.5\"/><circle cx=\"12\" cy=\"13\" r=\"1\" fill=\"currentColor\"/>", "bills": "<path d=\"M6 3h12v18l-2-1.5-2 1.5-2-1.5-2 1.5-2-1.5L6 21z\"/><path d=\"M9 8h6M9 12h6M9 16h3\"/>", "setup": "<circle cx=\"12\" cy=\"12\" r=\"3\"/><path d=\"M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7\"/>", "logout": "<path d=\"M10 4H5v16h5\"/><path d=\"M14 8l4 4-4 4M18 12H9\"/>"};
 const ico=k=>`<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg>`;
 ICON.repairs='<path d="M14.7 6.3a4 4 0 0 0-5.4 5.2L4 16.8V20h3.2l5.3-5.3a4 4 0 0 0 5.2-5.4l-2.5 2.5-2.3-.5-.5-2.3z"/>';
 function renderNav(){
   const late=allBills().filter(isLate).length,rnew=openRepairs().filter(x=>x.status==='new').length,napp=apps().length;
-  $('#nav').innerHTML=Object.entries(VIEWS).map(([k,l])=>`<a href="#${k}" ${view()===k?'aria-current="page"':''}>${ico(k)}<span>${l}</span>${k==='bills'&&late?`<span class="n">${late}</span>`:''}${k==='repairs'&&rnew?`<span class="n">${rnew}</span>`:''}${k==='tenants'&&napp?`<span class="n">${napp}</span>`:''}</a>`).join('');
+  $('#nav').innerHTML=Object.entries(VIEWS).map(([k,l])=>`<a href="#${k}" ${view()===k||(k==='meter'&&view()==='meterfast')?'aria-current="page"':''}>${ico(k)}<span>${l}</span>${k==='bills'&&late?`<span class="n">${late}</span>`:''}${k==='repairs'&&rnew?`<span class="n">${rnew}</span>`:''}${k==='tenants'&&napp?`<span class="n">${napp}</span>`:''}</a>`).join('');
   $('#logoutBtn').innerHTML=ico('logout')+'<span>ออกจากระบบ</span>';
   $('#brand').innerHTML='<img src="favicon-192.png" alt="" class="logo"><span>'+esc(S.setup.name||'หอพัก')+'<small>ระบบหลังบ้าน</small></span>';
 }
