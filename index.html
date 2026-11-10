@@ -292,6 +292,13 @@ hr.fsep{grid-column:1/-1;border:0;border-top:1px dashed var(--line);margin:2px 0
 .ctprev{background:#fff;border:1px solid var(--line);border-radius:8px;padding:28px 32px;max-height:70vh;overflow:auto}
 .ctprev .ctid{margin-top:24px;padding-top:24px;border-top:2px dashed #ccc}
 dialog:has(.dlg.wide){width:min(900px,calc(100vw - 32px))}
+.rc[class*=s-]{border:2.5px solid var(--c);border-left:6px solid var(--c)}
+.rc[class*=s-] b{color:var(--c)}
+.rc.s-free{border-style:solid;--c:#8A968D}
+.rc.s-off{border-color:#6F7A72;--c:#6F7A72}
+.rc.mini2[class*=s-]{background:var(--c);border-color:var(--c)}
+.rc.mini2[class*=s-] b,.rc.mini2[class*=s-] small{color:#fff}
+.rc.mini2.s-off{background:repeating-linear-gradient(-45deg,#6F7A72 0 7px,#5E6861 7px 14px)}
 .rc.late{background:#F9CFCB;border:3px solid #E53935;border-left:6px solid #E53935;box-shadow:0 0 0 3px rgba(229,57,53,.18)}
 .rc.late b{color:#B71C1C}.rc.late .who,.rc.late .rent{color:#5A1010}.rc.late .sub{color:#7A2A2A}
 .rc.late .ch{background:#fff}
