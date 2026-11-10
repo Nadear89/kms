@@ -195,6 +195,70 @@ fieldset legend{font:600 .95rem var(--display);padding:0 0 6px;color:var(--brass
 .slipbox small{display:block;color:var(--muted)}
 .slipimg img{max-height:420px;border-radius:8px;border:1px solid var(--line)}
 hr.fsep{grid-column:1/-1;border:0;border-top:1px dashed var(--line);margin:2px 0;width:100%}
+/* home cards */
+.sgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.scard{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px 20px;display:flex;flex-direction:column;gap:8px;box-shadow:0 1px 2px rgba(20,45,30,.04)}
+.sh{display:flex;align-items:center;gap:10px;color:var(--muted);font-weight:500}
+.si,.ti{width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.si.g,.ti.g{background:#E3F1E8;color:#1D5B3B}.si.r,.ti.r{background:#FBE6E3;color:#C23A2B}.si.b,.ti.b{background:#E8ECFB;color:#3B4BA8}.ti.o{background:#FDEBDD;color:#C2410C}
+.sv{font-size:2rem;font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums}.sv small{font-size:1rem;font-weight:500;color:var(--muted);margin-left:4px}
+.ss{color:var(--muted);font-size:.9rem}
+.pbar{height:7px;border-radius:99px;background:#E9EEE8;overflow:hidden}.pbar i{display:block;height:100%;background:var(--accent);border-radius:99px;min-width:7px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;min-width:0;box-shadow:0 1px 2px rgba(20,45,30,.04)}
+.ch2{display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid var(--line);color:var(--accent);flex-wrap:wrap}
+.ch2 h2{color:var(--fg);font-size:1.08rem;flex:1;min-width:0}
+.cb{padding:16px 20px;display:flex;flex-direction:column;gap:12px}
+.mgrid{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px}
+.lgrid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) minmax(0,1fr);gap:16px}
+.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.step{border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.stt{display:flex;align-items:center;gap:8px}.sn{width:28px;height:28px;border-radius:50%;background:var(--sunk);display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;flex:none}
+.sn.done{background:var(--accent);color:#fff}
+.lk{background:none;border:0;padding:0;font:inherit;font-weight:600;color:var(--accent);cursor:pointer;text-decoration:none;text-align:left}
+.lk:hover{text-decoration:underline}
+.chart{width:100%;height:auto}.chart .gl{stroke:var(--line);stroke-dasharray:3 4}.chart .ax{stroke:#C9D3CB}.chart .bp{fill:#1D5B3B}.chart .bu{fill:#F2A11B}
+.chart .vl{font-size:14px;fill:var(--fg);text-anchor:middle;font-weight:600}.chart .ml{font-size:13px;fill:var(--muted);text-anchor:middle}
+.lgd{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:.85rem}.lgd i{width:12px;height:12px;border-radius:3px;display:inline-block;margin-left:6px}.lgd i.bp{background:#1D5B3B}.lgd i.bu{background:#F2A11B}
+.lst{padding:6px 12px;gap:0}
+.lrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:10px 8px;border:0;border-bottom:1px solid var(--line);background:none;font:inherit;color:inherit;text-align:left;cursor:pointer;border-radius:8px}
+.lrow:last-child{border-bottom:0}.lrow:hover{background:var(--sunk)}
+.lrow .rn{color:var(--accent);font-size:1.02rem}.lrow .lt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lrow .lt small{display:block;color:var(--muted)}
+.lrow .amt{font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill.due{background:#FCF1DA;color:#8A5A00}
+.none{color:var(--muted);text-align:center;padding:18px 0}
+.chipa{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;background:#E9EEFB;color:#2E3F9A;border:0;font:inherit;font-weight:500;cursor:pointer;text-decoration:none}
+.chipa.blue{background:#E3EEFD;color:#1E5FD1}
+.legend.top{display:flex;flex-wrap:wrap;gap:8px 18px;padding-bottom:4px;border-bottom:1px dashed var(--line)}
+.legend.top i{width:13px;height:13px;border-radius:50%}
+.legend.top i[class*=s-]{background:var(--c);border-color:var(--c)}
+.legend.top i.s-free{background:#B5C0B8;border-color:#B5C0B8}
+.legend i.lg-owe{display:inline-flex;align-items:center;justify-content:center;width:15px!important;height:15px!important;color:#fff;font-size:10px;font-weight:800;font-style:normal}
+.ptools2{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.fchip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 16px;font:inherit;font-weight:600;cursor:pointer;color:var(--fg)}
+.fchip[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.seg button{display:inline-flex;align-items:center;gap:6px}
+.fl{display:flex;flex-direction:column;gap:8px;padding-top:6px}
+.flc{align-self:flex-start;background:var(--accent-soft);color:var(--accent);font-weight:700;border-radius:8px;padding:2px 12px;font-size:.9rem}
+.rcs{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.rcs.m{grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px}
+.rc{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;background:var(--b);border:1px solid var(--l);border-left:5px solid var(--c);border-radius:12px;padding:12px 14px;font:inherit;color:var(--fg);cursor:pointer;min-width:0}
+.rc:hover{box-shadow:0 4px 14px rgba(20,45,30,.12)}
+.rc b{font-size:1.25rem;font-weight:700}
+.rc .who{font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:4px}
+.rc .sub{color:var(--muted);font-size:.84rem;display:flex;align-items:center;gap:4px}
+.rc .rent{font-weight:700;margin-top:2px}
+.rc .chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+.rc .ch{font-size:.75rem;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:0 8px;display:inline-flex;align-items:center;gap:3px;color:var(--muted);font-weight:600}
+.rc .ch.red{border-color:#F3B6AE;background:#FDECEA;color:#C23A2B}
+.rc.mini2{padding:8px 10px}.rc.mini2 b{font-size:1.08rem}.rc.mini2 small{color:var(--muted);font-size:.78rem;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;gap:3px;align-items:center}
+.rc.s-free{border-style:dashed;border-left-style:solid}
+.rc.s-off{background:repeating-linear-gradient(-45deg,#F4F6F3 0 7px,#ECEFEB 7px 14px)}
+.warn{position:absolute;top:-7px;right:-7px;width:24px;height:24px;border-radius:50%;background:#E53935;color:#fff;font-weight:800;font-size:.9rem;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px var(--surface),0 2px 6px rgba(229,57,53,.45)}
+.warn.soft{background:#F2A11B;box-shadow:0 0 0 3px var(--surface)}
+@media(prefers-reduced-motion:no-preference){.warn:not(.soft){animation:pulse 1.8s ease-in-out infinite}@keyframes pulse{50%{box-shadow:0 0 0 3px var(--surface),0 0 0 7px rgba(229,57,53,.25)}}}
+@media(max-width:1100px){.sgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.mgrid,.lgrid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:700px){.steps{grid-template-columns:repeat(2,minmax(0,1fr))}.rcs{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}}
+@media(max-width:420px){.sgrid{grid-template-columns:minmax(0,1fr)}.sv{font-size:1.7rem}}
 /* room states */
 .s-on{--c:#1D5B3B;--b:#FFFFFF;--l:#B9D4C1}
 .s-free{--c:#6F7D73;--b:#F3F5F2;--l:#C3CCC4}
@@ -425,57 +489,90 @@ function sampleNote(){const has=COLS.some(c=>Object.values(S[c]).some(x=>x.sampl
 const ST={on:'มีผู้เข้าพัก',free:'ว่าง',off:'ปิดซ่อม',resv:'จองแล้ว',notice:'แจ้งออก',soon:'ออกภายใน 30 วัน'};
 function roomState(r){if(r.closed)return 'off';const t=tenantOf(r.id);if(t){if(t.planOut)return daysTo(t.planOut)<=30?'soon':'notice';return 'on'}return r.reservation?.name?'resv':'free'}
 let planMode=(()=>{try{return localStorage.getItem('plan')||'full'}catch(e){return 'full'}})(),homeTab='plan';
+let planFilter='all';
+const IC2={pct:'<path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><circle cx="12" cy="14" r="2.5"/>',cash:'<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 9v.01M18 15v.01"/>',
+ alert:'<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/>',trend:'<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 6-6"/>',cycle:'<path d="M20 11a8 8 0 0 0-14.6-4.5L4 8M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16m0 4v-4h-4"/>',
+ bars:'<path d="M5 20v-6M12 20V9M19 20V4"/>',cal:'<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4M10 14l4 4M14 14l-4 4"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+ grid:'<rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/>',
+ user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/>',slip:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>',fan:'<circle cx="12" cy="12" r="2"/><path d="M12 10c0-4 1-7 3-7s2 4-1 7M14 12c4 0 7 1 7 3s-4 2-7-1M12 14c0 4-1 7-3 7s-2-4 1-7M10 12c-4 0-7-1-7-3s4-2 7 1"/>'};
+const ic=(k,sz=20)=>`<svg viewBox="0 0 24 24" width="${sz}" height="${sz}" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC2[k]}</svg>`;
+function chart6(){const ms=[];for(let i=5;i>=0;i--)ms.push(shiftMonth(month,-i));
+  const B=allBills(),d=ms.map(m=>{const x=B.filter(b=>b.month===m);return{m,p:x.filter(b=>b.status==='paid').reduce((a,b)=>a+b.total,0),u:x.filter(b=>b.status!=='paid').reduce((a,b)=>a+b.total,0)}});
+  const max=Math.max(...d.map(x=>x.p+x.u),0);if(!max)return '<div class="empty" style="border:0">ยังไม่มีบิลใน 6 เดือนนี้</div>';
+  const W=420,H=210,L=8,Bm=26,bw=40,gap=(W-L*2-bw*6)/5,sc=v=>v/max*(H-Bm-24);
+  return `<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="ยอดบิล 6 เดือน">${[0.5,1].map(f=>`<line x1="0" x2="${W}" y1="${H-Bm-sc(max*f)}" y2="${H-Bm-sc(max*f)}" class="gl"/>`).join('')}<line x1="0" x2="${W}" y1="${H-Bm}" y2="${H-Bm}" class="ax"/>
+  ${d.map((x,i)=>{const X=L+i*(bw+gap),hp=sc(x.p),hu=sc(x.u),top=H-Bm-hp-hu;return `<g><title>${monthLabel(x.m)}: ชำระแล้ว ${baht(x.p)} · ค้าง ${baht(x.u)}</title>${hp?`<rect x="${X}" y="${H-Bm-hp}" width="${bw}" height="${hp}" rx="3" class="bp"/>`:''}${hu?`<rect x="${X}" y="${top}" width="${bw}" height="${hu}" rx="3" class="bu"/>`:''}${x.p+x.u?`<text x="${X+bw/2}" y="${top-6}" class="vl">${Math.round(x.p+x.u).toLocaleString('th-TH')}</text>`:''}<text x="${X+bw/2}" y="${H-8}" class="ml">${TMS[+x.m.slice(5)-1]} ${String(+x.m.slice(0,4)+543).slice(2)}</text></g>`}).join('')}</svg>`}
 function vHome(){
-  const rs=rooms(),act=activeTenants(),occ=act.length,open=rs.filter(r=>!r.closed).length;
-  const mb=allBills().filter(b=>b.month===month);
+  const rs=rooms(),act=activeTenants(),open=rs.filter(r=>!r.closed).length;
+  const mb=allBills().filter(b=>b.month===month),issued=mb.reduce((a,b)=>a+b.total,0);
   const paid=mb.filter(b=>b.status==='paid').reduce((a,b)=>a+b.total,0);
-  const unpaid=allBills().filter(b=>b.status==='unpaid');const late=unpaid.filter(isLate).sort((a,b)=>a.dueDate.localeCompare(b.dueDate));
-  const owed=unpaid.reduce((a,b)=>a+b.total,0),lateSum=late.reduce((a,b)=>a+b.total,0);
-  const ending=act.filter(t=>!t.planOut&&t.contractEnd&&daysTo(t.contractEnd)<=60).sort((a,b)=>a.contractEnd.localeCompare(b.contractEnd));
-  const noMeter=act.filter(t=>!readingOk(reading(t.roomId,month)));
-  const lateRooms=new Set(late.map(b=>b.roomId));
-  const notices=act.filter(t=>t.planOut).sort((a,b)=>a.planOut.localeCompare(b.planOut));
-  const resv=rs.filter(r=>r.reservation?.name).sort((a,b)=>(a.reservation.date||'9').localeCompare(b.reservation.date||'9'));
-  const tagFull=r=>{const st=roomState(r),t=tenantOf(r.id),rv=r.reservation;
-    const sub=st==='off'?'ปิดซ่อม':t?esc(t.name):st==='resv'?'จอง: '+esc(rv.name):'ว่าง';
-    const ex=t&&t.planOut?'ออก '+thDate(t.planOut):st==='resv'&&rv.date?'เข้า '+thDate(rv.date):(esc(r.type)||'&nbsp;');
-    return `<button class="tag s-${st}" data-act="roomMenu" data-id="${r.id}" title="${ST[st]}">${lateRooms.has(r.id)?'<span class="owe">ค้าง</span>':''}<b>${esc(r.number)}</b><small>${sub}</small><small class="ty">${ex}</small></button>`};
-  const tagMini=r=>{const st=roomState(r),t=tenantOf(r.id);
-    return `<button class="mini s-${st}" data-act="roomMenu" data-id="${r.id}" title="ห้อง ${esc(r.number)} ${ST[st]}${t?' · '+esc(t.name):''}${lateRooms.has(r.id)?' · ค้างชำระ':''}">${esc(r.number)}${lateRooms.has(r.id)?'<i></i>':''}</button>`};
-  const planOf=list=>{const floors={};list.forEach(r=>(floors[r.floor||'-']??=[]).push(r));
-    return Object.keys(floors).sort((a,b)=>Number(a)-Number(b)).map(f=>`<div class="floor"><span>ชั้น ${esc(f)}</span><div class="${planMode==='mini'?'minis':'tags'}">${floors[f].map(planMode==='mini'?tagMini:tagFull).join('')}</div></div>`).join('')};
-  const groups=multi()&&curB()==='all'?BLD().map(b=>({b,list:rs.filter(r=>roomBld(r)===b.id)})).filter(g=>g.list.length):[{list:rs}];
-  const plan=groups.map(g=>(g.b?`<div class="bhead"><b>${esc(g.b.name)}</b><span>${g.list.filter(r=>tenantOf(r.id)).length}/${g.list.filter(r=>!r.closed).length} ห้องมีผู้เข้าพัก</span></div>`:'')+planOf(g.list)).join('');
+  const unpaid=allBills().filter(b=>b.status==='unpaid'),late=unpaid.filter(isLate).sort((a,b)=>a.dueDate.localeCompare(b.dueDate));
+  const owedList=unpaid.slice().sort((a,b)=>a.dueDate.localeCompare(b.dueDate)),owed=unpaid.reduce((a,b)=>a+b.total,0);
+  const lateRooms=new Set(late.map(b=>b.roomId)),owRooms=new Set(unpaid.map(b=>b.roomId));
+  const slips=unpaid.filter(b=>b.slip);
   const counts={};rs.forEach(r=>{const k=roomState(r);counts[k]=(counts[k]||0)+1});
-  const legend=Object.keys(ST).map(k=>`<span><i class="s-${k}"></i>${ST[k]} <b>${counts[k]||0}</b></span>`).join('')+`<span><i class="lg-owe"></i>ค้างชำระ <b>${lateRooms.size}</b></span>`;
+  const occN=(counts.on||0)+(counts.notice||0)+(counts.soon||0),pct=open?Math.round(occN/open*100):0;
+  const rentNow=act.reduce((a,t)=>a+(Number(t.rent)||0),0),rentFull=rs.filter(r=>!r.closed).reduce((a,r)=>a+(Number(tenantOf(r.id)?.rent??r.rent)||0),0);
+  const metered=act.filter(t=>readingOk(reading(t.roomId,month))).length,billed=act.filter(t=>S.bills[meterId(month,t.roomId)]).length;
+  const paidN=mb.filter(b=>b.status==='paid').length;
+  const notices=act.filter(t=>t.planOut||(t.contractEnd&&daysTo(t.contractEnd)<=45)).sort((a,b)=>(a.planOut||a.contractEnd).localeCompare(b.planOut||b.contractEnd));
+  const resv=rs.filter(r=>r.reservation?.name).sort((a,b)=>(a.reservation.date||'9').localeCompare(b.reservation.date||'9'));
+  const noContract=act.filter(t=>!t.contractEnd).length;
+  const bar=(v,n)=>`<div class="pbar"><i style="width:${n?Math.min(100,v/n*100):0}%"></i></div>`;
+  const stat=(k,tint,label,big,unit,sub,extra='')=>`<div class="scard"><div class="sh"><span class="si ${tint}">${ic(k)}</span>${label}</div><div class="sv">${big}<small>${unit}</small></div>${extra}<div class="ss">${sub}</div></div>`;
+  const alerts=[slips.length?`<button class="chipa blue" data-act="planFilter" data-id="owe">${ic('slip',16)} สลิปรอตรวจ ${slips.length} รายการ →</button>`:'',noContract?`<a class="chipa" href="#contracts">${ic('cal',16)} ผู้เช่ายังไม่มีวันสิ้นสุดสัญญา ${noContract} ราย →</a>`:''].join('');
+  const step=(n,t,v,of,sub,link,done)=>`<div class="step"><div class="stt"><span class="sn ${done?'done':''}">${done?'✓':n}</span><b>${t}</b></div>${of!=null?bar(v,of):''}<div class="ss">${sub}</div>${link}</div>`;
+  const rowsLate=owedList.slice(0,6).map(b=>`<button class="lrow" data-act="openBill" data-id="${b.id}"><b class="rn">${esc(roomNo(b.roomId))}</b><span class="lt">${esc(b.tenantName)}<small>${TMS[+b.month.slice(5)-1]} ${String(+b.month.slice(0,4)+543).slice(2)}</small></span><span class="pill ${b.slip?'s-resv':isLate(b)?'crit':'due'}">${b.slip?'รอตรวจสลิป':(isLate(b)?'เกิน ':'ครบ ')+dmy(b.dueDate)}</span><b class="amt">${baht(b.total)}</b></button>`).join('');
+  const rowsN=notices.slice(0,6).map(t=>{const d=t.planOut||t.contractEnd,n=daysTo(d);return `<button class="lrow" data-act="roomMenu" data-id="${t.roomId}"><b class="rn">${esc(roomNo(t.roomId))}</b><span class="lt">${esc(t.name)}<small>${t.planOut?'แจ้งย้ายออก':'สัญญาสิ้นสุด'} ${dmy(d)}</small></span><span class="pill s-${t.planOut?(n<=30?'soon':'notice'):'notice'}">${n<0?'เลย '+(-n)+' วัน':'อีก '+n+' วัน'}</span></button>`}).join('');
+  const rowsR=resv.slice(0,6).map(r=>`<button class="lrow" data-act="roomMenu" data-id="${r.id}"><b class="rn">${esc(roomNo(r.id))}</b><span class="lt">${esc(r.reservation.name)}<small>เข้าพัก ${r.reservation.date?dmy(r.reservation.date):'-'}</small></span><span class="amt">${baht(r.reservation.deposit)}</span></button>`).join('');
+  // plan
+  const F={all:r=>true,owe:r=>owRooms.has(r.id),free:r=>roomState(r)==='free',out:r=>['notice','soon'].includes(roomState(r)),resv:r=>roomState(r)==='resv'};
+  const fl=rs.filter(F[planFilter]||F.all);
+  const card=r=>{const st=roomState(r),t=tenantOf(r.id),rv=r.reservation,ow=owRooms.has(r.id),lt=lateRooms.has(r.id);
+    const warn=ow?`<span class="warn ${lt?'':'soft'}" title="${lt?'ค้างชำระเกินกำหนด':'มีบิลรอชำระ'}">!</span>`:'';
+    if(planMode==='mini')return `<button class="rc mini2 s-${st}" data-act="roomMenu" data-id="${r.id}">${warn}<b>${esc(r.number)}</b><small>${t?ic('user',13)+' '+esc(t.name):st==='resv'?'จอง: '+esc(rv.name):ST[st]}</small></button>`;
+    return `<button class="rc s-${st}" data-act="roomMenu" data-id="${r.id}">${warn}<b>${esc(r.number)}</b>
+      <span class="who">${t?ic('user',14)+' '+esc(t.name):st==='resv'?'จอง: '+esc(rv.name):ST[st]}</span>
+      ${t?`<span class="sub">${ic('cal',13)} ${t.planOut?'ออก '+dmy(t.planOut):'ถึง '+dmy(t.contractEnd)}</span>`:st==='resv'&&rv.date?`<span class="sub">${ic('cal',13)} เข้า ${dmy(rv.date)}</span>`:''}
+      <span class="rent">${baht0(t?.rent??r.rent)} ฿/เดือน</span>
+      <span class="chips">${r.type?`<span class="ch">${esc(r.type)}</span>`:''}${ow?`<span class="ch red">${ic('alert',13)} ${lt?'ค้างจ่าย':'รอชำระ'}</span>`:''}</span></button>`};
+  const planOf=list=>{const floors={};list.forEach(r=>(floors[r.floor||'-']??=[]).push(r));
+    return Object.keys(floors).sort((a,b)=>Number(a)-Number(b)).map(f=>`<div class="fl"><span class="flc">ชั้น ${esc(f)}</span><div class="rcs ${planMode==='mini'?'m':''}">${floors[f].map(card).join('')}</div></div>`).join('')};
+  const groups=multi()&&curB()==='all'?BLD().map(b=>({b,list:fl.filter(r=>roomBld(r)===b.id)})).filter(g=>g.list.length):[{list:fl}];
+  const plan=groups.map(g=>(g.b?`<div class="bhead"><b>${esc(g.b.name)}</b><span>${g.list.filter(r=>tenantOf(r.id)).length}/${g.list.filter(r=>!r.closed).length} ห้องมีผู้เข้าพัก</span></div>`:'')+planOf(g.list)).join('')||'<div class="empty">ไม่มีห้องที่ตรงกับตัวกรองนี้</div>';
+  const legend=Object.keys(ST).map(k=>`<span><i class="s-${k}"></i>${ST[k]} <b>${counts[k]||0}</b></span>`).join('')+`<span><i class="lg-owe">!</i>ค้างชำระ <b>${lateRooms.size}</b></span>`;
+  const fchip=(k,l,n)=>`<button class="fchip" data-act="planFilter" data-id="${k}" aria-pressed="${planFilter===k}">${l} <b>${n}</b></button>`;
   const bsum=multi()&&curB()==='all'?`<div class="tw"><table><thead><tr><th>หลัง</th><th class="num">มีผู้เข้าพัก</th><th class="num">ว่าง</th><th class="num">จอง</th><th class="num">แจ้งออก</th><th class="num">รับแล้วเดือนนี้</th><th class="num">ค้างรับ</th><th></th></tr></thead><tbody>${BLD().map(b=>{const L=allRooms().filter(r=>roomBld(r)===b.id),ids=new Set(L.map(r=>r.id)),c={};L.forEach(r=>{const k=roomState(r);c[k]=(c[k]||0)+1});
     const bb=Object.values(S.bills).filter(x=>ids.has(x.roomId)),pd=bb.filter(x=>x.month===month&&x.status==='paid').reduce((a,x)=>a+x.total,0),ow=bb.filter(x=>x.status==='unpaid').reduce((a,x)=>a+x.total,0);
     return `<tr><td><b>${esc(b.name)}</b></td><td class="num">${(c.on||0)+(c.notice||0)+(c.soon||0)}/${L.filter(r=>!r.closed).length}</td><td class="num">${c.free||0}</td><td class="num">${c.resv||0}</td><td class="num">${(c.notice||0)+(c.soon||0)}</td><td class="num">${baht(pd)}</td><td class="num" style="${ow?'color:var(--crit)':''}">${baht(ow)}</td><td class="num"><button class="btn sm" data-act="setB" data-id="${b.id}">จัดการ</button></td></tr>`}).join('')}</tbody></table></div>`:'';
-  const tab=(k,l,n,red)=>`<button class="tab" role="tab" data-act="homeTab" data-id="${k}" aria-selected="${homeTab===k}">${l}${n!=null?`<span class="c ${red&&n?'r':''}">${n}</span>`:''}</button>`;
-  let body='';
-  if(homeTab==='late')body=late.length?`<p class="sum">ค้างชำระ ${late.length} บิล รวม <b style="color:var(--crit)">${baht(lateSum)}</b> บาท</p><div class="tw"><table><thead><tr><th>ห้อง</th><th>ผู้เช่า</th><th>เดือน</th><th class="num">ยอด</th><th>ครบกำหนด</th><th>เกินมา</th><th></th></tr></thead><tbody>${late.map(b=>`<tr><td class="nowrap"><b>${esc(roomNo(b.roomId))}</b></td><td>${esc(b.tenantName)}</td><td class="nowrap">${monthLabel(b.month)}</td><td class="num">${baht(b.total)}</td><td class="nowrap">${thDate(b.dueDate)}</td><td><span class="pill crit">${-daysTo(b.dueDate)} วัน</span></td><td class="num"><button class="btn sm" data-act="openBill" data-id="${b.id}">ดูบิล</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">ไม่มีบิลค้างชำระ</div>';
-  else if(homeTab==='notice')body=notices.length?`<div class="tw"><table><thead><tr><th>ห้อง</th><th>ผู้เช่า</th><th>วันที่แจ้ง</th><th>วันย้ายออก</th><th>สถานะ</th><th class="num">เงินประกัน</th><th></th></tr></thead><tbody>${notices.map(t=>{const d=daysTo(t.planOut);return `<tr><td class="nowrap"><b>${esc(roomNo(t.roomId))}</b></td><td>${esc(t.name)}<small>${esc(t.phone||'')}</small></td><td class="nowrap">${thDate(t.noticeAt)}</td><td class="nowrap">${thDate(t.planOut)}</td><td><span class="pill s-${d<=30?'soon':'notice'}">${d<0?'เลยกำหนด '+(-d)+' วัน':d===0?'ออกวันนี้':'อีก '+d+' วัน'}</span></td><td class="num">${baht(t.deposit)}</td><td class="num nowrap"><button class="btn sm" data-act="noticeForm" data-id="${t.id}">แก้ไข</button> <button class="btn sm pri" data-act="moveOut" data-id="${t.id}">บันทึกย้ายออก</button></td></tr>`}).join('')}</tbody></table></div>`:'<div class="empty">ยังไม่มีห้องแจ้งออก แจ้งออกได้โดยกดที่ห้องในผังห้อง</div>';
-  else if(homeTab==='resv')body=`<div class="row"><button class="btn pri" data-act="resvForm" data-id="">จองห้อง</button></div>`+(resv.length?`<div class="tw"><table><thead><tr><th>ห้อง</th><th>ผู้จอง</th><th>วันเข้าพัก</th><th class="num">เงินจอง</th><th>หมายเหตุ</th><th></th></tr></thead><tbody>${resv.map(r=>{const v=r.reservation,busy=tenantOf(r.id);return `<tr><td class="nowrap"><b>${esc(roomNo(r.id))}</b>${busy?'<small>รอผู้เช่าเดิมออก</small>':''}</td><td>${esc(v.name)}<small>${esc(v.phone||'')}</small></td><td class="nowrap">${thDate(v.date)}</td><td class="num">${baht(v.deposit)}</td><td>${esc(v.note||'')}</td><td class="num nowrap"><button class="btn sm" data-act="resvForm" data-id="${r.id}">แก้ไข</button> ${busy?'':`<button class="btn sm pri" data-act="checkIn" data-id="${r.id}">รับเข้าพัก</button>`}</td></tr>`}).join('')}</tbody></table></div>`:'<div class="empty">ยังไม่มีการจองห้อง</div>');
-  else body=rs.length?`<div class="ptools"><div class="seg" role="group" aria-label="รูปแบบผัง"><button data-act="planMode" data-id="full" aria-pressed="${planMode==='full'}">แบบเต็ม</button><button data-act="planMode" data-id="mini" aria-pressed="${planMode==='mini'}">แบบย่อ</button></div></div><div class="plan">${plan}</div><div class="legend">${legend}</div>`
-    :`<div class="empty">ยังไม่มีห้องพัก เพิ่มห้องก่อนเริ่มใช้งาน<a class="btn pri" href="#rooms">เพิ่มห้อง</a></div>`;
-  const slips=allBills().filter(b=>b.status==='unpaid'&&b.slip);
-  const todo=[
-    ...slips.map(b=>`<li><div>ห้อง ${esc(roomNo(b.roomId))} ส่งสลิปแล้ว<small>${monthLabel(b.month)} · ${baht(b.total)} บาท</small></div><button class="btn sm pri" data-act="openBill" data-id="${b.id}">ตรวจสลิป</button></li>`),
-    ...(late.length?[`<li><div>บิลค้างชำระ ${late.length} รายการ<small>${baht(lateSum)} บาท</small></div><button class="btn sm" data-act="homeTab" data-id="late">ดูรายการ</button></li>`]:[]),
-    ...notices.filter(t=>daysTo(t.planOut)<=7).map(t=>`<li><div>ห้อง ${esc(roomNo(t.roomId))} ย้ายออก ${thDate(t.planOut)}<small>${esc(t.name)} · คืนเงินประกัน ${baht(t.deposit)} บาท</small></div><button class="btn sm" data-act="moveOut" data-id="${t.id}">บันทึกย้ายออก</button></li>`),
-    ...resv.filter(r=>r.reservation.date&&daysTo(r.reservation.date)<=7&&!tenantOf(r.id)).map(r=>`<li><div>ห้อง ${esc(roomNo(r.id))} ผู้จองเข้าพัก ${thDate(r.reservation.date)}<small>${esc(r.reservation.name)}</small></div><button class="btn sm" data-act="checkIn" data-id="${r.id}">รับเข้าพัก</button></li>`),
-    ...ending.map(t=>{const[x]=contractState(t);return `<li><div>สัญญาห้อง ${esc(roomNo(t.roomId))} ${esc(t.name)}<small>${x} สิ้นสุด ${thDate(t.contractEnd)}</small></div><button class="btn sm" data-act="editTenant" data-id="${t.id}">ต่อสัญญา</button></li>`}),
-    ...(noMeter.length?[`<li><div>ยังไม่จดมิเตอร์ ${noMeter.length} ห้อง<small>${monthLabel(month)}</small></div><a class="btn sm" href="#meter">จดมิเตอร์</a></li>`]:[])
-  ].join('');
-  return `<div class="head"><div><h1>ภาพรวม${curB()==='all'?(multi()?'ทุกหลัง':'หอพัก'):' '+esc(bldName(curB()))}</h1></div>${monthBar()}</div>${sampleNote()}
-  <div class="stats">
-    <div class="stat"><b>${occ}/${open}</b><span>ห้องมีผู้เข้าพัก</span></div>
-    <div class="stat"><b>${baht(paid)}</b><span>รับแล้วของ${TM[+month.slice(5)-1]}</span></div>
-    <div class="stat ${late.length?'crit':''}"><b>${baht(owed)}</b><span>ยอดค้างรับทั้งหมด</span></div>
-    <div class="stat"><b>${counts.free||0}</b><span>ห้องว่างพร้อมให้เช่า</span></div>
+  return `<div class="head"><div><h1>ภาพรวม${curB()==='all'?(multi()?'ทุกหลัง':''):' '+esc(bldName(curB()))}</h1></div>${monthBar()}</div>${sampleNote()}
+  ${alerts?`<div class="row">${alerts}</div>`:''}
+  <div class="sgrid">
+    ${stat('pct','g','อัตราเข้าพัก',pct+'%',` ${occN}/${open} ห้อง`,`ว่าง ${counts.free||0} · จอง ${counts.resv||0} · ปิดซ่อม ${counts.off||0}`,bar(occN,open))}
+    ${stat('cash','g','เก็บเงินได้เดือนนี้',baht0(paid),' ฿',`จากที่ออกใบแจ้งหนี้ ${baht0(issued)} ฿ (${issued?Math.round(paid/issued*100):0}%)`,bar(paid,issued))}
+    ${stat('alert','r','ค้างชำระทั้งหมด',baht0(owed),' ฿',`${unpaid.length} บิล${late.length?` · เกินกำหนด ${late.length}`:''}`)}
+    ${stat('trend','b','ค่าเช่าที่คาดว่าจะได้ / เดือน',baht0(rentNow),' ฿',`ถ้าเต็มทุกห้อง ≈ ${baht0(rentFull)} ฿`)}
   </div>${bsum}
-  <div class="two"><section class="panel"><div class="tabs" role="tablist">${tab('plan','ผังห้อง')}${tab('late','บิลค้างชำระ',late.length,1)}${tab('notice','ห้องแจ้งออก',notices.length)}${tab('resv','จองห้อง',resv.length)}</div>${body}</section>
-  <section class="panel"><h2>งานที่ต้องตาม</h2>${todo?`<ul class="todo">${todo}</ul>`:'<div class="empty">ไม่มีงานค้าง</div>'}</section></div>`;
+  <div class="mgrid">
+    <section class="card"><div class="ch2">${ic('cycle')}<h2>รอบงานเดือน ${monthLabel(month)}</h2><span class="ss">${act.length} ห้องที่ต้องเก็บเงิน</span></div>
+      <div class="cb steps">
+        ${step(1,'จดมิเตอร์',metered,act.length,`จดแล้ว ${metered}/${act.length} ห้อง`,`<a class="lk" href="#meter">ไปจดมิเตอร์ →</a>`,act.length&&metered===act.length)}
+        ${step(2,'ออกใบแจ้งหนี้',billed,act.length,`ออกแล้ว ${billed}/${act.length} ห้อง`,`<a class="lk" href="#bills">ออกใบแจ้งหนี้ →</a>`,act.length&&billed===act.length)}
+        ${step(3,'รับชำระ',paidN,mb.length,`ชำระแล้ว ${paidN}/${mb.length} บิล${slips.length?` · สลิปรอตรวจ ${slips.length}`:''}`,`<a class="lk" href="#bills">บันทึกรับเงิน →</a>`,mb.length&&paidN===mb.length)}
+        ${step(4,'ติดตามค้างชำระ',null,null,late.length?`เกินกำหนด ${late.length} บิล`:'ไม่มีบิลเกินกำหนด',late.length?`<button class="lk" data-act="planFilter" data-id="owe">ดูห้องที่ค้าง →</button>`:'',!late.length)}
+      </div></section>
+    <section class="card"><div class="ch2">${ic('bars')}<h2>ยอดบิล 6 เดือน</h2><span class="lgd"><i class="bp"></i>ชำระแล้ว <i class="bu"></i>ค้าง</span></div><div class="cb">${chart6()}</div></section>
+  </div>
+  <div class="lgrid">
+    <section class="card"><div class="ch2"><span class="ti r">${ic('alert')}</span><h2>บิลค้างชำระ</h2>${owedList.length?`<button class="lk" data-act="planFilter" data-id="owe">ทั้งหมด ${owedList.length} →</button>`:''}</div><div class="cb lst">${rowsLate||'<p class="none">ไม่มีบิลค้างชำระ</p>'}</div></section>
+    <section class="card"><div class="ch2"><span class="ti o">${ic('cal')}</span><h2>สัญญาใกล้หมด / แจ้งย้ายออก</h2></div><div class="cb lst">${rowsN||'<p class="none">ไม่มีใน 45 วันข้างหน้า</p>'}</div></section>
+    <section class="card"><div class="ch2"><span class="ti b">${ic('clock')}</span><h2>จองห้องไว้</h2><button class="lk" data-act="resvForm" data-id="">+ จองห้อง</button></div><div class="cb lst">${rowsR||'<p class="none">ไม่มีการจอง</p>'}</div></section>
+  </div>
+  <section class="card" id="planCard"><div class="ch2">${ic('grid')}<h2>แผนผังห้องพัก</h2><span class="ss">${rs.length} ห้อง</span></div>
+    <div class="cb">${rs.length?`<div class="legend top">${legend}</div>
+      <div class="ptools2"><div class="row">${fchip('all','ทั้งหมด',rs.length)}${fchip('owe','ค้างชำระ',owRooms.size)}${fchip('free','ว่าง',counts.free||0)}${(counts.notice||0)+(counts.soon||0)?fchip('out','แจ้งออก',(counts.notice||0)+(counts.soon||0)):''}${counts.resv?fchip('resv','จองแล้ว',counts.resv):''}</div>
+      <div class="seg" role="group" aria-label="รูปแบบผัง"><button data-act="planMode" data-id="full" aria-pressed="${planMode!=='mini'}">${ic('grid',16)} การ์ด</button><button data-act="planMode" data-id="mini" aria-pressed="${planMode==='mini'}">ย่อ</button></div></div>
+      ${plan}`:`<div class="empty">ยังไม่มีห้องพัก เพิ่มห้องก่อนเริ่มใช้งาน<a class="btn pri" href="#rooms">เพิ่มห้อง</a></div>`}</div></section>`;
 }
 function roomMenu(rid){const r=S.rooms[rid],st=roomState(r),t=tenantOf(rid),rv=r.reservation,late=allBills().filter(b=>b.roomId===rid&&isLate(b));
   const B=(act,id,l,c='')=>`<button class="btn ${c}" data-act="${act}" data-id="${id}">${l}</button>`;
@@ -641,6 +738,7 @@ function billLines(b){
    ...(b.common?[['ค่าส่วนกลาง','',b.common]]:[]),...(b.extras||[]).map(x=>[x.label||'รายการอื่น','',Number(x.amount)||0])];
 }
 /* SHARED-BILL-START */
+const baht0=n=>Number(n||0).toLocaleString('th-TH',{maximumFractionDigits:0});
 const dmy=d=>{if(!d)return '-';const[y,m,x]=d.slice(0,10).split('-');return x+'/'+m+'/'+(Number(y)+543)};
 function hdr(b,s,bid){const B=(s.buildings||[]).find(x=>x.id===bid)||{};const many=(s.buildings||[]).length>1;
   return {name:B.billName||s.name||'หอพัก',bname:many?(B.name||b.buildingName||''):'',address:B.address||s.address||'',phone:B.phone||s.phone||'',line:s.line||''}}
@@ -713,6 +811,7 @@ const ACT={
   setB:e=>{bld=e.dataset.id;try{localStorage.setItem('bld',bld)}catch(x){}scrollTo(0,0);paint()},
   addB:()=>{const n=$('#newB').value.trim();if(!n)return toast('ใส่ชื่อหลังก่อน');saveB([...BLD(),{id:'b'+Date.now().toString(36),name:n}])},
   roomMenu:e=>roomMenu(e.dataset.id),
+  planFilter:e=>{planFilter=e.dataset.id;closeDlg();if(location.hash!=='#home'&&location.hash!==''){location.hash='home'}paint();setTimeout(()=>document.getElementById('planCard')?.scrollIntoView({behavior:'smooth',block:'start'}),50)},
   homeTab:e=>{homeTab=e.dataset.id;closeDlg();location.hash='home';paint()},
   planMode:e=>{planMode=e.dataset.id;try{localStorage.setItem('plan',planMode)}catch(x){}paint()},
   noticeForm:e=>noticeForm(e.dataset.id),resvForm:e=>resvForm(e.dataset.id),
