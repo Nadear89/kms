@@ -15,15 +15,24 @@
 }
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--fg);font:400 16px/1.6 var(--body)}
-.w{max-width:480px;margin:0 auto;padding-block:32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
-h1,h2,h3{font-family:var(--display);margin:0;line-height:1.25}h1{font-size:1.6rem}
+.w{max-width:520px;margin:0 auto;padding-block:24px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+h1,h2,h3{font-family:var(--display);margin:0;line-height:1.25}h1{font-size:1.5rem;font-weight:700}h2{font-size:1.1rem;font-weight:700}
 p{margin:0}.err{color:var(--crit)}.m{color:var(--muted)}
+.brandrow{display:flex;gap:12px;align-items:center}.brandrow img{width:52px;height:52px;border-radius:12px}
 label{display:flex;flex-direction:column;gap:4px;color:var(--muted);font-size:.9rem}
-input,select{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--fg);width:100%}
-.btn{font:inherit;font-weight:500;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:10px 14px;border-radius:6px;cursor:pointer}
-.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-.row{display:flex;gap:8px;flex-wrap:wrap}.row .btn{flex:1}
+input,select{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg);width:100%}
+.btn{font:inherit;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:10px 14px;border-radius:10px;cursor:pointer;text-align:center;text-decoration:none;display:inline-block}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn:disabled{opacity:.6}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row>.btn{flex:1}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.card .line{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+.ok{color:var(--ok);font-weight:600}
+#qrSlot:empty{display:none}
+.slipprev{max-height:320px;border-radius:8px;border:1px solid var(--line);align-self:flex-start}
 table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}th{font-weight:500;font-size:.8rem;text-align:left}td small{display:block}td.num,th.num{text-align:right}
+.pill{display:inline-block;padding:1px 10px;border-radius:999px;font-size:.82rem;font-weight:600}
+.pill.paid{background:var(--ok-soft);color:var(--ok)}.pill.wait{background:#E8F0FD;color:#1E5FD1}.pill.due{background:var(--warn-soft);color:var(--warn)}.pill.late{background:var(--crit-soft);color:var(--crit)}
 /* bill paper: always a white slip, like the page torn from a receipt book */
 .paper{--ink:#1A2B29;--soft:#5C6E6B;--rule:#D4DBD9;background:#FFFFFF;color:var(--ink);padding:20px;border-radius:4px;border:1px solid var(--line);position:relative;background-image:radial-gradient(circle at 8px 0,var(--surface) 4px,transparent 4.5px);background-size:16px 8px;background-repeat:repeat-x;display:flex;flex-direction:column;gap:12px}
 .paper h3{font-size:1.1rem}
@@ -36,9 +45,22 @@ table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}th{f
 .paper .total{display:flex;justify-content:space-between;align-items:baseline;font:700 1.25rem var(--display);border-top:2px solid var(--ink);padding-top:8px}
 .paper .foot{display:flex;gap:14px;align-items:center;font-size:.86rem}
 .paper .foot canvas{width:112px;height:112px;flex:none}
-.paper .stamp{position:absolute;right:20px;top:64px;border:3px solid #1C7A4A;color:#1C7A4A;font:700 1.1rem var(--display);padding:2px 12px;border-radius:6px;transform:rotate(-8deg);background:#fff}
+.paper .stamp{position:static;display:inline-block;border:3px solid #1C7A4A;color:#1C7A4A;font:700 1.1rem var(--display);padding:2px 12px;border-radius:6px;transform:rotate(-8deg);background:#fff}
+.phead{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px;align-items:start}
+.phead h3{font-size:1.15rem}
+.phead .pb{font-weight:600;color:#1D5B3B}
+.phead .pa{font-size:.85rem;color:var(--soft);line-height:1.45;overflow-wrap:anywhere}
+.phead .pr{display:flex;flex-direction:column;align-items:flex-end;text-align:right;gap:1px;font-size:.85rem;color:var(--soft)}
+.phead .pr b{font-size:1rem;color:var(--ink)}
+@media(max-width:480px){.phead{grid-template-columns:minmax(0,1fr)}.phead .pr{align-items:flex-start;text-align:left;border-top:1px dashed var(--rule);padding-top:6px}}
+.pto{padding:8px 0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.paper .pay{display:flex;flex-direction:column;gap:2px;min-width:0;overflow-wrap:anywhere}
+.paidline{display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:#1C7A4A;font-weight:600}
+.slipbox{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--sunk)}
+.slipbox small{display:block;color:var(--muted)}
+.slipimg img{max-height:420px;border-radius:8px;border:1px solid var(--line)}
+hr.fsep{grid-column:1/-1;border:0;border-top:1px dashed var(--line);margin:2px 0;width:100%}
 
-.btn.pri{font-weight:600;color:#fff}.btn,input,select{border-radius:10px}h1{font-weight:700}
 </style></head><body><div class="w" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
@@ -76,7 +98,8 @@ const daysTo=s=>Math.round((new Date(s+'T00:00:00')-new Date(todayStr()+'T00:00:
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 
-const S={setup:{}};const $=s=>document.querySelector(s);
+const S={setup:{}};let BID='',bills=[],cred=null,cur=0;const $=s=>document.querySelector(s);
+
 const dl={save:async({filename,data})=>{const u=URL.createObjectURL(data);const a=document.createElement('a');a.href=u;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(u),2000)}};
 function makeQR(text,size){try{const d=document.createElement('div');new QRCode(d,{text,width:size,height:size,correctLevel:QRCode.CorrectLevel.M});return d.querySelector('canvas')}catch(e){return null}}
 function billLines(b){
@@ -85,42 +108,79 @@ function billLines(b){
    ['ค่าไฟ',`${units(b.elec.prev)} → ${units(b.elec.cur)} = ${units(b.elecUnits)} หน่วย × ${baht(b.rates.elec)}`,b.elecAmt],
    ...(b.common?[['ค่าส่วนกลาง','',b.common]]:[]),...(b.extras||[]).map(x=>[x.label||'รายการอื่น','',Number(x.amount)||0])];
 }
+/* SHARED-BILL-START */
+const dmy=d=>{if(!d)return '-';const[y,m,x]=d.slice(0,10).split('-');return x+'/'+m+'/'+(Number(y)+543)};
+function hdr(b,s,bid){const B=(s.buildings||[]).find(x=>x.id===bid)||{};const many=(s.buildings||[]).length>1;
+  return {name:B.billName||s.name||'หอพัก',bname:many?(B.name||b.buildingName||''):'',address:B.address||s.address||'',phone:B.phone||s.phone||'',line:s.line||''}}
+function paperHTML(b){const s=S.setup,h=hdrOf(b),paid=b.status==='paid';
+  return `<div class="paper">
+    <div class="phead"><div class="pl"><h3>${esc(h.name)}</h3>${h.bname?`<div class="pb">${esc(h.bname)}</div>`:''}${h.address?`<div class="pa">${esc(h.address)}</div>`:''}${h.phone?`<div class="pa">โทร ${esc(h.phone)}</div>`:''}</div>
+    <div class="pr"><b>${paid?'ใบเสร็จรับเงิน':'ใบแจ้งค่าเช่า'}</b><span>เลขที่ ${esc(b.billNo)}</span><span>เดือน ${monthLabel(b.month)}</span></div></div>
+    <div class="pto">ห้อง <b>${esc(b.roomNumber)}</b>${h.bname?' · '+esc(h.bname):''}${b.tenantName?' · '+esc(b.tenantName):''}</div>
+    <div style="overflow-x:auto"><table><thead><tr><th>รายการ</th><th class="num">บาท</th></tr></thead><tbody>${billLines(b).map(([x,d,n])=>`<tr><td>${esc(x)}${d?`<small>${esc(d)}</small>`:''}</td><td class="num">${baht(n)}</td></tr>`).join('')}</tbody></table></div>
+    <div class="total"><span>รวมทั้งสิ้น</span><span>${baht(b.total)} บาท</span></div>
+    ${paid?`<div class="paidline"><span class="stamp">ชำระแล้ว</span><span>เมื่อ ${thDate(b.paidAt)}${b.payMethod?' · '+esc(b.payMethod):''}</span></div>`:`<div class="foot"><span id="qrSlot"></span><div class="pay"><span>ชำระภายใน <b>${thDate(b.dueDate)}</b></span>${s.bank?`<b>${esc(s.bank)}</b>`:''}${s.promptpay?`<span class="soft">พร้อมเพย์ ${esc(s.promptpay)}</span>`:''}</div></div>`}
+    ${s.billNote?`<div class="soft">${esc(s.billNote)}</div>`:''}
+  </div>`}
+function fillQR(b){const pp=b.status==='unpaid'&&ppPayload(S.setup.promptpay,b.total);if(pp&&window.QRCode){const c=makeQR(pp,200);if(c&&$('#qrSlot'))$('#qrSlot').append(c)}}
 async function billPng(b){
-  const s=S.setup,W=760,lines=billLines(b),F='"IBM Plex Sans Thai","Noto Sans Thai",sans-serif';
+  const s=S.setup,h=hdrOf(b),W=760,P=48,lines=billLines(b),F='"IBM Plex Sans Thai","Noto Sans Thai",sans-serif',paid=b.status==='paid';
   try{await document.fonts.load('16px "IBM Plex Sans Thai"','ก')}catch(e){}
-  const pp=b.status==='unpaid'&&window.QRCode&&ppPayload(s.promptpay,b.total),qr=pp&&makeQR(pp,240);
-  const H=330+lines.length*54+(qr?260:70);
-  const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
-  g.fillStyle='#fff';g.fillRect(0,0,W,H);g.fillStyle='#1A2B29';let y=64;const P=48;
+  const pp=!paid&&window.QRCode&&ppPayload(s.promptpay,b.total),qr=pp&&makeQR(pp,240);
+  const c=document.createElement('canvas'),g=c.getContext('2d');
+  const wrap=(t,f,max)=>{g.font=f;const out=[];let cur='';for(const ch of Array.from(String(t))){if(g.measureText(cur+ch).width>max&&cur){const sp=cur.lastIndexOf(' ');if(sp>cur.length*0.5){out.push(cur.slice(0,sp));cur=cur.slice(sp+1)+ch}else{out.push(cur);cur=ch}}else cur+=ch}if(cur)out.push(cur);return out};
+  const LW=W-2*P-250;const fA=`400 17px ${F}`;
+  const left=[[h.name,`600 28px ${F}`,'#1A2B29',36],...(h.bname?[[h.bname,`600 18px ${F}`,'#1D5B3B',26]]:[]),...wrap(h.address,fA,LW).map(l=>[l,fA,'#5C6E6B',24]),...(h.phone?[['โทร '+h.phone,fA,'#5C6E6B',24]]:[])];
+  const headH=Math.max(left.reduce((a,x)=>a+x[3],0),100);
+  const H=headH+260+lines.length*54+(paid?60:(s.bank?wrap(s.bank,`600 19px ${F}`,W-2*P).length*28:0)+(qr?270:40));
+  c.width=W;c.height=H;g.fillStyle='#fff';g.fillRect(0,0,W,H);
   const T=(t,x,yy,f,al='left',col='#1A2B29')=>{g.font=f;g.textAlign=al;g.fillStyle=col;g.fillText(t,x,yy)};
-  T(s.name||'หอพัก',P,y,`600 30px ${F}`);T('ใบแจ้งค่าเช่า',W-P,y,`600 24px ${F}`,'right');y+=32;
-  T(`${b.buildingAddress||s.address||''} ${s.phone||''}`.trim(),P,y,`400 18px ${F}`,'left','#5C6E6B');T('เลขที่ '+b.billNo,W-P,y,`400 18px ${F}`,'right','#5C6E6B');y+=54;
-  T(`${b.buildingName?b.buildingName+'  ':''}ห้อง ${b.roomNumber}  ${b.tenantName}`,P,y,`600 22px ${F}`);T('ประจำเดือน '+monthLabel(b.month),W-P,y,`400 20px ${F}`,'right');y+=26;
+  let y=56;left.forEach(([t,f,col,lh],i)=>{T(t,P,y,f,'left',col);y+=lh});
+  T(paid?'ใบเสร็จรับเงิน':'ใบแจ้งค่าเช่า',W-P,56,`600 24px ${F}`,'right');T('เลขที่ '+b.billNo,W-P,88,`400 17px ${F}`,'right','#5C6E6B');T('เดือน '+monthLabel(b.month),W-P,114,`400 17px ${F}`,'right','#5C6E6B');
+  y=Math.max(y,130)+14;T(`ห้อง ${b.roomNumber}${h.bname?' · '+h.bname:''}${b.tenantName?' · '+b.tenantName:''}`,P,y,`600 21px ${F}`);y+=22;
   g.strokeStyle='#1A2B29';g.lineWidth=2;g.beginPath();g.moveTo(P,y);g.lineTo(W-P,y);g.stroke();y+=36;
   lines.forEach(([a,d,n])=>{T(a,P,y,`500 21px ${F}`);T(baht(n),W-P,y,`500 21px ${F}`,'right');if(d)T(d,P,y+22,`400 16px ${F}`,'left','#5C6E6B');y+=54});
   g.beginPath();g.moveTo(P,y-14);g.lineTo(W-P,y-14);g.stroke();y+=24;
-  T('รวมทั้งสิ้น',P,y,`600 28px ${F}`);T(baht(b.total)+' บาท',W-P,y,`600 28px ${F}`,'right');y+=44;
-  T(b.status==='paid'?`ชำระแล้วเมื่อ ${thDate(b.paidAt)}`:`ชำระภายใน ${thDate(b.dueDate)}`,P,y,`500 20px ${F}`,'left',b.status==='paid'?'#1C7A4A':'#1A2B29');y+=28;
-  if(s.bank)T(s.bank,P,y,`600 19px ${F}`,'left','#1A2B29');y+=14;
-  if(qr)g.drawImage(qr,W/2-120,y,240,240);
+  T('รวมทั้งสิ้น',P,y,`600 28px ${F}`);T(baht(b.total)+' บาท',W-P,y,`600 28px ${F}`,'right');y+=46;
+  if(paid){T(`ชำระแล้วเมื่อ ${thDate(b.paidAt)}${b.payMethod?' · '+b.payMethod:''}`,P,y,`600 21px ${F}`,'left','#1C7A4A')}
+  else{T(`ชำระภายใน ${thDate(b.dueDate)}`,P,y,`500 20px ${F}`);y+=30;if(s.bank)wrap(s.bank,`600 19px ${F}`,W-2*P).forEach(l=>{T(l,P,y,`600 19px ${F}`);y+=28});if(qr)g.drawImage(qr,W/2-120,y,240,240)}
   const blob=await new Promise(r=>c.toBlob(r,'image/png'));
   await dl.save({filename:`bill-${b.billNo}.png`,data:blob});
 }
 
-
-let bills=[];const sb=window.supabase&&window.DORM_CONFIG&&!DORM_CONFIG.url.includes('YOUR-PROJECT')?supabase.createClient(DORM_CONFIG.url,DORM_CONFIG.anonKey):null;
-function login(msg=''){$('#app').innerHTML=`<img src="favicon-192.png" alt="" width="64" height="64" style="border-radius:14px"><h1>ดูบิลค่าห้อง</h1><p class="m">ใส่เลขห้องและรหัสที่ได้รับจากหอพัก</p>${msg?`<p class="err">${esc(msg)}</p>`:''}<form id="f" style="display:flex;flex-direction:column;gap:12px"><label>เลขห้อง<input id="room" required autocomplete="off"></label><label>รหัสห้อง<input id="code" inputmode="numeric" required autocomplete="off"></label><button class="btn pri">ดูบิล</button></form>`;
-  $('#f').onsubmit=async e=>{e.preventDefault();if(!sb)return login('ระบบยังไม่พร้อมใช้งาน');const{data,error}=await sb.rpc('get_bills',{p_room:$('#room').value.trim(),p_code:$('#code').value.trim()});
-    if(error)return login('เปิดบิลไม่ได้ ตรวจอินเทอร์เน็ตแล้วลองอีกครั้ง');if(data.error==='locked')return login('ลองผิดหลายครั้ง รอ 15 นาทีแล้วลองใหม่');if(data.error)return login('เลขห้องหรือรหัสไม่ถูกต้อง');
-    S.setup=data.setup||{};bills=data.bills||[];show(0)}}
-function show(i){const s=S.setup;if(!bills.length){$('#app').innerHTML='<h1>ดูบิลค่าห้อง</h1><p>ยังไม่มีบิลของห้องนี้</p><button class="btn" id="bk">กลับ</button>';$('#bk').onclick=()=>login();return}
-  const b=bills[i],pp=b.status==='unpaid'&&ppPayload(s.promptpay,b.total);
-  $('#app').innerHTML=`<h1>บิล${b.buildingName?' '+esc(b.buildingName):''} ห้อง ${esc(b.roomNumber)}</h1><label>เดือน<select id="mo">${bills.map((x,j)=>`<option value="${j}" ${j===i?'selected':''}>${monthLabel(x.month)}</option>`).join('')}</select></label>
-  <div class="paper">${b.status==='paid'?'<div class="stamp">ชำระแล้ว</div>':''}<div class="top"><div><h3>${esc(s.name||'หอพัก')}</h3><small>${esc(b.buildingAddress||s.address)} ${esc(s.phone)}</small></div><div style="text-align:right"><b>ใบแจ้งค่าเช่า</b><br><small>เลขที่ ${esc(b.billNo)}</small></div></div>
-  <table><thead><tr><th>รายการ</th><th class="num">บาท</th></tr></thead><tbody>${billLines(b).map(([a,d,n])=>`<tr><td>${esc(a)}${d?`<small>${esc(d)}</small>`:''}</td><td class="num">${baht(n)}</td></tr>`).join('')}</tbody></table>
-  <div class="total"><span>รวมทั้งสิ้น</span><span>${baht(b.total)} บาท</span></div><div class="foot"><span id="qrSlot"></span><div>${b.status==='paid'?`ชำระเมื่อ ${thDate(b.paidAt)}`:`ชำระภายใน ${thDate(b.dueDate)}`}<br><b style="color:var(--ink)">${esc(s.bank)}</b><br><span class="soft">${esc(s.billNote)}</span></div></div></div>
-  <div class="row"><button class="btn pri" id="sv">บันทึกบิลเป็นรูป</button><button class="btn" id="bk">ออก</button></div>`;
-  if(pp&&window.QRCode){const c=makeQR(pp,224);if(c)$('#qrSlot').append(c)}
-  $('#mo').onchange=e=>show(Number(e.target.value));$('#bk').onclick=()=>{bills=[];login()};$('#sv').onclick=()=>billPng({...b,tenantName:''})}
-login();
+const hdrOf=b=>hdr(b,S.setup,BID);
+const sb=window.supabase&&window.DORM_CONFIG&&!DORM_CONFIG.url.includes('YOUR-PROJECT')?supabase.createClient(DORM_CONFIG.url,DORM_CONFIG.anonKey):null;
+const brand=()=>`<div class="brandrow"><img src="favicon-192.png" alt=""><div><h1>${esc(hdr({},S.setup,BID).name)}</h1><p class="m">ดูบิล สแกนจ่าย และแนบสลิป</p></div></div>`;
+function login(msg='',room='',code=''){$('#app').innerHTML=`<div class="brandrow"><img src="favicon-192.png" alt=""><div><h1>ดูบิลค่าห้อง</h1><p class="m">ใส่เลขห้องและรหัสที่ได้รับจากหอพัก</p></div></div>${msg?`<p class="err">${esc(msg)}</p>`:''}
+  <form id="f" class="card"><label>เลขห้อง<input id="room" required autocomplete="off" value="${esc(room)}"></label><label>รหัสห้อง<input id="code" inputmode="numeric" required autocomplete="off" value="${esc(code)}"></label><button class="btn pri">ดูบิล</button></form>`;
+  $('#f').onsubmit=e=>{e.preventDefault();load($('#room').value.trim(),$('#code').value.trim())}}
+async function load(room,code,month){if(!sb)return login('ระบบยังไม่พร้อมใช้งาน');$('#app').innerHTML='<p class="m">กำลังโหลดบิล…</p>';
+  const{data,error}=await sb.rpc('get_bills',{p_room:room,p_code:code});
+  if(error)return login('เปิดบิลไม่ได้ ตรวจอินเทอร์เน็ตแล้วลองอีกครั้ง',room,code);if(data.error==='locked')return login('ลองผิดหลายครั้ง รอ 15 นาทีแล้วลองใหม่');if(data.error)return login('เลขห้องหรือรหัสไม่ถูกต้อง',room);
+  cred={room,code};S.setup=data.setup||{};BID=data.building||'';bills=data.bills||[];
+  const i=month?bills.findIndex(b=>b.month===month):-1;show(i>=0?i:0)}
+function statusPill(b){return b.status==='paid'?'<span class="pill paid">ชำระแล้ว</span>':b.slip?'<span class="pill wait">ส่งสลิปแล้ว รอตรวจ</span>':b.dueDate<todayStr()?'<span class="pill late">เกินกำหนด</span>':'<span class="pill due">รอชำระ</span>'}
+function contact(){const h=hdr({},S.setup,BID),ln=S.setup.line||'';if(!h.phone&&!ln)return '';
+  const lnk=/^https?:\/\//.test(ln)?ln:(ln?'https://line.me/R/ti/p/'+encodeURIComponent(ln.startsWith('@')?ln:'@'+ln):'');
+  return `<div class="card"><h2>ติดต่อหอพัก</h2>${h.phone?`<div class="line"><span>โทร <b>${esc(h.phone)}</b></span><a class="btn" href="tel:${esc(h.phone.replace(/[^0-9+]/g,''))}">โทร</a></div>`:''}${ln?`<div class="line"><span>LINE <b>${esc(ln)}</b></span><a class="btn" href="${esc(lnk)}" target="_blank" rel="noopener">เปิด LINE</a></div>`:''}</div>`}
+function show(i){cur=i;if(!bills.length){$('#app').innerHTML=brand()+'<div class="card"><p>ยังไม่มีบิลของห้องนี้</p></div>'+contact()+'<button class="btn" id="bk">ออก</button>';$('#bk').onclick=()=>login();return}
+  const b=bills[i];
+  $('#app').innerHTML=brand()+`<div class="line" style="display:flex;gap:10px;align-items:end"><label style="flex:1">เดือน<select id="mo">${bills.map((x,j)=>`<option value="${j}" ${j===i?'selected':''}>${monthLabel(x.month)}${x.status==='paid'?' · ชำระแล้ว':''}</option>`).join('')}</select></label><div style="padding-bottom:8px">${statusPill(b)}</div></div>
+  ${paperHTML(b)}
+  ${b.status==='unpaid'?`<div class="card" id="slipCard"><h2>แนบสลิปโอนเงิน</h2>${b.slip?`<p class="ok">ส่งสลิปแล้วเมื่อ ${thDT(b.slip.at)} หอพักจะตรวจและยืนยันให้</p><p class="m">ถ้าส่งผิด เลือกรูปใหม่เพื่อส่งแทนได้</p>`:'<p class="m">โอนแล้ว ถ่ายหรือเลือกรูปสลิป แล้วกดส่ง</p>'}
+    <input type="file" id="slipFile" accept="image/*"><img id="slipPrev" class="slipprev" hidden alt="ตัวอย่างสลิป"><button class="btn pri" id="slipSend" disabled>ส่งสลิป</button><p id="slipMsg" class="m" role="status"></p></div>`:''}
+  ${contact()}
+  <div class="row"><button class="btn" id="sv">บันทึกบิลเป็นรูป</button><button class="btn" id="bk">ออก</button></div>`;
+  fillQR(b);
+  $('#mo').onchange=e=>show(Number(e.target.value));$('#bk').onclick=()=>{bills=[];cred=null;history.replaceState(null,'',location.pathname);login()};$('#sv').onclick=()=>billPng(b);
+  const f=$('#slipFile');if(f){let blob=null;f.onchange=async()=>{const file=f.files[0];if(!file)return;$('#slipMsg').textContent='กำลังเตรียมรูป…';
+    try{blob=await shrink(file);$('#slipPrev').src=URL.createObjectURL(blob);$('#slipPrev').hidden=false;$('#slipSend').disabled=false;$('#slipMsg').textContent=''}catch(e){blob=null;$('#slipMsg').textContent='เปิดรูปนี้ไม่ได้ ลองใช้ไฟล์ JPG หรือ PNG'}};
+    $('#slipSend').onclick=async()=>{if(!blob)return;$('#slipSend').disabled=true;$('#slipMsg').textContent='กำลังส่งสลิป…';
+      const path='u/'+crypto.randomUUID()+'.jpg';const up=await sb.storage.from('slips').upload(path,blob,{contentType:'image/jpeg',upsert:false});
+      if(up.error){$('#slipSend').disabled=false;$('#slipMsg').textContent='ส่งสลิปไม่สำเร็จ ลองอีกครั้ง หรือส่งทาง LINE ของหอ';return}
+      const{data,error}=await sb.rpc('submit_slip',{p_room:cred.room,p_code:cred.code,p_bill:b.id,p_path:path});
+      if(error||data?.error){$('#slipSend').disabled=false;$('#slipMsg').textContent=data?.error==='paid'?'บิลนี้ชำระแล้ว':'ส่งสลิปไม่สำเร็จ ลองอีกครั้ง หรือส่งทาง LINE ของหอ';return}
+      b.slip=data.slip;show(cur)}}}
+async function shrink(file){const bmp=await createImageBitmap(file);const k=Math.min(1,1600/Math.max(bmp.width,bmp.height));const c=document.createElement('canvas');c.width=Math.round(bmp.width*k);c.height=Math.round(bmp.height*k);c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);return await new Promise((r,j)=>c.toBlob(x=>x?r(x):j(),'image/jpeg',.85))}
+const q=new URLSearchParams(location.search);if(q.get('r')&&q.get('c'))load(q.get('r'),q.get('c'),q.get('m'));else login();
 </script></body></html>
