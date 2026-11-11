@@ -256,9 +256,9 @@ hr.fsep{grid-column:1/-1;border:0;border-top:1px dashed var(--line);margin:2px 0
 .badges{position:absolute;top:-9px;right:-9px;display:flex;gap:4px;z-index:1}
 .bdg{position:static!important;flex:none}
 .bdg.rep{width:26px;height:24px;display:flex;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}.bdg.rep svg{width:100%;height:100%}
-.warn{position:absolute;top:-7px;right:-7px;width:24px;height:24px;border-radius:50%;background:#FFC107;color:#3B2A00;font-weight:800;font-size:.9rem;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px var(--surface),0 2px 6px rgba(229,57,53,.45)}
-.warn.soft{background:#fff;color:#8A5A00;box-shadow:0 0 0 2px #FFC107,0 0 0 4px var(--surface)}
-@media(prefers-reduced-motion:no-preference){.warn:not(.soft){animation:pulse 1.8s ease-in-out infinite}@keyframes pulse{50%{box-shadow:0 0 0 3px var(--surface),0 0 0 7px rgba(255,193,7,.45)}}}
+.bdg.warn{position:absolute;top:-7px;right:-7px;width:24px;height:24px;border-radius:50%;background:#FFC107;color:#3B2A00;font-weight:800;font-size:.9rem;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px var(--surface),0 2px 6px rgba(229,57,53,.45)}
+.bdg.warn.soft{background:#fff;color:#8A5A00;box-shadow:0 0 0 2px #FFC107,0 0 0 4px var(--surface)}
+@media(prefers-reduced-motion:no-preference){.bdg.warn:not(.soft){animation:pulse 1.8s ease-in-out infinite}@keyframes pulse{50%{box-shadow:0 0 0 3px var(--surface),0 0 0 7px rgba(255,193,7,.45)}}}
 @media(max-width:1100px){.sgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.mgrid,.lgrid{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:700px){.steps{grid-template-columns:repeat(2,minmax(0,1fr))}.rcs{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}}
 @media(max-width:420px){.sgrid{grid-template-columns:minmax(0,1fr)}.sv{font-size:1.7rem}}
@@ -341,6 +341,10 @@ body.r-worker a[href="#bills"]{display:none!important}
 .pgw{width:100%;border-collapse:collapse}.pgw td{padding:0}.pgw td.pgc{padding:0 18mm}.pgsp{height:14mm}
 .bdg.out{width:24px;height:24px;border-radius:50%;background:#E5A800;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px var(--surface),0 1px 3px rgba(0,0,0,.3)}.bdg.out svg{width:15px;height:15px}
 .legend i.lg-out{background:#E5A800!important;border-color:#E5A800!important;border-radius:50%;color:#fff;font-style:normal;font-size:9px;display:inline-flex;align-items:center;justify-content:center;width:15px!important;height:15px!important}
+.mbtns{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;align-items:flex-start}.mbtns .btn{margin-top:0!important}
+.mcur.lock{background:var(--sunk);color:var(--muted)}
+.fc.lk{background:#F3F5F2}.fc.lk .fin{color:#56655B}
+.fedit{position:absolute;right:6px;bottom:3px;font:600 .72rem var(--body);border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:0 6px;cursor:pointer;color:var(--accent)}
 /* room states */
 .s-on{--c:#2E9E5B;--b:#E6F6EC;--l:#A6DBBB}
 .s-free{--c:#A9B2AC;--b:#FAFBFA;--l:#D9DEDA}
@@ -719,10 +723,10 @@ function vMeter(){
   const list=meterRooms();
   const done=list.filter(r=>readingOk(reading(r.id,month))).length;
   const totals={water:0,elec:0};
-  const line=(rid,r,k,lab,lead)=>{const P=r[k+'Prev'],C=r[k+'Cur'],bad=C!=null&&C<P,u=C==null?null:round2(C-P);if(u!=null&&!bad)totals[k]+=u;
-    return `<tr class="${lead?'mfirst':''}">${lead||''}<td class="mk ${k[0]}">${lab}</td><td class="mprev">${units(P)}</td><td><input class="mcur ${bad?'bad':''}" id="c-${k}-${rid}" inputmode="decimal" aria-label="เลขมิเตอร์${lab}ครั้งนี้" data-m="${k}Cur" data-room="${rid}" value="${C??''}" ${canWrite?'':'disabled'}></td><td class="munits ${bad?'bad':''}">${u==null?'-':bad?'เลขน้อยกว่าเดิม':units(u)}</td></tr>`};
+  const line=(rid,r,k,lab,lead)=>{const P=r[k+'Prev'],C=r[k+'Cur'],bad=C!=null&&C<P,u=C==null?null:round2(C-P),lk=!!S.bills[meterId(month,rid)];if(u!=null&&!bad)totals[k]+=u;
+    return `<tr class="${lead?'mfirst':''}">${lead||''}<td class="mk ${k[0]}">${lab}</td><td class="mprev">${units(P)}</td><td><input class="mcur ${bad?'bad':''} ${lk?'lock':''}" id="c-${k}-${rid}" inputmode="decimal" aria-label="เลขมิเตอร์${lab}ครั้งนี้" data-m="${k}Cur" data-room="${rid}" value="${C??''}" ${canWrite&&!lk?'':'disabled'} ${lk?'title="ออกบิลแล้ว กดปุ่มแก้เลขครั้งนี้"':''}></td><td class="munits ${bad?'bad':''}">${u==null?'-':bad?'เลขน้อยกว่าเดิม':units(u)}</td></tr>`};
   const rows=list.map(rm=>{const rid=rm.id,t=tenantOf(rid),r=reading(rid,month),b=S.bills[meterId(month,rid)];
-    const lead=`<td class="mroom" rowspan="2"><b>${esc(roomNo(rid))}</b><small>${ROLE==='worker'?'':t?esc(t.name):`<span class="pill s-${roomState(rm)}">${ST[roomState(rm)]}</span>`}</small>${b?'<small>ออกบิลแล้ว</small>':''}${canWrite?`<button class="btn sm" data-act="editPrev" data-id="${rid}" aria-label="แก้เลขครั้งก่อน"><span class="long">แก้เลขครั้งก่อน</span><span class="short">แก้ไข</span></button>`:''}</td>`;
+    const lead=`<td class="mroom" rowspan="2"><b>${esc(roomNo(rid))}</b><small>${ROLE==='worker'?'':t?esc(t.name):`<span class="pill s-${roomState(rm)}">${ST[roomState(rm)]}</span>`}</small>${b?'<small>🔒 ออกบิลแล้ว</small>':''}${canWrite?`<div class="mbtns"><button class="btn sm" data-act="editPrev" data-id="${rid}" aria-label="แก้เลขครั้งก่อน"><span class="long">แก้เลขครั้งก่อน</span><span class="short">ครั้งก่อน</span></button>${b?`<button class="btn sm" data-act="editCur" data-id="${rid}" aria-label="แก้เลขครั้งนี้"><span class="long">แก้เลขครั้งนี้</span><span class="short">ครั้งนี้</span></button>`:''}</div>`:''}</td>`;
     return line(rid,r,'water','น้ำ',lead)+line(rid,r,'elec','ไฟ')}).join('');
   return `<div class="head"><div><h1>จดมิเตอร์น้ำ-ไฟ</h1><p>จดแล้ว ${done} จาก ${list.length} ห้อง (ทุกห้อง รวมห้องว่าง) ระบบบันทึกให้ทันทีเมื่อกรอกช่องถัดไป</p></div><div class="row">${monthBar()}</div></div>${sampleNote()}
   <div class="row"><a class="btn pri" href="#meterfast">⚡ กรอกเร็ว (แบบตาราง)</a><button class="btn" data-act="printMeter" data-id="blank">🖨 พิมพ์ใบจดน้ำไฟ</button><button class="btn" data-act="printMeter" data-id="filled">🖨 พิมพ์รายการเลขมิเตอร์</button></div>
@@ -731,7 +735,8 @@ function vMeter(){
 function vMeterFast(){const list=meterRooms(),h=curB()==='all'?(multi()?'ทุกหลัง':(S.setup.name||'หอพัก')):bldName(curB());
   const done=list.filter(r=>readingOk(reading(r.id,month))).length;
   const cell=(rm,k)=>{const r=reading(rm.id,month),P=r[k+'Prev'],C=r[k+'Cur'],bad=C!=null&&C<P,u=C!=null&&!bad?round2(C-P):null;
-    return `<td class="fc"><input class="fin ${bad?'bad':''}" id="f-${k}-${rm.id}" data-m="${k}Cur" data-room="${rm.id}" data-k="${k}" inputmode="decimal" autocomplete="off" value="${C??''}" placeholder="${units(P)}" aria-label="ห้อง ${esc(rm.number)} ${k==='water'?'น้ำ':'ไฟ'}" ${canWrite?'':'disabled'}><small class="${bad?'bad':''}">${bad?'น้อยกว่าเดิม '+units(P):'ก่อน '+units(P)+(u!=null?' · ใช้ '+units(u):'')}</small></td>`};
+    const lk=!!S.bills[meterId(month,rm.id)];
+    return `<td class="fc ${lk?'lk':''}"><input class="fin ${bad?'bad':''}" id="f-${k}-${rm.id}" data-m="${k}Cur" data-room="${rm.id}" data-k="${k}" inputmode="decimal" autocomplete="off" value="${C??''}" placeholder="${units(P)}" aria-label="ห้อง ${esc(rm.number)} ${k==='water'?'น้ำ':'ไฟ'}" ${canWrite&&!lk?'':'disabled'}><small class="${bad?'bad':''}">${lk?'🔒 ออกบิลแล้ว · ':''}${bad?'น้อยกว่าเดิม '+units(P):'ก่อน '+units(P)+(u!=null?' · ใช้ '+units(u):'')}</small>${lk&&k==='elec'&&canWrite?`<button class="fedit" data-act="editCur" data-id="${rm.id}">แก้ไข</button>`:''}</td>`};
   return `<div class="head"><div><h1>กรอกมิเตอร์แบบเร็ว</h1><p>พิมพ์ตัวเลขแล้วกด Enter เพื่อลงห้องถัดไป ระบบบันทึกให้ทันที · วางตัวเลขจาก Excel ได้ทั้งคอลัมน์</p></div><div class="row">${monthBar()}<a class="btn" href="#meter">กลับหน้าจดมิเตอร์</a></div></div>
   <div class="fastwrap"><table class="fast"><thead><tr><th colspan="3" class="fh">${esc(h)}</th></tr><tr><th>เดือน</th><th colspan="2">สิ้นเดือน${TM[+month.slice(5)-1]} ${+month.slice(0,4)+543}</th></tr><tr><th>ห้องที่</th><th>น้ำ</th><th>ไฟ</th></tr></thead>
   <tbody>${list.map(rm=>{const t=tenantOf(rm.id);return `<tr class="${readingOk(reading(rm.id,month))?'ok':''}"><th class="fr">${esc(rm.number)}<small>${multi()&&curB()==='all'?esc(bldName(roomBld(rm)))+' · ':''}${ROLE==='worker'?'':t?esc(t.name):ST[roomState(rm)]}</small></th>${cell(rm,'water')}${cell(rm,'elec')}</tr>`}).join('')}</tbody></table></div>
@@ -746,7 +751,7 @@ document.addEventListener('mouseup',e=>{if(finJust&&e.target===finJust){e.preven
 document.addEventListener('paste',async e=>{const t=e.target;if(!t.classList?.contains('fin'))return;const txt=(e.clipboardData||window.clipboardData).getData('text');if(!/[\n\t]/.test(txt.trim()))return;e.preventDefault();
   const lines=txt.replace(/\r/g,'').split('\n').filter((l,i,a)=>l.trim()!==''||i<a.length-1).map(l=>l.split('\t').map(x=>x.trim()));
   const rows=[...document.querySelectorAll('.fast tbody tr')],start=rows.indexOf(t.closest('tr')),col=t.dataset.k==='water'?0:1,keys=['water','elec'],ch=[];let bad=0;
-  lines.forEach((cells,i)=>{const tr=rows[start+i];if(!tr)return;cells.slice(0,2-col).forEach((raw,j)=>{if(raw==='')return;const v=num(raw);if(v==null){bad++;return}const k=keys[col+j];ch.push([tr.querySelector(`.fin[data-k="${k}"]`).dataset.room,k,v])})});
+  lines.forEach((cells,i)=>{const tr=rows[start+i];if(!tr||tr.querySelector('.fin:disabled'))return;cells.slice(0,2-col).forEach((raw,j)=>{if(raw==='')return;const v=num(raw);if(v==null){bad++;return}const k=keys[col+j];ch.push([tr.querySelector(`.fin[data-k="${k}"]`).dataset.room,k,v])})});
   if(!ch.length)return toast('ไม่พบตัวเลขในข้อมูลที่วาง');const n=await saveMeters(ch);toast(`วางแล้ว ${ch.length} ช่อง (${n} ห้อง)${bad?` · ข้าม ${bad} ช่องที่ไม่ใช่ตัวเลข`:''}`)});
 function meterSheet(filled){const list=meterRooms(),h=curB()==='all'?(multi()?'ทุกหลัง':(S.setup.name||'')):bldName(curB());
   const row=(rm,k,lab,lead)=>{const r=reading(rm.id,month),P=r[k+'Prev'],C=r[k+'Cur'],u=C!=null&&C>=P?round2(C-P):null;
@@ -978,6 +983,11 @@ function assignForm(){const L=allRooms();
   ${BLD().map(b=>{const g=L.filter(r=>roomBld(r)===b.id);return `<div class="pgrp"><div class="pgh"><b>ตอนนี้อยู่ ${esc(b.name)} · ${g.length} ห้อง</b>${g.length?`<button type="button" class="btn sm" data-act="selGrp" data-id="${b.id}">เลือกทั้งหลัง</button>`:''}</div><div class="pick" data-g="${b.id}">${g.map(r=>`<label class="pk"><input type="checkbox" class="ak" value="${r.id}"><span>${esc(r.number)}</span></label>`).join('')||'<span style="color:var(--muted)">ไม่มีห้อง</span>'}</div></div>`}).join('')}
   <div class="pgrp"><label class="f">ย้ายห้องที่เลือกไปที่<select name="to">${BLD().map(b=>`<option value="${b.id}">${esc(b.name)}</option>`).join('')}</select></label><p id="akN" style="color:var(--muted)">ยังไม่ได้เลือกห้อง</p></div>
   <div class="actions"><button type="button" class="btn l" data-act="selNone">ล้างที่เลือก</button><button class="btn pri">ย้ายห้อง</button></div></form>`)}
+function curForm(rid){const r=reading(rid,month),b=S.bills[meterId(month,rid)];
+  openDlg(`<form class="dlg" data-form="curMeter" data-id="${rid}">${dHead('แก้เลขมิเตอร์ครั้งนี้ ห้อง '+roomNo(rid))}<p>${monthLabel(month)} · เลขครั้งก่อน น้ำ ${units(r.waterPrev)} · ไฟ ${units(r.elecPrev)}</p>
+  <fieldset><label class="f">มิเตอร์น้ำครั้งนี้<input name="waterCur" type="number" min="0" step="any" required value="${r.waterCur??''}"></label><label class="f">มิเตอร์ไฟครั้งนี้<input name="elecCur" type="number" min="0" step="any" required value="${r.elecCur??''}"></label></fieldset>
+  ${b?(b.status==='paid'?'<p style="color:var(--crit)">บิลเดือนนี้ชำระแล้ว ระบบจะแก้เฉพาะเลขมิเตอร์ ยอดบิลเดิมไม่เปลี่ยน</p>':'<p style="color:var(--warn)">ห้องนี้ออกบิลแล้ว ระบบจะคำนวณบิลใหม่ให้อัตโนมัติ</p>'):''}
+  <div class="actions"><button class="btn pri">บันทึก</button></div></form>`)}
 function prevForm(rid){const r=reading(rid,month),b=S.bills[meterId(month,rid)];
   openDlg(`<form class="dlg" data-form="prevMeter" data-id="${rid}">${dHead('แก้เลขครั้งก่อน ห้อง '+roomNo(rid))}<p>ใช้เมื่อเปลี่ยนมิเตอร์ใหม่ หรือเลขเดือนก่อนจดผิด มีผลกับ${monthLabel(month)}</p>
   <fieldset><label class="f">มิเตอร์น้ำครั้งก่อน<input name="waterPrev" type="number" min="0" step="any" required value="${r.waterPrev}"></label><label class="f">มิเตอร์ไฟครั้งก่อน<input name="elecPrev" type="number" min="0" step="any" required value="${r.elecPrev}"></label></fieldset>
@@ -1091,6 +1101,7 @@ const ACT={
   cEnd:e=>{const f=e.closest('form'),st=f.contractStart.value;if(!st)return toast('ใส่วันเริ่มสัญญาก่อน');const d=new Date(st+'T00:00:00');d.setMonth(d.getMonth()+Number(e.dataset.m));d.setDate(d.getDate()-1);f.contractEnd.value=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())},
   staffAdd:async()=>{const em=$('#sfE').value.trim().toLowerCase();if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em))return toast('ใส่อีเมลให้ถูกต้อง');const{error}=await sb.from('staff').upsert({email:em,role:$('#sfR').value,name:$('#sfN').value.trim()});toast(error?'เพิ่มไม่สำเร็จ (ต้องเป็นเจ้าของ)':'เพิ่มผู้ใช้แล้ว');loadStaff()},
   staffDel:async e=>{const em=e.dataset.id;if(!await ask('ลบผู้ใช้นี้?',em+' จะเข้าหลังบ้านไม่ได้อีก','ลบผู้ใช้'))return;const{error}=await sb.from('staff').delete().eq('email',em);toast(error?'ลบไม่สำเร็จ':'ลบผู้ใช้แล้ว');loadStaff()},
+  editCur:e=>curForm(e.dataset.id),
   editPrev:e=>prevForm(e.dataset.id),
   newRoom:()=>roomForm(),bulkRoom:bulkForm,editRoom:e=>roomForm(S.rooms[e.dataset.id]),
   delRoom:async e=>{const id=e.dataset.id;if(tenantOf(id))return toast('ห้องนี้มีผู้เช่าอยู่ ต้องย้ายออกก่อนจึงลบได้');closeDlg();if(await ask('ลบห้อง '+roomNo(id)+'?','ลบแล้วกู้คืนไม่ได้ บิลเดิมยังอยู่','ลบห้อง'))await del('rooms',id)},
@@ -1145,6 +1156,9 @@ const FORM={
     const hist=[...(t.renewals||[]),{start:t.contractStart||'',end:t.contractEnd||'',rent:t.rent,contractNo:t.contractNo||'',at:todayStr()}];
     const n={...t,contractStart:d.contractStart,contractEnd:d.contractEnd,rent:num(d.rent)||0,deposit:num(d.deposit)||0,contractNo:d.contractNo.trim(),renewals:hist};delete n.planOut;delete n.noticeAt;
     if(await put('tenants',id,n))openDlg(`<div class="dlg">${dHead('ต่อสัญญาแล้ว')}<p>${esc(t.name)} ถึง ${thDate(d.contractEnd)} ค่าเช่า ${baht(n.rent)} บาท/เดือน (ใช้ออกบิลตั้งแต่บิลถัดไป)</p><div class="actions"><button class="btn" data-act="close">ปิด</button><button class="btn" data-act="viewC" data-id="${id}">ดูสัญญา</button><button class="btn pri" data-act="printC" data-id="${id}">🖨 พิมพ์สัญญาใหม่</button></div></div>`)},
+  curMeter:async(d,rid)=>{const w=num(d.waterCur),el=num(d.elecCur),r=reading(rid,month);if(w==null||el==null)return toast('กรอกเป็นตัวเลข');if(w<r.waterPrev||el<r.elecPrev)return toast('เลขครั้งนี้ต้องไม่น้อยกว่าเลขครั้งก่อน');
+    const mid=meterId(month,rid),{id:_,...old}=S.meters[mid]||{};if(!await put('meters',mid,{...r,...old,roomId:rid,month,waterCur:w,elecCur:el,readAt:nowLocal()}))return;
+    const b=S.bills[mid];if(b&&b.status!=='paid'){const n=buildBill(rid,month,b);if(n){const{id:__,...bb}=n;await put('bills',mid,{...bb,slip:b.slip});toast('แก้เลขและคำนวณบิลใหม่แล้ว')}}else toast('แก้เลขมิเตอร์แล้ว');closeDlg()},
   setup:async d=>{const n={...S.setup,...d,buildings:S.setup.buildings};if(!n.buildings)delete n.buildings;if(n.accNo?.trim())n.bank=`โอนเข้าบัญชี ${n.bankName||''} เลขที่ ${n.accNo.trim()}${n.accName?' ชื่อบัญชี '+n.accName:''}`.replace(/\s+/g,' ');['waterRate','waterMin','elecRate','elecMin','common','dueDay'].forEach(k=>n[k]=num(d[k])||0);if(d.lateFee===''||d.lateFee==null)delete n.lateFee;else n.lateFee=num(d.lateFee)||0;delete n.id;await put('setup','main',n);toast('บันทึกการตั้งค่าแล้ว')}
 };
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const f=ACT[b.dataset.act];if(f){e.preventDefault();f(b)}});
