@@ -277,23 +277,25 @@ hr.fsep{grid-column:1/-1;border:0;border-top:1px dashed var(--line);margin:2px 0
 .rpm img,.rpm video{width:100%;max-height:260px;object-fit:cover;display:block}
 .sel{user-select:all}
 #printArea{display:none}
-@media print{@page{size:A4;margin:16mm 18mm}html,body{background:#fff!important}:root{padding:0!important}body>*:not(#printArea){display:none!important}#printArea{display:block!important}}
+@media print{@page{size:A4;margin:0}html,body{background:#fff!important}:root{padding:0!important}body>*:not(#printArea){display:none!important}#printArea{display:block!important}}
 .ct,.ctid,.ms{color:#000;font:13.5pt/1.5 "Sarabun","TH Sarabun New",serif}
-.ct h1{text-align:center;font:700 18pt "Sarabun",serif;margin:0 0 8pt}
+.ct h1{text-align:center;font:700 18pt "Sarabun",serif;margin:0 0 1.5em}
+.ct .rno{text-align:right;font-weight:700;font-size:14pt;margin:0 0 2pt}
+.ct .c7{color:#D00000;text-decoration:underline;text-underline-offset:3px}
 .ct p{margin:0 0 3pt;text-indent:1.1cm;text-align:left;overflow-wrap:anywhere}
-.ctid{page-break-before:always;break-before:page;display:flex;flex-direction:column;align-items:center;gap:10pt;padding-top:10pt}
-.ctid h2{font:700 16pt "Sarabun",serif;margin:0 0 6pt}
-.idbox{position:relative;width:13cm;max-width:100%;min-height:8.2cm;border:1px solid #000;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#fff}
+.ctid{display:flex;flex-direction:column;align-items:center;gap:4pt;margin-top:22pt;break-inside:avoid;page-break-inside:avoid}
+.ctid h2{font:700 13pt "Sarabun",serif;margin:0 0 2pt}
+.idbox{position:relative;width:8.6cm;max-width:100%;min-height:5.4cm;border:1px solid #000;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#fff}
 .idbox img{width:100%;display:block}.idph{color:#888;font-size:13pt}
 .wm{position:absolute;inset:-30% -30%;display:flex;flex-direction:column;justify-content:space-around;transform:rotate(-24deg);pointer-events:none}
-.wm div{white-space:nowrap;text-align:center;color:rgba(200,0,0,.42);font:700 15pt "Sarabun",sans-serif;letter-spacing:.5px}
-.ctid .cc{font:700 15pt "Sarabun",serif;margin:8pt 0 0}.ctid .cs{text-align:center;margin-top:18pt}
+.wm div{white-space:nowrap;text-align:center;color:rgba(200,0,0,.45);font:700 10.5pt "Sarabun",sans-serif;letter-spacing:.5px}
+.ctid .cc{font:700 13pt "Sarabun",serif;margin:4pt 0 0}.ctid .cs{text-align:center;margin-top:10pt}
 .ms h1{font:700 16pt "Sarabun",serif;text-align:center;margin:0 0 4pt}.ms .mh{text-align:center;margin:0 0 8pt;font-size:11.5pt}
 .ms table{width:100%;border-collapse:collapse;font-size:11.5pt}.ms th,.ms td{border:1px solid #000;padding:3pt 6pt;height:.8cm;color:#000;background:#fff}
 .ms th{font-weight:700;text-align:center}.ms td.n{text-align:right;font-variant-numeric:tabular-nums}.ms td.w{width:3.2cm}.ms td.k{width:1.4cm;text-align:center}
 .ms td.rm{width:3.4cm}.ms td.rm small{display:block;font-size:9.5pt;color:#333}.ms tbody{break-inside:avoid;page-break-inside:avoid}
 .ctprev{background:#fff;border:1px solid var(--line);border-radius:8px;padding:28px 32px;max-height:70vh;overflow:auto}
-.ctprev .ctid{margin-top:24px;padding-top:24px;border-top:2px dashed #ccc}
+.ctprev .ctid{margin-top:22pt}
 dialog:has(.dlg.wide){width:min(900px,calc(100vw - 32px))}
 .rc[class*=s-]{border:2.5px solid var(--c);border-left:6px solid var(--c)}
 .rc[class*=s-] b{color:var(--c)}
@@ -336,6 +338,9 @@ body.r-worker a[href="#bills"]{display:none!important}
 .rc{padding-left:16px}.rc.mini2{padding-left:12px}
 .rc:hover{box-shadow:0 4px 14px rgba(20,45,30,.18)}
 .rc.s-free{background:#F1F3F1}
+.pgw{width:100%;border-collapse:collapse}.pgw td{padding:0}.pgw td.pgc{padding:0 18mm}.pgsp{height:14mm}
+.bdg.out{width:24px;height:24px;border-radius:50%;background:#E5A800;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px var(--surface),0 1px 3px rgba(0,0,0,.3)}.bdg.out svg{width:15px;height:15px}
+.legend i.lg-out{background:#E5A800!important;border-color:#E5A800!important;border-radius:50%;color:#fff;font-style:normal;font-size:9px;display:inline-flex;align-items:center;justify-content:center;width:15px!important;height:15px!important}
 /* room states */
 .s-on{--c:#2E9E5B;--b:#E6F6EC;--l:#A6DBBB}
 .s-free{--c:#A9B2AC;--b:#FAFBFA;--l:#D9DEDA}
@@ -614,7 +619,7 @@ function vHome(){
   const F={all:r=>true,owe:r=>owRooms.has(r.id),free:r=>roomState(r)==='free',out:r=>roomState(r)==='notice',resv:r=>roomState(r)==='resv',daily:r=>roomState(r)==='daily',ending:r=>roomState(r)==='ending',rep:r=>repRooms.has(r.id)};
   const fl=rs.filter(F[planFilter]||F.all);
     const card=r=>{const st=roomState(r),t=tenantOf(r.id),rv=r.reservation,ow=owRooms.has(r.id),lt=lateRooms.has(r.id);
-    const warn=(repRooms.has(r.id)?`<span class="bdg rep" title="มีแจ้งซ่อม"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5 23 21.5H1z" fill="#FFC107" stroke="#3B2A00" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.6 9.2a2.6 2.6 0 0 0-3.4 3.3l-3 3 1.3 1.3 3-3a2.6 2.6 0 0 0 3.3-3.4l-1.4 1.4-1.2-.3-.3-1.2z" fill="#3B2A00"/></svg></span>`:'')+(ow?`<span class="bdg warn ${lt?'':'soft'}" title="${lt?'ค้างชำระเกินกำหนด':'มีบิลรอชำระ'}">!</span>`:'');
+    const warn=(t?.planOut?`<span class="bdg out" title="แจ้งออก ${dmy(t.planOut)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H5v16h5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 8l4 4-4 4M18 12H9" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`:'')+(repRooms.has(r.id)?`<span class="bdg rep" title="มีแจ้งซ่อม"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5 23 21.5H1z" fill="#FFC107" stroke="#3B2A00" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.6 9.2a2.6 2.6 0 0 0-3.4 3.3l-3 3 1.3 1.3 3-3a2.6 2.6 0 0 0 3.3-3.4l-1.4 1.4-1.2-.3-.3-1.2z" fill="#3B2A00"/></svg></span>`:'')+(ow?`<span class="bdg warn ${lt?'':'soft'}" title="${lt?'ค้างชำระเกินกำหนด':'มีบิลรอชำระ'}">!</span>`:'');
     if(planMode==='mini')return `<button class="rc mini2 s-${st} ${lt?'late':''}" data-act="roomMenu" data-id="${r.id}"><span class="badges">${warn}</span><b>${esc(r.number)}</b><small>${t?ic('user',13)+' '+esc(t.name):st==='resv'?'จอง: '+esc(rv.name):ST[st]}</small></button>`;
     return `<button class="rc s-${st} ${lt?'late':''}" data-act="roomMenu" data-id="${r.id}"><span class="badges">${warn}</span><b>${esc(r.number)}</b>
       <span class="who">${t?ic('user',14)+' '+esc(t.name):st==='resv'?'จอง: '+esc(rv.name):ST[st]}</span>
@@ -625,7 +630,7 @@ function vHome(){
     return Object.keys(floors).sort((a,b)=>Number(a)-Number(b)).map(f=>`<div class="fl"><span class="flc">ชั้น ${esc(f)}</span><div class="rcs ${planMode==='mini'?'m':''}">${floors[f].map(card).join('')}</div></div>`).join('')};
   const groups=multi()&&curB()==='all'?BLD().map(b=>({b,list:fl.filter(r=>roomBld(r)===b.id)})).filter(g=>g.list.length):[{list:fl}];
   const plan=groups.map(g=>(g.b?`<div class="bhead"><b>${esc(g.b.name)}</b><span>${g.list.filter(r=>tenantOf(r.id)).length}/${g.list.filter(r=>!r.closed).length} ห้องมีผู้เข้าพัก</span></div>`:'')+planOf(g.list)).join('')||'<div class="empty">ไม่มีห้องที่ตรงกับตัวกรองนี้</div>';
-  const legend=Object.keys(ST).map(k=>`<span><i class="s-${k}"></i>${ST[k]} <b>${counts[k]||0}</b></span>`).join('')+`<span><i class="lg-owe">!</i>ค้างชำระ <b>${lateRooms.size}</b></span><span><i class="lg-rep"></i>แจ้งซ่อม <b>${repRooms.size}</b></span>`;
+  const legend=Object.keys(ST).map(k=>`<span><i class="s-${k}"></i>${ST[k]} <b>${counts[k]||0}</b></span>`).join('')+`<span><i class="lg-owe">!</i>ค้างชำระ <b>${lateRooms.size}</b></span><span><i class="lg-rep"></i>แจ้งซ่อม <b>${repRooms.size}</b></span><span><i class="lg-out">➜</i>ป้ายแจ้งออก</span>`;
   const fchip=(k,l,n)=>`<button class="fchip" data-act="planFilter" data-id="${k}" aria-pressed="${planFilter===k}">${l} <b>${n}</b></button>`;
   const bsum=multi()&&curB()==='all'?`<div class="tw"><table><thead><tr><th>หลัง</th><th class="num">มีผู้เข้าพัก</th><th class="num">ว่าง</th><th class="num">จอง</th><th class="num">แจ้งออก</th><th class="num">รับแล้วเดือนนี้</th><th class="num">ค้างรับ</th><th></th></tr></thead><tbody>${BLD().map(b=>{const L=allRooms().filter(r=>roomBld(r)===b.id),ids=new Set(L.map(r=>r.id)),c={};L.forEach(r=>{const k=roomState(r);c[k]=(c[k]||0)+1});
     const bb=Object.values(S.bills).filter(x=>ids.has(x.roomId)),pd=bb.filter(x=>x.month===month&&x.status==='paid').reduce((a,x)=>a+x.total,0),ow=bb.filter(x=>x.status==='unpaid').reduce((a,x)=>a+x.total,0);
@@ -749,7 +754,7 @@ function meterSheet(filled){const list=meterRooms(),h=curB()==='all'?(multi()?'�
   return `<div class="ms"><h1>${filled?'รายการเลขมิเตอร์น้ำ-ไฟ':'ใบจดมิเตอร์น้ำ-ไฟ'} เดือน ${monthLabel(month)}</h1><p class="mh">${esc(h)} · ${list.length} ห้อง · วันที่จด ......................... ผู้จด ...............................</p>
   <table><thead><tr><th>ห้อง</th><th>รายการ</th><th>เลขเดือนก่อน</th><th>เลขเดือนนี้</th><th>หน่วยที่ใช้</th><th>หมายเหตุ</th></tr></thead>
   ${list.map(rm=>{const t=tenantOf(rm.id);const lead=`<td rowspan="2" class="rm"><b>${esc(rm.number)}</b><small>${multi()&&curB()==='all'?esc(bldName(roomBld(rm)))+' · ':''}${ROLE==='worker'?'':t?esc(t.name):ST[roomState(rm)]}</small></td>`;return `<tbody>${row(rm,'water','น้ำ',lead)}${row(rm,'elec','ไฟ')}</tbody>`}).join('')}</table></div>`}
-function printHTML(html){closeDlg();let el=document.getElementById('printArea');if(!el){el=document.createElement('div');el.id='printArea';document.body.append(el)}el.innerHTML=html;
+function printHTML(html){closeDlg();let el=document.getElementById('printArea');if(!el){el=document.createElement('div');el.id='printArea';document.body.append(el)}el.innerHTML=`<table class="pgw"><thead><tr><td><div class="pgsp"></div></td></tr></thead><tbody><tr><td class="pgc">${html}</td></tr></tbody><tfoot><tr><td><div class="pgsp"></div></td></tr></tfoot></table>`;
   const imgs=[...el.querySelectorAll('img')].map(i=>i.complete?0:new Promise(r=>{i.onload=i.onerror=r}));
   Promise.all([...imgs,document.fonts?.load?document.fonts.load('16px Sarabun','ก').catch(()=>0):0]).then(()=>setTimeout(()=>window.print(),150))}
 function billRows(){
@@ -912,7 +917,7 @@ function contractHTML(t){const s=S.setup,r=S.rooms[t.roomId]||{},bid=roomBld(r),
   const place=B.billName||(multi()?B.name:'')||s.name||'ห้องพักขวัญเมืองศรี',owner=s.ownerName||'นางขวัญตา โพธิ์โสภา',oaddr=s.ownerAddress||'บ้านเลขที่ 1295/1 ถ.ราชการรถไฟ ต.เมืองเหนือ อ.เมืองศรีสะเกษ จ.ศรีสะเกษ';
   const addr=B.address||s.address||'1295/1 ถนนเทพา ตำบลเมืองเหนือ อำเภอเมืองศรีสะเกษ จังหวัดศรีสะเกษ',fee=s.lateFee??50,mo=monthsBetween(t.contractStart,t.contractEnd);
   const P=(n,txt)=>`<p class="cl"><b>ข้อ ${n}</b>&nbsp; ${txt}</p>`;
-  return `<div class="ct"><h1>สัญญาเช่าห้องพักอาศัย</h1>
+  return `<div class="ct"><div class="rno">ห้อง ${esc(r.number||'')}${multi()&&B.name?' · '+esc(B.name):''}</div><h1>สัญญาเช่าห้องพักอาศัย</h1>
   <p class="r">สัญญานี้ทำขึ้นที่ ${F(place)} เมื่อวันที่ ${F(sd.d)} เดือน ${F(sd.m)} พ.ศ. ${F(sd.y)}</p>
   <p>ระหว่าง ${esc(owner)} อยู่${esc(oaddr)} ต่อไปในสัญญานี้จะเรียกว่า “ผู้ให้เช่า” ฝ่ายหนึ่ง</p>
   <p>กับ ${F(t.name)} เลขประจำตัวประชาชน ${F(t.idCard)} อยู่บ้านเลขที่ ${F(t.address)} เบอร์โทรศัพท์ ${F(t.phone)} ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ผู้เช่า” อีกฝ่ายหนึ่ง</p>
@@ -923,7 +928,7 @@ function contractHTML(t){const s=S.setup,r=S.rooms[t.roomId]||{},bid=roomBld(r),
   ${P('๔','ผู้ให้เช่าคิดค่าไฟฟ้า ค่าน้ำประปา ค่าโทรศัพท์ ในอัตราดังนี้')}<p class="sub">(๑) ค่าไฟฟ้ายูนิตละ ${rate('elecRate')||8} บาท</p><p class="sub">(๒) ค่าน้ำประปาลูกบาศก์เมตรละ ${rate('waterRate')||25} บาท</p>
   ${P('๕','ผู้เช่าต้องชำระค่าไฟฟ้า ค่าน้ำประปา ค่าโทรศัพท์ ตามจำนวนหน่วยที่ใช้ในแต่ละเดือนและต้องชำระพร้อมกับการชำระค่าเช่าของเดือนถัดไป')}
   ${P('๖',`เพื่อเป็นการปฏิบัติตามสัญญาเช่า ผู้เช่าตกลงมอบเงินประกันแก่ผู้ให้เช่าไว้เป็นจำนวน ${F(baht(t.deposit))} บาท (${F(bahtText(t.deposit))}) เงินประกันนี้ผู้ให้เช่าจะคืนให้แก่ผู้เช่าเมื่อผู้เช่ามิได้ผิดสัญญา และมิได้ค้างชำระเงินต่างๆ ตามสัญญานี้`)}
-  ${P('๗','ผู้เช่าหากต้องการแจ้งออก ต้องบอกทางหอพักล่วงหน้า 1 เดือน หรือ 30 วัน')}
+  <p class="cl c7"><b>ข้อ ๗</b>&nbsp; ผู้เช่าหากต้องการแจ้งออก ต้องบอกทางหอพักล่วงหน้า 1 เดือน หรือ 30 วัน</p>
   ${P('๘','ผู้เช่าต้องเป็นผู้ดูแลรักษาความสะอาดบริเวณทางเดินส่วนกลางหน้าห้องพักอาศัยของผู้เช่า และผู้เช่าจะต้องไม่นำสิ่งของใดๆ มาวางไว้ในบริเวณทางเดินดังกล่าว')}
   ${P('๙','ผู้เช่าต้องดูแลห้องพักอาศัยและทรัพย์สินต่างๆ ในห้องพักดังกล่าวเสมือนเป็นทรัพย์สินของตนเอง และต้องรักษาความสะอาดตลอดจนรักษาความสงบเรียบร้อย ไม่ก่อให้เกิดเสียงให้เป็นที่เดือดร้อนรำคาญแก่ผู้อยู่ห้องพักอาศัยข้างเคียง')}
   ${P('๑๐','ผู้เช่าต้องเป็นผู้รับผิดชอบในบรรดาความสูญหาย เสียหาย หรือบุบสลายอย่างใดๆ อันเกิดแก่ห้องพักอาศัยและทรัพย์สินต่างๆ ในห้องพักดังกล่าว')}
