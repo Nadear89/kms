@@ -532,7 +532,7 @@ const rates=()=>({water:rate('waterRate'),elec:rate('elecRate'),waterMin:rate('w
 const meterId=(m,r)=>m+'_'+r;
 function dueDateFor(m){return shiftMonth(m,1)+'-'+pad(Math.min(28,Number(S.setup.dueDay)||5))}
 function prevReading(rid,m){
-  const t=tenantOf(rid),r=S.rooms[rid]||{},floor=t?.moveInAt?.slice(0,7)||'';
+  const t=tenantOf(rid),r=S.rooms[rid]||{},f1=t?.moveInAt?.slice(0,7)||'',floor=(r.baseMonth||'')>f1?r.baseMonth:f1;
   const past=Object.values(S.meters).filter(x=>x.roomId===rid&&x.month<m&&x.month>=floor).sort((a,b)=>b.month.localeCompare(a.month))[0];
   return {water:past?.waterCur??r.waterStart??0,elec:past?.elecCur??r.elecStart??0};
 }
@@ -735,7 +735,7 @@ function vMeter(){
     const lead=`<td class="mroom" rowspan="2"><b>${esc(roomNo(rid))}</b><small>${ROLE==='worker'?'':t?esc(t.name):`<span class="pill s-${roomState(rm)}">${ST[roomState(rm)]}</span>`}</small>${b?'<small>🔒 ออกบิลแล้ว</small>':''}${canWrite?`<div class="mbtns"><button class="btn sm" data-act="editPrev" data-id="${rid}" aria-label="แก้เลขครั้งก่อน"><span class="long">แก้เลขครั้งก่อน</span><span class="short">ครั้งก่อน</span></button>${b?`<button class="btn sm" data-act="editCur" data-id="${rid}" aria-label="แก้เลขครั้งนี้"><span class="long">แก้เลขครั้งนี้</span><span class="short">ครั้งนี้</span></button>`:''}</div>`:''}</td>`;
     return line(rid,r,'water','น้ำ',lead)+line(rid,r,'elec','ไฟ')}).join('');
   return `<div class="head"><div><h1>จดมิเตอร์น้ำ-ไฟ</h1><p>จดแล้ว ${done} จาก ${list.length} ห้อง (ทุกห้อง รวมห้องว่าง) ระบบบันทึกให้ทันทีเมื่อกรอกช่องถัดไป</p></div><div class="row">${monthBar()}</div></div>${sampleNote()}
-  <div class="row"><a class="btn pri" href="#meterfast">⚡ กรอกเร็ว (แบบตาราง)</a><button class="btn" data-act="printMeter" data-id="blank">🖨 พิมพ์ใบจดน้ำไฟ</button><button class="btn" data-act="printMeter" data-id="filled">🖨 พิมพ์รายการเลขมิเตอร์</button></div>
+  <div class="row"><a class="btn pri" href="#meterfast">⚡ กรอกเร็ว (แบบตาราง)</a><button class="btn" data-act="printMeter" data-id="blank">🖨 พิมพ์ใบจดน้ำไฟ</button><button class="btn" data-act="printMeter" data-id="filled">🖨 พิมพ์รายการเลขมิเตอร์</button>${ROLE==='owner'?`<button class="btn" data-act="setBase">📌 ตั้งเลขที่กรอกเป็นเลขเริ่มต้น</button>`:''}</div>
   ${rows?`<div class="tw"><table class="mtable"><thead><tr><th>ห้อง</th><th>รายการ</th><th class="num">ครั้งก่อน</th><th>ครั้งนี้</th><th class="num">หน่วย</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><td colspan="4">รวมน้ำ</td><td class="munits">${units(totals.water)}</td></tr><tr><td colspan="4">รวมไฟ</td><td class="munits">${units(totals.elec)}</td></tr></tfoot></table></div><div class="row"><a class="btn pri" href="#bills">ไปทำบิล</a></div>`:'<div class="empty">ยังไม่มีห้องพัก เพิ่มห้องก่อน</div>'}`;
 }
 function vMeterFast(){const list=meterRooms(),h=curB()==='all'?(multi()?'ทุกหลัง':(S.setup.name||'หอพัก')):bldName(curB());
@@ -864,7 +864,7 @@ function tenantForm(t={},presetRoom){
   <label class="f full">ยานพาหนะ (ประเภท ยี่ห้อ สี ทะเบียน)<input name="vehicle" value="${v('vehicle')}" placeholder="เช่น รถจักรยานยนต์ Honda Wave สีดำ กข 1234"></label>${t.appId?`<input type="hidden" name="appId" value="${esc(t.appId)}">`:''}${t.idPhoto?`<input type="hidden" name="idPhoto" value="${esc(t.idPhoto)}">`:''}
   <label class="f full">รูปบัตรประชาชน ${t.id&&idPhotoOf(t)||t.idPhoto?'<b style="color:var(--ok)">✓ มีรูปที่ลูกค้าถ่ายไว้แล้ว (เลือกใหม่เพื่อเปลี่ยน)</b>':'(ยังไม่มีรูป ใช้แนบท้ายสัญญา)'}<input type="file" id="tIdPh" accept="image/*"></label></fieldset>
   <fieldset><legend>การเข้าพัก</legend><div class="rp" role="radiogroup" aria-label="เลือกห้อง">เลือกห้อง${opts}</div><label class="f full">วันเวลาเข้าพัก<input name="moveInAt" type="datetime-local" required value="${v('moveInAt')||nowLocal()}"></label>
-  ${isNew?`<label class="f">เลขมิเตอร์น้ำวันเข้า<input name="waterIn" id="tW" type="number" min="0" step="any" value="${preRoom?.waterStart??0}"></label><label class="f">เลขมิเตอร์ไฟวันเข้า<input name="elecIn" id="tE" type="number" min="0" step="any" value="${preRoom?.elecStart??0}"></label>`:''}</fieldset>
+  ${isNew?`<label class="f">เลขมิเตอร์น้ำวันเข้า<input name="waterIn" id="tW" type="number" min="0" step="any" value="${preRoom?lastReading(preRoom.id).water:0}"></label><label class="f">เลขมิเตอร์ไฟวันเข้า<input name="elecIn" id="tE" type="number" min="0" step="any" value="${preRoom?lastReading(preRoom.id).elec:0}"></label>`:''}</fieldset>
   <fieldset><legend>สัญญาเช่า</legend><label class="f">เลขที่สัญญา<input name="contractNo" value="${v('contractNo')}"></label><label class="f">ค่าเช่า/เดือน ตามที่ตกลง<input name="rent" id="tRent" type="number" min="0" step="any" required value="${t.rent??''}" placeholder="ใช้ราคานี้ออกบิล"></label>
   <label class="f">วันเริ่มสัญญา<input name="contractStart" type="date" value="${v('contractStart')||todayStr()}"></label><label class="f">วันสิ้นสุดสัญญา<input name="contractEnd" type="date" value="${v('contractEnd')}"></label>
   <div class="f full"><span>ตั้งวันสิ้นสุดจากวันเริ่ม</span><div class="row">${[3,6,12].map(m=>`<button type="button" class="btn sm" data-act="cEnd" data-m="${m}">${m===12?'1 ปี':m+' เดือน'}</button>`).join('')}</div></div>
@@ -872,7 +872,7 @@ function tenantForm(t={},presetRoom){
   ${t.status==='moved_out'?`<p style="color:var(--muted)">ย้ายออก ${thDT(t.moveOutAt)} คืนเงินประกัน ${baht(t.depositReturned)} บาท ${S.settlements[t.id]?`<button type="button" class="btn sm" data-act="settleDlg" data-id="${t.id}">ดูใบสรุปย้ายออก</button>`:''}</p>`:''}
   <div class="actions">${t.status==='active'?`<button type="button" class="btn danger l" data-act="moveOut" data-id="${t.id}">บันทึกย้ายออก</button>`:''}${t.id&&t.status==='active'?`<button type="button" class="btn" data-act="renew" data-id="${t.id}">ต่อสัญญา</button>`:''}${t.id?`<button type="button" class="btn" data-act="viewC" data-id="${t.id}">ดูสัญญา</button><button type="button" class="btn" data-act="printC" data-id="${t.id}">🖨 พิมพ์สัญญา</button>`:''}<button class="btn pri" ${canWrite?'':'disabled'}>${isNew?'รับเข้าพัก':'บันทึก'}</button></div></form>`);
 }
-function lastReading(rid){const t=tenantOf(rid),r=S.rooms[rid]||{},floor=t?.moveInAt?.slice(0,7)||'';const past=Object.values(S.meters).filter(x=>x.roomId===rid&&x.month>=floor&&(x.waterCur!=null||x.elecCur!=null)).sort((a,b)=>b.month.localeCompare(a.month))[0];
+function lastReading(rid){const t=tenantOf(rid),r=S.rooms[rid]||{},f1=t?.moveInAt?.slice(0,7)||'',floor=(r.baseMonth||'')>f1?r.baseMonth:f1;const past=Object.values(S.meters).filter(x=>x.roomId===rid&&x.month>=floor&&(x.waterCur!=null||x.elecCur!=null)).sort((a,b)=>b.month.localeCompare(a.month))[0];
   return {water:past?.waterCur??r.waterStart??0,elec:past?.elecCur??r.elecStart??0,month:past?.month||''}}
 function moveOutForm(t){if(!t)return;const rid=t.roomId,L=lastReading(rid),unpaid=Object.values(S.bills).filter(b=>b.tenantId===t.id&&b.status==='unpaid').sort((a,b)=>a.month.localeCompare(b.month));
   openDlg(`<form class="dlg wide" data-form="moveOut" data-id="${t.id}">${dHead('ย้ายออก / คืนเงินประกัน · ห้อง '+roomNo(rid))}
@@ -1142,6 +1142,13 @@ const ACT={
   renew:e=>renewForm(e.dataset.id),
   printC:e=>printContract(S.tenants[e.dataset.id]),viewC:e=>viewContract(S.tenants[e.dataset.id]),
   printMeter:e=>printHTML(meterSheet(e.dataset.id==='filled')),
+  setBase:async()=>{const list=meterRooms().map(r=>({r,d:S.meters[meterId(month,r.id)]})).filter(x=>x.d&&(x.d.waterCur!=null||x.d.elecCur!=null)&&!S.bills[meterId(month,x.r.id)]);
+    if(!list.length)return toast('เดือนนี้ยังไม่มีเลขที่กรอก (หรือออกบิลไปแล้ว)');
+    if(!await ask('ตั้งเป็นเลขเริ่มต้นโปรแกรม',`เลขที่กรอกในหน้าเดือน${monthLabel(month)} ${list.length} ห้อง จะกลายเป็นเลขยกมา (เลขครั้งก่อน) ช่องครั้งนี้จะว่างให้จดเลขสิ้นเดือนถัดไป และผู้เช่าใหม่จะใช้เลขนี้เป็นเลขวันเข้า ห้องที่ออกบิลแล้วจะไม่ถูกเปลี่ยน`,'ตั้งเป็นเลขเริ่มต้น',false))return;
+    let n=0;for(const{r,d}of list){const{id:_,...room}=S.rooms[r.id];
+      const ok=await put('rooms',r.id,{...room,waterStart:d.waterCur??room.waterStart??0,elecStart:d.elecCur??room.elecStart??0,baseMonth:month});
+      if(ok&&await del('meters',meterId(month,r.id)))n++;toast(`กำลังตั้งเลขเริ่มต้น ${n}/${list.length}`)}
+    toast(`ตั้งเลขเริ่มต้นแล้ว ${n} ห้อง`)},
   cEnd:e=>{const f=e.closest('form'),st=f.contractStart.value;if(!st)return toast('ใส่วันเริ่มสัญญาก่อน');const d=new Date(st+'T00:00:00');d.setMonth(d.getMonth()+Number(e.dataset.m));d.setDate(d.getDate()-1);f.contractEnd.value=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())},
   staffAdd:async()=>{const em=$('#sfE').value.trim().toLowerCase();if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em))return toast('ใส่อีเมลให้ถูกต้อง');const{error}=await sb.from('staff').upsert({email:em,role:$('#sfR').value,name:$('#sfN').value.trim()});toast(error?'เพิ่มไม่สำเร็จ (ต้องเป็นเจ้าของ)':'เพิ่มผู้ใช้แล้ว');loadStaff()},
   staffDel:async e=>{const em=e.dataset.id;if(!await ask('ลบผู้ใช้นี้?',em+' จะเข้าหลังบ้านไม่ได้อีก','ลบผู้ใช้'))return;const{error}=await sb.from('staff').delete().eq('email',em);toast(error?'ลบไม่สำเร็จ':'ลบผู้ใช้แล้ว');loadStaff()},
@@ -1228,7 +1235,7 @@ async function importFile(file){const d=JSON.parse(await file.text()),rows=[];
 document.addEventListener('change',async e=>{const t=e.target;
   if(t.dataset?.staff){const{error}=await sb.from('staff').update({role:t.value}).eq('email',t.dataset.staff);toast(error?'เปลี่ยนสิทธิ์ไม่สำเร็จ':'เปลี่ยนสิทธิ์แล้ว');loadStaff();return}
   if(t.id==='imp'&&t.files[0]){importFile(t.files[0]).catch(()=>toast('นำเข้าไม่สำเร็จ ตรวจว่าเป็นไฟล์สำรองของระบบนี้'));t.value=''}
-  if(t.name==='roomId'&&S.rooms[t.value]){const r=S.rooms[t.value];const set=(i,v)=>{const x=document.getElementById(i);if(x)x.value=v};set('tW',r.waterStart??0);set('tE',r.elecStart??0)}
+  if(t.name==='roomId'&&S.rooms[t.value]){const r=S.rooms[t.value];const set=(i,v)=>{const x=document.getElementById(i);if(x)x.value=v};const L=lastReading(t.value);set('tW',L.water);set('tE',L.elec)}
   if(t.dataset.m){const rid=t.dataset.room,id=meterId(month,rid),r=reading(rid,month),v=num(t.value);
     if(t.value!==''&&v==null){toast('กรอกเป็นตัวเลขเท่านั้น');return}
     const{id:_,...old}=S.meters[id]||{};await put('meters',id,{...r,...old,roomId:rid,month,[t.dataset.m]:v,readAt:nowLocal()})}
