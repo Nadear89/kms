@@ -677,7 +677,7 @@ function roomMenu(rid){const r=S.rooms[rid],st=roomState(r),t=tenantOf(rid),rv=r
   let btns='';
   if(st==='off')btns=B('editRoom',rid,'แก้ไขห้อง','pri');
   else if(t){btns=B('editTenant',t.id,'ข้อมูลผู้เช่า')+B('renew',t.id,'ต่อสัญญา')+(t.planOut?B('cancelNotice',t.id,'ยกเลิกแจ้งออก')+B('noticeForm',t.id,'แก้ไขวันออก')+(rv?.name?B('resvForm',rid,'แก้ไขการจอง'):B('resvForm',rid,'จองต่อ'))+B('moveOut',t.id,'บันทึกย้ายออก','pri'):B('noticeForm',t.id,'แจ้งออก','pri'));
-    if(late.length)btns=B('openBill',late[0].id,'ดูบิลค้าง')+btns}
+    if(late.length)btns=B('remind',rid,'🔔 ข้อความทวง')+B('openBill',late[0].id,'ดูบิลค้าง')+btns}
   else if(rv?.name)btns=B('cancelResv',rid,'ยกเลิกการจอง')+B('resvForm',rid,'แก้ไขการจอง')+B('checkIn',rid,'รับเข้าพัก','pri');
   else btns=B('editRoom',rid,'แก้ไขห้อง')+B('resvForm',rid,'จองห้อง')+B('newTenant',rid,'รับผู้เช่าเข้าพัก','pri');
   const reps=openRepairs().filter(x=>x.roomId===rid);
@@ -1045,6 +1045,14 @@ function billLinkFor(b){const r=S.rooms[b.roomId];return r?.code?billLink()+'?r=
 function billText(b){const h=hdrOf(b);
   const L=[['ค่าเช่า',b.rent,''],['ค่าน้ำ',b.waterAmt,` (${units(b.waterUnits)} หน่วย)`],['ค่าไฟ',b.elecAmt,` (${units(b.elecUnits)} หน่วย)`],...(b.common?[['ค่าส่วนกลาง',b.common,'']]:[]),...(b.extras||[]).map(x=>[x.label||'อื่นๆ',Number(x.amount)||0,''])];
   return [`📄 ใบแจ้งหนี้ ${h.name}`,`ห้อง ${b.roomNumber}${h.bname?' '+h.bname:''} · เดือน ${monthLabel(b.month)}`,'',...L.map(([a,n,u])=>`${a} ${baht(n)}${u}`),'',`ยอดชำระ ${baht(b.total)} บาท · ภายใน ${dmy(b.dueDate)}`,`ดูบิล/สแกนจ่าย/แนบสลิป: ${billLinkFor(b)}`].join('\n')}
+function remindText(rid){const L=Object.values(S.bills).filter(b=>b.roomId===rid&&b.status==='unpaid').sort((a,b)=>a.month.localeCompare(b.month));if(!L.length)return '';
+  const b0=L[0],h=hdrOf(b0),sum=L.reduce((a,b)=>a+b.total,0),fee=Number(S.setup.lateFee??50)||0,lateDays=Math.max(0,-daysTo(b0.dueDate));
+  return [`🔔 แจ้งเตือนค้างชำระค่าห้อง`,`${h.name}${h.bname?' '+h.bname:''} · ห้อง ${b0.roomNumber}`,`เรียน คุณ${b0.tenantName}`,'',
+    ...L.map(b=>`• ${monthLabel(b.month)} ${baht(b.total)} บาท${isLate(b)?` (เกินกำหนด ${-daysTo(b.dueDate)} วัน)`:` (ครบกำหนด ${dmy(b.dueDate)})`}`),'',
+    `รวมค้างชำระ ${baht(sum)} บาท`,...(fee&&lateDays?[`มีค่าปรับชำระช้าวันละ ${fee} บาท ตามสัญญาข้อ ๓`]:[]),
+    `กรุณาชำระโดยเร็ว หากเกิน 30 วัน ทางหอพักจำเป็นต้องดำเนินการตามสัญญา`,'',
+    `ดูบิล/สแกนจ่าย/แนบสลิป: ${billLinkFor(L[L.length-1])}`,'',`หากชำระแล้ว กรุณาแนบสลิปในลิงก์ด้านบน ขอบคุณครับ`].join('\n')}
+function copyOut(t,ok){navigator.clipboard.writeText(t).then(()=>toast(ok),()=>{openDlg(`<div class="dlg">${dHead('คัดลอกข้อความเอง')}<textarea id="copyTa" rows="14" style="width:100%">${esc(t)}</textarea></div>`);$('#copyTa').select()})}
 function billDlg(b){
   const open=b.status==='unpaid'&&canWrite;
   openDlg(`<div class="dlg">${dHead('บิลห้อง '+roomNo(b.roomId))}
@@ -1053,7 +1061,7 @@ function billDlg(b){
   ${open?`<div class="panel"><h2>รายการเพิ่มเติม</h2><p style="color:var(--muted)">ค่าปรับ ค่าซ่อม หรือส่วนลด ใส่ยอดติดลบได้</p><div id="xs">${(b.extras||[]).map((x,i)=>`<div class="xrow"><input aria-label="ชื่อรายการ" id="xl${i}" value="${esc(x.label)}"><input aria-label="จำนวนเงิน" id="xa${i}" type="number" step="any" value="${x.amount}"><button class="btn sm" data-act="xDel" data-i="${i}" data-id="${b.id}">ลบ</button></div>`).join('')}</div>
     <div class="xrow"><input id="xLabel" aria-label="ชื่อรายการใหม่" placeholder="เช่น ค่าปรับล่าช้า"><input id="xAmt" aria-label="จำนวนเงินใหม่" type="number" step="any" placeholder="บาท"><button class="btn sm" data-act="xAdd" data-id="${b.id}">เพิ่ม</button></div></div>
     <form data-form="pay" data-id="${b.id}"><fieldset><legend>รับชำระเงิน</legend><label class="f">วันที่รับเงิน<input name="paidAt" type="date" required value="${todayStr()}"></label><label class="f">ช่องทาง<select name="payMethod"><option>โอนธนาคาร</option><option>โอนพร้อมเพย์</option><option>เงินสด</option></select></label></fieldset><div class="actions" style="margin-top:10px"><button class="btn pri">บันทึกว่าชำระแล้ว</button></div></form>`:''}
-  <div class="actions"><button class="btn" data-act="copyBill" data-id="${b.id}">คัดลอกข้อความส่ง LINE</button>${dl?`<button class="btn" data-act="pngBill" data-id="${b.id}">บันทึกบิลเป็นรูป</button>`:''}
+  <div class="actions"><button class="btn" data-act="copyBill" data-id="${b.id}">คัดลอกข้อความส่ง LINE</button>${b.status==='unpaid'&&isLate(b)?`<button class="btn danger" data-act="remind" data-id="${b.roomId}">🔔 คัดลอกข้อความทวง</button>`:''}${dl?`<button class="btn" data-act="pngBill" data-id="${b.id}">บันทึกบิลเป็นรูป</button>`:''}
   ${canWrite?(b.status==='paid'?`<button class="btn" data-act="unpay" data-id="${b.id}">ยกเลิกการรับเงิน</button>`:`<button class="btn" data-act="recalc" data-id="${b.id}">คำนวณใหม่จากมิเตอร์</button><button class="btn danger" data-act="delBill" data-id="${b.id}">ลบบิล</button>`):''}</div></div>`);
   fillQR(b);
   if(b.slip&&sb?.storage)sb.storage.from('slips').createSignedUrl(b.slip.path,3600).then(({data,error})=>{const e=$('#slipImg');if(!e)return;if(error||!data)e.textContent='เปิดสลิปไม่ได้ ตรวจว่ารันไฟล์ SQL อัปเดตแล้ว';else e.innerHTML=`<a href="${data.signedUrl}" target="_blank" rel="noopener"><img src="${data.signedUrl}" alt="สลิปโอนเงิน"></a>`});
@@ -1102,6 +1110,7 @@ const ACT={
   staffAdd:async()=>{const em=$('#sfE').value.trim().toLowerCase();if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em))return toast('ใส่อีเมลให้ถูกต้อง');const{error}=await sb.from('staff').upsert({email:em,role:$('#sfR').value,name:$('#sfN').value.trim()});toast(error?'เพิ่มไม่สำเร็จ (ต้องเป็นเจ้าของ)':'เพิ่มผู้ใช้แล้ว');loadStaff()},
   staffDel:async e=>{const em=e.dataset.id;if(!await ask('ลบผู้ใช้นี้?',em+' จะเข้าหลังบ้านไม่ได้อีก','ลบผู้ใช้'))return;const{error}=await sb.from('staff').delete().eq('email',em);toast(error?'ลบไม่สำเร็จ':'ลบผู้ใช้แล้ว');loadStaff()},
   editCur:e=>curForm(e.dataset.id),
+  remind:async e=>{const rid=e.dataset.id,r=S.rooms[rid];if(r&&!r.code){const{id,...d}=r;await put('rooms',id,{...d,code:newCode()})}const t=remindText(rid);if(!t)return toast('ห้องนี้ไม่มีบิลค้าง');copyOut(t,'คัดลอกข้อความทวงแล้ว วางในแชต LINE ของผู้เช่าได้เลย')},
   editPrev:e=>prevForm(e.dataset.id),
   newRoom:()=>roomForm(),bulkRoom:bulkForm,editRoom:e=>roomForm(S.rooms[e.dataset.id]),
   delRoom:async e=>{const id=e.dataset.id;if(tenantOf(id))return toast('ห้องนี้มีผู้เช่าอยู่ ต้องย้ายออกก่อนจึงลบได้');closeDlg();if(await ask('ลบห้อง '+roomNo(id)+'?','ลบแล้วกู้คืนไม่ได้ บิลเดิมยังอยู่','ลบห้อง'))await del('rooms',id)},
