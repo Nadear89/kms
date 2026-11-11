@@ -723,7 +723,8 @@ function vContracts(){
   return `<div class="head"><div><h1>สัญญาเช่า</h1><p>เงินประกันที่ถือไว้ ${baht(dep)} บาท</p></div></div>${sampleNote()}
   ${rows?`<div class="tw"><table><thead><tr><th>ห้อง</th><th>ผู้เช่า</th><th>เริ่ม</th><th>สิ้นสุด</th><th>สถานะ</th><th class="num">เงินประกัน</th><th class="num">ค่าเช่า</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="empty">สัญญาจะแสดงที่นี่เมื่อรับผู้เช่าเข้าห้องแล้ว</div>'}`;
 }
-const meterRooms=()=>rooms().slice().sort((a,b)=>(multi()&&curB()==='all'?BLD().findIndex(x=>x.id===roomBld(a))-BLD().findIndex(x=>x.id===roomBld(b)):0)||(Number(a.floor)||0)-(Number(b.floor)||0)||String(a.number).localeCompare(String(b.number),'th',{numeric:true}));
+const noNum=r=>/\d/.test(String(r.number))?0:1;
+const meterRooms=()=>rooms().slice().sort((a,b)=>noNum(a)-noNum(b)||(multi()&&curB()==='all'?BLD().findIndex(x=>x.id===roomBld(a))-BLD().findIndex(x=>x.id===roomBld(b)):0)||(Number(a.floor)||0)-(Number(b.floor)||0)||String(a.number).localeCompare(String(b.number),'th',{numeric:true}));
 function vMeter(){
   const list=meterRooms();
   const done=list.filter(r=>readingOk(reading(r.id,month))).length;
@@ -850,8 +851,8 @@ function bulkForm(){const st=nextNo();openDlg(`<form class="dlg" data-form="bulk
   <p class="soft" style="color:var(--muted)">เลขห้องเรียงต่อกัน เช่น เริ่ม 1 จำนวน 100 จะได้ห้อง 1 ถึง 100 ถ้าแต่ละชั้นมีหลายห้อง สร้างทีละชั้นได้ เช่น ชั้น 1 เริ่ม 1 จำนวน 20 แล้วชั้น 2 เริ่ม 21</p><div class="actions"><button class="btn pri">สร้างห้อง</button></div></form>`)}
 function tenantForm(t={},presetRoom){
   const isNew=!t.id,rid=t.roomId||presetRoom||'';
-  const fl={};rooms().forEach(r=>(fl[(multi()&&curB()==='all'?bldName(roomBld(r))+' · ':'')+'ชั้น '+(r.floor||'-')]??=[]).push(r));
-  const opts=Object.keys(fl).sort((a,b)=>a.localeCompare(b,'th',{numeric:true})).map(f=>`<div class="rpf"><span>${esc(f)}</span><div class="rpg">${fl[f].map(r=>{const who=tenantOf(r.id),taken=who&&who.id!==t.id,busy=r.closed||taken||t.status==='moved_out';
+  const fl={};const fk={};rooms().forEach(r=>{const k=(multi()&&curB()==='all'?bldName(roomBld(r))+' · ':'')+'ชั้น '+(r.floor||'-');fk[k]??=[BLD().findIndex(x=>x.id===roomBld(r)),Number(r.floor)||0];(fl[k]??=[]).push(r)});
+  const opts=Object.keys(fl).sort((a,b)=>fk[a][0]-fk[b][0]||fk[a][1]-fk[b][1]||a.localeCompare(b,'th',{numeric:true})).map(f=>`<div class="rpf"><span>${esc(f)}</span><div class="rpg">${fl[f].map(r=>{const who=tenantOf(r.id),taken=who&&who.id!==t.id,busy=r.closed||taken||t.status==='moved_out';
     return `<label class="rpc ${busy?'off':''}"><input type="radio" name="roomId" value="${r.id}" required ${r.id===rid?'checked':''} ${busy?'disabled':''}><span><b>${esc(r.number)}</b><small>${r.closed?'ปิดซ่อม':taken?'มีผู้เช่า':'ว่าง'}</small></span></label>`}).join('')}</div></div>`).join('');
   const v=k=>esc(t[k]??'');
   const preRoom=S.rooms[rid];
@@ -859,7 +860,8 @@ function tenantForm(t={},presetRoom){
   <fieldset><legend>ผู้เช่า</legend><label class="f">ชื่อ-นามสกุล<input name="name" required value="${v('name')}"></label><label class="f">เบอร์โทร<input name="phone" inputmode="tel" value="${v('phone')}"></label>
   <label class="f">เลขบัตรประชาชน<input name="idCard" inputmode="numeric" value="${v('idCard')}"></label><label class="f">LINE ID<input name="line" value="${v('line')}"></label>
   <label class="f full">ที่อยู่ตามบัตรประชาชน<input name="address" value="${v('address')}"></label>
-  <label class="f full">ผู้ติดต่อฉุกเฉิน<input name="emergency" value="${v('emergency')}"></label>${t.appId?`<input type="hidden" name="appId" value="${esc(t.appId)}">`:''}${t.idPhoto?`<input type="hidden" name="idPhoto" value="${esc(t.idPhoto)}">`:''}
+  <label class="f full">ผู้ติดต่อฉุกเฉิน<input name="emergency" value="${v('emergency')}"></label>
+  <label class="f full">ยานพาหนะ (ประเภท ยี่ห้อ สี ทะเบียน)<input name="vehicle" value="${v('vehicle')}" placeholder="เช่น รถจักรยานยนต์ Honda Wave สีดำ กข 1234"></label>${t.appId?`<input type="hidden" name="appId" value="${esc(t.appId)}">`:''}${t.idPhoto?`<input type="hidden" name="idPhoto" value="${esc(t.idPhoto)}">`:''}
   <label class="f full">รูปบัตรประชาชน ${t.id&&idPhotoOf(t)||t.idPhoto?'<b style="color:var(--ok)">✓ มีรูปที่ลูกค้าถ่ายไว้แล้ว (เลือกใหม่เพื่อเปลี่ยน)</b>':'(ยังไม่มีรูป ใช้แนบท้ายสัญญา)'}<input type="file" id="tIdPh" accept="image/*"></label></fieldset>
   <fieldset><legend>การเข้าพัก</legend><div class="rp" role="radiogroup" aria-label="เลือกห้อง">เลือกห้อง${opts}</div><label class="f full">วันเวลาเข้าพัก<input name="moveInAt" type="datetime-local" required value="${v('moveInAt')||nowLocal()}"></label>
   ${isNew?`<label class="f">เลขมิเตอร์น้ำวันเข้า<input name="waterIn" id="tW" type="number" min="0" step="any" value="${preRoom?.waterStart??0}"></label><label class="f">เลขมิเตอร์ไฟวันเข้า<input name="elecIn" id="tE" type="number" min="0" step="any" value="${preRoom?.elecStart??0}"></label>`:''}</fieldset>
@@ -940,7 +942,7 @@ function appDlg(id){const a=S.applications[id];if(!a)return;
   openDlg(`<div class="dlg">${dHead('คำขอทำสัญญา: '+a.name)}
   <div class="rpinfo"><div><small>สถานที่ / ห้องที่ตกลง</small><b>${esc(a.buildingName||'-')} · ห้อง ${esc(a.roomNumber||'ยังไม่ระบุ')}</b></div><div><small>เลขบัตรประชาชน</small><span class="sel">${esc(a.idCard)}</span></div>
   <div><small>ที่อยู่ตามบัตร</small><span>${esc(a.address)}</span></div><div><small>ติดต่อ</small><span>โทร <b class="sel">${esc(a.phone)}</b>${a.line?' · LINE '+esc(a.line):''}</span></div>
-  ${a.emergency?`<div><small>ผู้ติดต่อฉุกเฉิน</small><span>${esc(a.emergency)}</span></div>`:''}<div><small>วันที่จะเข้าพัก</small><span>${a.moveIn?thDate(a.moveIn):'-'}</span></div>${a.note?`<div><small>หมายเหตุ</small><span>${esc(a.note)}</span></div>`:''}</div>
+  ${a.emergency?`<div><small>ผู้ติดต่อฉุกเฉิน</small><span>${esc(a.emergency)}</span></div>`:''}${a.vehicle?`<div><small>ยานพาหนะ</small><span>${esc(a.vehicle)}</span></div>`:''}<div><small>วันที่จะเข้าพัก</small><span>${a.moveIn?thDate(a.moveIn):'-'}</span></div>${a.note?`<div><small>หมายเหตุ</small><span>${esc(a.note)}</span></div>`:''}</div>
   ${a.idPhoto?`<div class="rpmedia"><div class="rpm" id="idPh">กำลังโหลดรูปบัตร…</div></div>`:''}
   <div class="actions"><button class="btn danger l" data-act="appCancel" data-id="${id}">ยกเลิกคำขอ</button><button class="btn pri" data-act="appToTenant" data-id="${id}">ทำสัญญา / รับเข้าพัก</button></div></div>`);
   if(a.idPhoto)sb.storage.from('idcards').createSignedUrl(a.idPhoto,3600).then(({data,error})=>{const e=$('#idPh');if(!e)return;e.innerHTML=error||!data?'เปิดรูปไม่ได้':`<a href="${data.signedUrl}" target="_blank" rel="noopener"><img src="${data.signedUrl}" alt="รูปบัตรประชาชน"></a>`})}
@@ -959,7 +961,7 @@ function contractHTML(t){const s=S.setup,r=S.rooms[t.roomId]||{},bid=roomBld(r),
   return `<div class="ct"><div class="rno">ห้อง ${esc(r.number||'')}${multi()&&B.name?' · '+esc(B.name):''}</div><h1>สัญญาเช่าห้องพักอาศัย</h1>
   <p class="r">สัญญานี้ทำขึ้นที่ ${F(place)} เมื่อวันที่ ${F(sd.d)} เดือน ${F(sd.m)} พ.ศ. ${F(sd.y)}</p>
   <p>ระหว่าง ${esc(owner)} อยู่${esc(oaddr)} ต่อไปในสัญญานี้จะเรียกว่า “ผู้ให้เช่า” ฝ่ายหนึ่ง</p>
-  <p>กับ ${F(t.name)} เลขประจำตัวประชาชน ${F(t.idCard)} อยู่บ้านเลขที่ ${F(t.address)} เบอร์โทรศัพท์ ${F(t.phone)} ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ผู้เช่า” อีกฝ่ายหนึ่ง</p>
+  <p>กับ ${F(t.name)} เลขประจำตัวประชาชน ${F(t.idCard)} อยู่บ้านเลขที่ ${F(t.address)} เบอร์โทรศัพท์ ${F(t.phone)}${t.vehicle&&t.vehicle!=='ไม่มี'?` ยานพาหนะ ${F(t.vehicle)}`:''} ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ผู้เช่า” อีกฝ่ายหนึ่ง</p>
   <p>ทั้งสองฝ่ายตกลงทำสัญญากันโดยมีข้อความดังต่อไปนี้</p>
   ${P('๑',`ผู้เช่าตกลงเช่าและผู้ให้เช่าตกลงให้เช่าห้องพักอาศัยห้องเลขที่ ${F(r.number)} ชั้นที่ ${F(r.floor)} ของ ${F(place)} ซึ่งตั้งอยู่ที่ ${F(addr)} เพื่อใช้เป็นที่พักอาศัย ในอัตราค่าเช่าเดือนละ ${F(baht(t.rent))} บาท (${F(bahtText(t.rent))}) ค่าเช่านี้ไม่รวมถึงค่าไฟฟ้า ค่าน้ำประปา ค่าโทรศัพท์ ซึ่งผู้เช่าต้องชำระแก่ผู้ให้เช่าตามอัตราที่กำหนดไว้ในสัญญาข้อ ๔`)}
   ${P('๒',`ผู้เช่าตกลงเช่าห้องพักอาศัยตามสัญญาข้อ ๑ มีกำหนดเวลา ${F(mo)} เดือน นับตั้งแต่วันที่ ${F(t.contractStart?st.d+' '+st.m+' '+st.y:'')} ถึงวันที่ ${F(t.contractEnd?ed.d+' '+ed.m+' '+ed.y:'')}`)}
@@ -1135,7 +1137,7 @@ const ACT={
   testLine:async()=>{const{data,error}=await sb.rpc('test_line_notify');toast(error?'ส่งไม่สำเร็จ ตรวจว่ารันไฟล์ SQL แล้ว':data?'ส่งข้อความทดสอบแล้ว ดูใน LINE ของคุณ':'ยังตั้งค่าไม่ครบ ใส่ token และ User ID ก่อน')},
   appDlg:e=>appDlg(e.dataset.id),
   appToTenant:e=>{const a=S.applications[e.dataset.id];const r=allRooms().find(x=>x.number===String(a.roomNumber||'').trim()&&(!a.building||roomBld(x)===a.building)&&!x.closed&&!tenantOf(x.id));
-    tenantForm({idPhoto:a.idPhoto||'',name:a.name,phone:a.phone,idCard:a.idCard,address:a.address,line:a.line,emergency:a.emergency,note:a.note||'',moveInAt:a.moveIn?a.moveIn+'T12:00':'',contractStart:a.moveIn||'',appId:a.id},r?.id||'')},
+    tenantForm({idPhoto:a.idPhoto||'',name:a.name,phone:a.phone,idCard:a.idCard,address:a.address,line:a.line,emergency:a.emergency,vehicle:a.vehicle||'',note:a.note||'',moveInAt:a.moveIn?a.moveIn+'T12:00':'',contractStart:a.moveIn||'',appId:a.id},r?.id||'')},
   appCancel:async e=>{const{id,...a}=S.applications[e.dataset.id];closeDlg();if(await ask('ยกเลิกคำขอนี้?',`คำขอของ ${a.name} จะถูกย้ายออกจากรายการ`,'ยกเลิกคำขอ'))await put('applications',id,{...a,status:'cancel'})},
   renew:e=>renewForm(e.dataset.id),
   printC:e=>printContract(S.tenants[e.dataset.id]),viewC:e=>viewContract(S.tenants[e.dataset.id]),
