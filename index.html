@@ -678,7 +678,7 @@ function vHome(){
       <div class="seg" role="group" aria-label="รูปแบบผัง"><button data-act="planMode" data-id="full" aria-pressed="${planMode!=='mini'}">${ic('grid',16)} การ์ด</button><button data-act="planMode" data-id="mini" aria-pressed="${planMode==='mini'}">ย่อ</button></div></div>
       ${plan}`:`<div class="empty">ยังไม่มีห้องพัก เพิ่มห้องก่อนเริ่มใช้งาน<a class="btn pri" href="#rooms">เพิ่มห้อง</a></div>`}</div></section>`;
 }
-function roomMenu(rid){const r=S.rooms[rid],st=roomState(r),t=tenantOf(rid),rv=r.reservation,late=allBills().filter(b=>b.roomId===rid&&isLate(b));
+function roomMenu(rid){const r=S.rooms[rid],st=roomState(r),t=tenantOf(rid),rv=r.reservation,late=allBills().filter(b=>b.roomId===rid&&isRed(b)).sort((a,b)=>(a.kind==='movein'?-1:0)-(b.kind==='movein'?-1:0)||a.dueDate.localeCompare(b.dueDate));
   const B=(act,id,l,c='')=>`<button class="btn ${c}" data-act="${act}" data-id="${id}">${l}</button>`;
   const info=[t?`<p><b>${esc(t.name)}</b> ${esc(t.phone||'')}<br><span style="color:var(--muted)">เข้าพัก ${thDT(t.moveInAt)} · สัญญาถึง ${thDate(t.contractEnd)}</span></p>`:'',
     t&&t.planOut?`<p>แจ้งออกเมื่อ ${thDate(t.noticeAt)} · ย้ายออก <b>${thDate(t.planOut)}</b></p>`:'',
@@ -686,8 +686,8 @@ function roomMenu(rid){const r=S.rooms[rid],st=roomState(r),t=tenantOf(rid),rv=r
     late.length?`<p style="color:var(--crit)">ค้างชำระ ${late.length} บิล รวม ${baht(late.reduce((a,b)=>a+dueOf(b),0))} บาท</p>`:''].join('');
   let btns='';
   if(st==='off')btns=B('editRoom',rid,'แก้ไขห้อง','pri');
-  else if(t){btns=B('editTenant',t.id,'ข้อมูลผู้เช่า')+B('renew',t.id,'ต่อสัญญา')+(t.planOut?B('cancelNotice',t.id,'ยกเลิกแจ้งออก')+B('noticeForm',t.id,'แก้ไขวันออก')+(rv?.name?B('resvForm',rid,'แก้ไขการจอง'):B('resvForm',rid,'จองต่อ'))+B('moveOut',t.id,'บันทึกย้ายออก','pri'):B('noticeForm',t.id,'แจ้งออก','pri'));
-    if(late.length)btns=B('remind',rid,'🔔 ข้อความทวง')+B('openBill',late[0].id,'ดูบิลค้าง')+btns}
+  else if(t){btns=B('editTenant',t.id,'ข้อมูลผู้เช่า')+B('moveinBill',t.id,S.bills['in_'+t.id]?'เปิดบิลแรกเข้า':'💵 ทำบิลแรกเข้า')+B('renew',t.id,'ต่อสัญญา')+(t.planOut?B('cancelNotice',t.id,'ยกเลิกแจ้งออก')+B('noticeForm',t.id,'แก้ไขวันออก')+(rv?.name?B('resvForm',rid,'แก้ไขการจอง'):B('resvForm',rid,'จองต่อ'))+B('moveOut',t.id,'บันทึกย้ายออก','pri'):B('noticeForm',t.id,'แจ้งออก','pri'));
+    if(late.length)btns=B('remind',rid,'🔔 ข้อความทวง')+B('copyBill',late[0].id,'📋 คัดลอกบิลค้าง')+B('openBill',late[0].id,'ดูบิลค้าง')+btns}
   else if(rv?.name)btns=B('cancelResv',rid,'ยกเลิกการจอง')+B('resvForm',rid,'แก้ไขการจอง')+B('checkIn',rid,'รับเข้าพัก','pri');
   else btns=B('editRoom',rid,'แก้ไขห้อง')+(r.daily?B('setDaily',rid,'เปลี่ยนเป็นห้องว่าง (รายเดือน)'):B('setDaily',rid,'☀ ตั้งเป็นห้องรายวัน'))+B('resvForm',rid,'จองห้อง')+B('newTenant',rid,'รับผู้เช่าเข้าพัก','pri');
   const reps=openRepairs().filter(x=>x.roomId===rid);
@@ -742,7 +742,8 @@ function moveinItems(f){const v=k=>Number(f.elements[k].value)||0,L=[];
   if(v('advance'))L.push({label:'ค่าเช่าล่วงหน้า',amount:v('advance')});if(v('otherAmt'))L.push({label:f.elements.otherLabel.value.trim()||'รายการอื่น',amount:v('otherAmt')});
   if(v('booking'))L.push({label:'หักเงินจอง',amount:-v('booking')});return L}
 function vContracts(){
-  const list=activeTenants().sort((a,b)=>(a.contractEnd||'9').localeCompare(b.contractEnd||'9'));
+  const rk=t=>{const r=S.rooms[t.roomId]||{};return [BLD().findIndex(x=>x.id===roomBld(r)),noNum(r),String(r.number||'')]};
+  const list=activeTenants().sort((a,b)=>{const x=rk(a),y=rk(b);return x[0]-y[0]||x[1]-y[1]||x[2].localeCompare(y[2],'th',{numeric:true})});
   const rows=list.map(t=>{const[s,c]=contractState(t);return `<tr><td class="nowrap"><b>${esc(roomNo(t.roomId))}</b></td><td>${esc(t.name)}<small>เลขที่ ${esc(t.contractNo||'-')}</small></td><td class="nowrap">${thDate(t.contractStart)}</td><td class="nowrap">${thDate(t.contractEnd)}</td><td><span class="pill ${c}">${s}</span></td><td class="num">${baht(t.deposit)}</td><td class="num">${baht(t.rent)}</td><td class="num nowrap"><button class="btn sm pri" data-act="viewC" data-id="${t.id}">ดูสัญญา</button> <button class="btn sm" data-act="moveinBill" data-id="${t.id}">${S.bills['in_'+t.id]?'เปิดบิลแรกเข้า':'💵 ทำบิลแรกเข้า'}</button> <button class="btn sm" data-act="renew" data-id="${t.id}">ต่อสัญญา</button> <button class="btn sm" data-act="printC" data-id="${t.id}">🖨 พิมพ์</button> <button class="btn sm" data-act="editTenant" data-id="${t.id}">แก้ไข</button></td></tr>`}).join('');
   const dep=list.reduce((a,t)=>a+(Number(t.deposit)||0),0);
   return `<div class="head"><div><h1>สัญญาเช่า</h1><p>เงินประกันที่ถือไว้ ${baht(dep)} บาท</p></div></div>${sampleNote()}
@@ -915,7 +916,7 @@ function tenantForm(t={},presetRoom){
   <div class="f full"><span>ตั้งวันสิ้นสุดจากวันเริ่ม</span><div class="row">${[3,6,12].map(m=>`<button type="button" class="btn sm" data-act="cEnd" data-m="${m}">${m===12?'1 ปี':m+' เดือน'}</button>`).join('')}</div></div>
   <label class="f">เงินประกัน<input name="deposit" type="number" min="0" step="any" value="${t.deposit??''}"></label><label class="f">หมายเหตุ<input name="note" value="${v('note')}"></label></fieldset>
   ${t.status==='moved_out'?`<p style="color:var(--muted)">ย้ายออก ${thDT(t.moveOutAt)} คืนเงินประกัน ${baht(t.depositReturned)} บาท ${S.settlements[t.id]?`<button type="button" class="btn sm" data-act="settleDlg" data-id="${t.id}">ดูใบสรุปย้ายออก</button>`:''}</p>`:''}
-  <div class="actions">${t.status==='active'?`<button type="button" class="btn danger l" data-act="moveOut" data-id="${t.id}">บันทึกย้ายออก</button>`:''}${t.id&&t.status==='active'?`<button type="button" class="btn" data-act="renew" data-id="${t.id}">ต่อสัญญา</button>`:''}${t.id?`<button type="button" class="btn" data-act="viewC" data-id="${t.id}">ดูสัญญา</button><button type="button" class="btn" data-act="printC" data-id="${t.id}">🖨 พิมพ์สัญญา</button>`:''}<button class="btn pri" ${canWrite?'':'disabled'}>${isNew?'รับเข้าพัก':'บันทึก'}</button></div></form>`);
+  <div class="actions">${t.status==='active'?`<button type="button" class="btn danger l" data-act="moveOut" data-id="${t.id}">บันทึกย้ายออก</button>`:''}${t.id&&t.status==='active'?`<button type="button" class="btn" data-act="moveinBill" data-id="${t.id}">${S.bills['in_'+t.id]?'เปิดบิลแรกเข้า':'💵 ทำบิลแรกเข้า'}</button><button type="button" class="btn" data-act="renew" data-id="${t.id}">ต่อสัญญา</button>`:''}${t.id?`<button type="button" class="btn" data-act="viewC" data-id="${t.id}">ดูสัญญา</button><button type="button" class="btn" data-act="printC" data-id="${t.id}">🖨 พิมพ์สัญญา</button>`:''}<button class="btn pri" ${canWrite?'':'disabled'}>${isNew?'รับเข้าพัก':'บันทึก'}</button></div></form>`);
 }
 function lastReading(rid){const t=tenantOf(rid),r=S.rooms[rid]||{},f1=t?.moveInAt?.slice(0,7)||'',floor=(r.baseMonth||'')>f1?r.baseMonth:f1;const past=Object.values(S.meters).filter(x=>x.roomId===rid&&x.month>=floor&&(x.waterCur!=null||x.elecCur!=null)).sort((a,b)=>b.month.localeCompare(a.month))[0];
   return {water:past?.waterCur??r.waterStart??0,elec:past?.elecCur??r.elecStart??0,month:past?.month||''}}
