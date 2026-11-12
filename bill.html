@@ -117,10 +117,13 @@ hr.fsep{grid-column:1/-1;border:0;border-top:1px dashed var(--line);margin:2px 0
 .rc .ch.red{border-color:#F3B6AE;background:#FDECEA;color:#C23A2B}
 .rc.mini2{padding:8px 10px}.rc.mini2 b{font-size:1.08rem}.rc.mini2 small{color:var(--muted);font-size:.78rem;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;gap:3px;align-items:center}
 .rc.s-free{border-style:dashed;border-left-style:solid}
-.rc.s-off{background:repeating-linear-gradient(-45deg,#F4F6F3 0 7px,#ECEFEB 7px 14px)}
-.warn{position:absolute;top:-7px;right:-7px;width:24px;height:24px;border-radius:50%;background:#E53935;color:#fff;font-weight:800;font-size:.9rem;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px var(--surface),0 2px 6px rgba(229,57,53,.45)}
-.warn.soft{background:#F2A11B;box-shadow:0 0 0 3px var(--surface)}
-@media(prefers-reduced-motion:no-preference){.warn:not(.soft){animation:pulse 1.8s ease-in-out infinite}@keyframes pulse{50%{box-shadow:0 0 0 3px var(--surface),0 0 0 7px rgba(229,57,53,.25)}}}
+.rc.s-off{background:repeating-linear-gradient(-45deg,#F6EDE3 0 7px,#EBDCCB 7px 14px)}
+.badges{position:absolute;top:-9px;right:-9px;display:flex;gap:4px;z-index:1}
+.bdg{position:static!important;flex:none}
+.bdg.rep{width:26px;height:24px;display:flex;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}.bdg.rep svg{width:100%;height:100%}
+.bdg.warn{position:absolute;top:-7px;right:-7px;width:24px;height:24px;border-radius:50%;background:#FFC107;color:#3B2A00;font-weight:800;font-size:.9rem;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px var(--surface),0 2px 6px rgba(229,57,53,.45)}
+.bdg.warn.soft{background:#fff;color:#8A5A00;box-shadow:0 0 0 2px #FFC107,0 0 0 4px var(--surface)}
+@media(prefers-reduced-motion:no-preference){.bdg.warn:not(.soft){animation:pulse 1.8s ease-in-out infinite}@keyframes pulse{50%{box-shadow:0 0 0 3px var(--surface),0 0 0 7px rgba(255,193,7,.45)}}}
 @media(max-width:1100px){.sgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.mgrid,.lgrid{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:700px){.steps{grid-template-columns:repeat(2,minmax(0,1fr))}.rcs{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}}
 @media(max-width:420px){.sgrid{grid-template-columns:minmax(0,1fr)}.sv{font-size:1.7rem}}
@@ -138,6 +141,81 @@ hr.fsep{grid-column:1/-1;border:0;border-top:1px dashed var(--line);margin:2px 0
 .rpmedia{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}.rpm{border:1px solid var(--line);border-radius:10px;overflow:hidden;min-height:80px;display:flex;align-items:center;justify-content:center;color:var(--muted);background:var(--sunk)}
 .rpm img,.rpm video{width:100%;max-height:260px;object-fit:cover;display:block}
 .sel{user-select:all}
+#printArea{display:none}
+@media print{@page{size:A4;margin:0}html,body{background:#fff!important}:root{padding:0!important}body>*:not(#printArea){display:none!important}#printArea{display:block!important}}
+.ct,.ctid,.ms{color:#000;font:13.5pt/1.5 "Sarabun","TH Sarabun New",serif}
+.ct h1{text-align:center;font:700 18pt "Sarabun",serif;margin:0 0 1.5em}
+.ct .rno{text-align:right;font-weight:700;font-size:14pt;margin:0 0 2pt}
+.ct .c7{color:#D00000;text-decoration:underline;text-underline-offset:3px}
+.ct p{margin:0 0 3pt;text-indent:1.1cm;text-align:left;overflow-wrap:anywhere}
+.ctid{display:flex;flex-direction:column;align-items:center;gap:4pt;margin-top:22pt;break-inside:avoid;page-break-inside:avoid}
+.ctid h2{font:700 13pt "Sarabun",serif;margin:0 0 2pt}
+.idbox{position:relative;width:8.6cm;max-width:100%;min-height:5.4cm;border:1px solid #000;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#fff}
+.idbox img{width:100%;display:block}.idph{color:#888;font-size:13pt}
+.wm{position:absolute;inset:-30% -30%;display:flex;flex-direction:column;justify-content:space-around;transform:rotate(-24deg);pointer-events:none}
+.wm div{white-space:nowrap;text-align:center;color:rgba(200,0,0,.45);font:700 10.5pt "Sarabun",sans-serif;letter-spacing:.5px}
+.ctid .cc{font:700 13pt "Sarabun",serif;margin:4pt 0 0}.ctid .cs{text-align:center;margin-top:10pt}
+.ms h1{font:700 16pt "Sarabun",serif;text-align:center;margin:0 0 4pt}.ms .mh{text-align:center;margin:0 0 8pt;font-size:11.5pt}
+.ms table{width:100%;border-collapse:collapse;font-size:11.5pt}.ms th,.ms td{border:1px solid #000;padding:3pt 6pt;height:.8cm;color:#000;background:#fff}
+.ms th{font-weight:700;text-align:center}.ms td.n{text-align:right;font-variant-numeric:tabular-nums}.ms td.w{width:3.2cm}.ms td.k{width:1.4cm;text-align:center}
+.ms td.rm{width:3.4cm}.ms td.rm small{display:block;font-size:9.5pt;color:#333}.ms tbody{break-inside:avoid;page-break-inside:avoid}
+.ctprev{background:#fff;border:1px solid var(--line);border-radius:8px;padding:28px 32px;max-height:70vh;overflow:auto}
+.ctprev .ctid{margin-top:22pt}
+dialog:has(.dlg.wide){width:min(900px,calc(100vw - 32px))}
+.rc[class*=s-]{border:2.5px solid var(--c);border-left:6px solid var(--c)}
+.rc[class*=s-] b{color:var(--c)}
+.rc.s-free b{color:#7C8780}
+.rc.mini2[class*=s-]{background:var(--c);border-color:var(--c)}
+.rc.mini2[class*=s-] b,.rc.mini2[class*=s-] small{color:#fff}
+.rc.mini2.s-free{background:var(--b);border-color:var(--l)}.rc.mini2.s-free b,.rc.mini2.s-free small{color:#6F7A72}
+.rc.mini2.s-notice b,.rc.mini2.s-notice small{color:#3B2A00}
+.rc.mini2.s-off{background:repeating-linear-gradient(-45deg,#8B5A2B 0 7px,#7A4E25 7px 14px)}
+.rc.late,.rc.late[class*=s-]{background:#E53935!important}
+.rc.late b,.rc.late .who,.rc.late .rent{color:#fff!important}.rc.late .sub,.rc.late .sub svg{color:#FFE3E0!important}
+.rc.late .ch{background:#fff}
+.rc.mini2.late{background:#E53935;border:3px solid var(--c)}.rc.mini2.late b,.rc.mini2.late small{color:#fff}
+.rc.late:hover{filter:brightness(.98)}.ct p.r{text-align:right;text-indent:0}.ct p.sub{text-indent:0;padding-left:2.2cm}
+.ct .cf{border-bottom:1px dotted #000;padding:0 6px;font-weight:700;display:inline}
+.ct .sig{display:grid;grid-template-columns:1fr 1fr;gap:28pt 20pt;margin-top:30pt;text-align:center;page-break-inside:avoid}
+.fastwrap{overflow-x:auto;align-self:flex-start;max-width:100%}
+.fast{border-collapse:collapse;background:var(--surface);min-width:min(560px,100%);font-variant-numeric:tabular-nums}
+.fast th,.fast td{border:1.5px solid #3D4A42;padding:0}
+.fast thead th{background:var(--surface);color:var(--fg);font-size:1.15rem;font-weight:700;padding:6px 14px;text-align:center}
+.fast thead th.fh{font-size:1.3rem}
+.fast th.fr{font-size:1.3rem;font-weight:700;padding:4px 14px;text-align:center;min-width:110px;background:var(--surface)}
+.fast th.fr small{display:block;font-size:.72rem;font-weight:500;color:var(--muted);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 auto}
+.fast tr.ok th.fr{background:#E3F1E8}
+.fast td.fc{min-width:170px;position:relative}
+.fin{width:100%;border:0;background:transparent;font:600 1.25rem var(--body);text-align:right;padding:8px 12px 18px;color:var(--fg)}
+.fin::placeholder{color:#B9C2BC;font-weight:400}
+.fin:focus{outline:3px solid var(--accent);outline-offset:-3px;background:#F2F8F4}
+.fin.bad{background:#FDECEA;color:var(--crit)}
+.fc small{position:absolute;left:10px;bottom:3px;font-size:.72rem;color:var(--muted);pointer-events:none}.fc small.bad{color:var(--crit)}
+body:not(.r-owner) [data-act=delRoom],body:not(.r-owner) [data-act=delBill],body:not(.r-owner) [data-act=delRepair],body:not(.r-owner) [data-act=clearSample],body:not(.r-owner) [data-act=assignB]{display:none!important}
+body.r-worker .mroom small .pill{display:none}
+body.r-worker a[href="#bills"]{display:none!important}
+.menurep{border:1px solid #F4C9A8;background:#FFF6EC;border-radius:12px;padding:8px 10px;display:flex;flex-direction:column}
+.menurep>b{padding:2px 6px 6px}
+.menurep .lrow{grid-template-columns:minmax(0,1fr) auto}
+.legend i.lg-rep{width:16px!important;height:14px!important;border-radius:0!important;background:#FFC107!important;border:0!important;clip-path:polygon(50% 0,100% 100%,0 100%)}
+.legend i.lg-owe{background:#FFC107!important;border-color:#FFC107!important;color:#3B2A00!important}
+.rc,.rc[class*=s-],.rc.late,.rc.mini2[class*=s-],.rc.mini2.late,.rc.mini2.s-free,.rc.s-free{border:0!important;box-shadow:0 1px 3px rgba(20,45,30,.14)}
+.rc{padding-left:16px}.rc.mini2{padding-left:12px}
+.rc:hover{box-shadow:0 4px 14px rgba(20,45,30,.18)}
+.rc.s-free{background:#F1F3F1}
+.pgw{width:100%;border-collapse:collapse}.pgw td{padding:0}.pgw td.pgc{padding:0 18mm}.pgsp{height:14mm}
+.bdg.out{width:24px;height:24px;border-radius:50%;background:#E5A800;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px var(--surface),0 1px 3px rgba(0,0,0,.3)}.bdg.out svg{width:15px;height:15px}
+.legend i.lg-out{background:#E5A800!important;border-color:#E5A800!important;border-radius:50%;color:#fff;font-style:normal;font-size:9px;display:inline-flex;align-items:center;justify-content:center;width:15px!important;height:15px!important}
+.mbtns{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;align-items:flex-start}.mbtns .btn{margin-top:0!important}
+.mcur.lock{background:var(--sunk);color:var(--muted)}
+.fc.lk{background:#F3F5F2}.fc.lk .fin{color:#56655B}
+.fedit{position:absolute;right:6px;bottom:3px;font:600 .72rem var(--body);border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:0 6px;cursor:pointer;color:var(--accent)}
+.mo{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start}@media(max-width:760px){.mo{grid-template-columns:minmax(0,1fr)}}
+.moL{display:flex;flex-direction:column;gap:12px}.moR{position:sticky;top:0}
+.ckb{display:flex;gap:8px;align-items:center;color:var(--fg)}.ckb input{width:18px;height:18px}
+.paper .total.neg{color:#C23A2B}
+.stp{color:#000;font:13pt/1.5 "Sarabun",serif}.stp .paper{border:0;padding:0}.stp .sig{display:grid;grid-template-columns:1fr 1fr;gap:20pt;margin-top:40pt;text-align:center}
+.f.chk{flex-direction:row;align-items:center;gap:8px;color:var(--fg)}.f.chk input{width:20px;height:20px}
 
 </style></head><body><div class="w" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -181,7 +259,8 @@ const S={setup:{}};let BID='',bills=[],cred=null,cur=0;const $=s=>document.query
 const dl={save:async({filename,data})=>{const u=URL.createObjectURL(data);const a=document.createElement('a');a.href=u;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(u),2000)}};
 function makeQR(text,size){try{const d=document.createElement('div');new QRCode(d,{text,width:size,height:size,correctLevel:QRCode.CorrectLevel.M});return d.querySelector('canvas')}catch(e){return null}}
 function billLines(b){
-  return [['ค่าเช่าห้อง','',b.rent],
+  if(b.kind==='movein')return [...(b.items||[]).map(x=>[x.label,x.note||'',Number(x.amount)||0]),...(b.extras||[]).map(x=>[x.label||'รายการอื่น','',Number(x.amount)||0])];
+  return [['ค่าเช่าห้อง',b.rentPrepaid?'ชำระแล้วในบิลแรกเข้า':'',b.rent],
    ['ค่าน้ำ',`${units(b.water.prev)} → ${units(b.water.cur)} = ${units(b.waterUnits)} หน่วย × ${baht(b.rates.water)}`,b.waterAmt],
    ['ค่าไฟ',`${units(b.elec.prev)} → ${units(b.elec.cur)} = ${units(b.elecUnits)} หน่วย × ${baht(b.rates.elec)}`,b.elecAmt],
    ...(b.common?[['ค่าส่วนกลาง','',b.common]]:[]),...(b.extras||[]).map(x=>[x.label||'รายการอื่น','',Number(x.amount)||0])];
@@ -194,7 +273,7 @@ function hdr(b,s,bid){const B=(s.buildings||[]).find(x=>x.id===bid)||{};const ma
 function paperHTML(b){const s=S.setup,h=hdrOf(b),paid=b.status==='paid';
   return `<div class="paper">
     <div class="phead"><div class="pl"><h3>${esc(h.name)}</h3>${h.bname?`<div class="pb">${esc(h.bname)}</div>`:''}${h.address?`<div class="pa">${esc(h.address)}</div>`:''}${h.phone?`<div class="pa">โทร ${esc(h.phone)}</div>`:''}</div>
-    <div class="pr"><b>${paid?'ใบเสร็จรับเงิน':'ใบแจ้งค่าเช่า'}</b><span>เลขที่ ${esc(b.billNo)}</span><span>เดือน ${monthLabel(b.month)}</span></div></div>
+    <div class="pr"><b>${paid?'ใบเสร็จรับเงิน':b.kind==='movein'?'ใบแจ้งค่าแรกเข้า':'ใบแจ้งค่าเช่า'}</b><span>เลขที่ ${esc(b.billNo)}</span><span>${b.kind==='movein'?'เข้าพัก '+thDate(b.moveInAt):'เดือน '+monthLabel(b.month)}</span></div></div>
     <div class="pto">ห้อง <b>${esc(b.roomNumber)}</b>${h.bname?' · '+esc(h.bname):''}${b.tenantName?' · '+esc(b.tenantName):''}</div>
     <div style="overflow-x:auto"><table><thead><tr><th>รายการ</th><th class="num">บาท</th></tr></thead><tbody>${billLines(b).map(([x,d,n])=>`<tr><td>${esc(x)}${d?`<small>${esc(d)}</small>`:''}</td><td class="num">${baht(n)}</td></tr>`).join('')}</tbody></table></div>
     <div class="total"><span>รวมทั้งสิ้น</span><span>${baht(b.total)} บาท</span></div>
@@ -215,7 +294,7 @@ async function billPng(b){
   c.width=W;c.height=H;g.fillStyle='#fff';g.fillRect(0,0,W,H);
   const T=(t,x,yy,f,al='left',col='#1A2B29')=>{g.font=f;g.textAlign=al;g.fillStyle=col;g.fillText(t,x,yy)};
   let y=56;left.forEach(([t,f,col,lh],i)=>{T(t,P,y,f,'left',col);y+=lh});
-  T(paid?'ใบเสร็จรับเงิน':'ใบแจ้งค่าเช่า',W-P,56,`600 24px ${F}`,'right');T('เลขที่ '+b.billNo,W-P,88,`400 17px ${F}`,'right','#5C6E6B');T('เดือน '+monthLabel(b.month),W-P,114,`400 17px ${F}`,'right','#5C6E6B');
+  T(paid?'ใบเสร็จรับเงิน':b.kind==='movein'?'ใบแจ้งค่าแรกเข้า':'ใบแจ้งค่าเช่า',W-P,56,`600 24px ${F}`,'right');T('เลขที่ '+b.billNo,W-P,88,`400 17px ${F}`,'right','#5C6E6B');T(b.kind==='movein'?'เข้าพัก '+thDate(b.moveInAt):'เดือน '+monthLabel(b.month),W-P,114,`400 17px ${F}`,'right','#5C6E6B');
   y=Math.max(y,130)+14;T(`ห้อง ${b.roomNumber}${h.bname?' · '+h.bname:''}${b.tenantName?' · '+b.tenantName:''}`,P,y,`600 21px ${F}`);y+=22;
   g.strokeStyle='#1A2B29';g.lineWidth=2;g.beginPath();g.moveTo(P,y);g.lineTo(W-P,y);g.stroke();y+=36;
   lines.forEach(([a,d,n])=>{T(a,P,y,`500 21px ${F}`);T(baht(n),W-P,y,`500 21px ${F}`,'right');if(d)T(d,P,y+22,`400 16px ${F}`,'left','#5C6E6B');y+=54});
@@ -237,14 +316,14 @@ async function load(room,code,month){if(!sb)return login('ระบบยัง�
   const{data,error}=await sb.rpc('get_bills',{p_room:room,p_code:code});
   if(error)return login('เปิดบิลไม่ได้ ตรวจอินเทอร์เน็ตแล้วลองอีกครั้ง',room,code);if(data.error==='locked')return login('ลองผิดหลายครั้ง รอ 15 นาทีแล้วลองใหม่');if(data.error){try{localStorage.removeItem('rb_r');localStorage.removeItem('rb_c')}catch(e){}return login('เลขห้องหรือรหัสไม่ถูกต้อง หรือรหัสห้องถูกเปลี่ยนแล้ว',room)}
   cred={room,code};try{localStorage.setItem('rb_r',room);localStorage.setItem('rb_c',code)}catch(e){}S.setup=data.setup||{};BID=data.building||'';bills=data.bills||[];
-  const i=month?bills.findIndex(b=>b.month===month):-1;show(i>=0?i:0)}
+  let i=month?bills.findIndex(b=>b.id===month):-1;if(i<0&&month)i=bills.findIndex(b=>b.month===month&&b.kind!=='movein');if(i<0&&month)i=bills.findIndex(b=>b.month===month);show(i>=0?i:0)}
 function statusPill(b){return b.status==='paid'?'<span class="pill paid">ชำระแล้ว</span>':b.slip?'<span class="pill wait">ส่งสลิปแล้ว รอตรวจ</span>':b.dueDate<todayStr()?'<span class="pill late">เกินกำหนด</span>':'<span class="pill due">รอชำระ</span>'}
 function contact(){const h=hdr({},S.setup,BID),ln=S.setup.line||'';if(!h.phone&&!ln)return '';
   const lnk=/^https?:\/\//.test(ln)?ln:(ln?'https://line.me/R/ti/p/'+encodeURIComponent(ln.startsWith('@')?ln:'@'+ln):'');
   return `<div class="card"><h2>ติดต่อหอพัก</h2>${h.phone?`<div class="line"><span>โทร <b>${esc(h.phone)}</b></span><a class="btn" href="tel:${esc(h.phone.replace(/[^0-9+]/g,''))}">โทร</a></div>`:''}${ln?`<div class="line"><span>LINE <b>${esc(ln)}</b></span><a class="btn" href="${esc(lnk)}" target="_blank" rel="noopener">เปิด LINE</a></div>`:''}</div>`}
 function show(i){cur=i;if(!bills.length){$('#app').innerHTML=brand()+'<div class="card"><p>ยังไม่มีบิลของห้องนี้</p></div>'+contact()+'<button class="btn" id="bk">ออก</button>';$('#bk').onclick=()=>login();return}
   const b=bills[i];
-  $('#app').innerHTML=brand()+`<div class="line" style="display:flex;gap:10px;align-items:end"><label style="flex:1">เดือน<select id="mo">${bills.map((x,j)=>`<option value="${j}" ${j===i?'selected':''}>${monthLabel(x.month)}${x.status==='paid'?' · ชำระแล้ว':''}</option>`).join('')}</select></label><div style="padding-bottom:8px">${statusPill(b)}</div></div>
+  $('#app').innerHTML=brand()+`<div class="line" style="display:flex;gap:10px;align-items:end"><label style="flex:1">บิล<select id="mo">${bills.map((x,j)=>`<option value="${j}" ${j===i?'selected':''}>${x.kind==='movein'?'ค่าแรกเข้า '+monthLabel(x.month):monthLabel(x.month)}${x.status==='paid'?' · ชำระแล้ว':''}</option>`).join('')}</select></label><div style="padding-bottom:8px">${statusPill(b)}</div></div>
   ${paperHTML(b)}
   ${b.status==='unpaid'?`<div class="card" id="slipCard"><h2>แนบสลิปโอนเงิน</h2>${b.slip?`<p class="ok">ส่งสลิปแล้วเมื่อ ${thDT(b.slip.at)} หอพักจะตรวจและยืนยันให้</p><p class="m">ถ้าส่งผิด เลือกรูปใหม่เพื่อส่งแทนได้</p>`:'<p class="m">โอนแล้ว ถ่ายหรือเลือกรูปสลิป แล้วกดส่ง</p>'}
     <input type="file" id="slipFile" accept="image/*"><img id="slipPrev" class="slipprev" hidden alt="ตัวอย่างสลิป"><button class="btn pri" id="slipSend" disabled>ส่งสลิป</button><p id="slipMsg" class="m" role="status"></p></div>`:''}
