@@ -351,6 +351,7 @@ body.r-worker a[href="#bills"]{display:none!important}
 .paper .total.neg{color:#C23A2B}
 .stp{color:#000;font:13pt/1.5 "Sarabun",serif}.stp .paper{border:0;padding:0}.stp .sig{display:grid;grid-template-columns:1fr 1fr;gap:20pt;margin-top:40pt;text-align:center}
 .f.chk{flex-direction:row;align-items:center;gap:8px;color:var(--fg)}.f.chk input{width:20px;height:20px}
+.beh{color:var(--accent,#1D5B3B);font-size:.85rem;font-weight:600;min-height:1.2em}
 /* room states */
 .s-on{--c:#2E9E5B;--b:#E6F6EC;--l:#A6DBBB}
 .s-free{--c:#A9B2AC;--b:#FAFBFA;--l:#D9DEDA}
@@ -857,6 +858,12 @@ function paint(){
 }
 
 /* ---------- dialogs ---------- */
+/* แสดงวันที่เป็น พ.ศ. ใต้ช่องวันที่ทุกช่อง */
+const beTxt=x=>x.value?'พ.ศ. '+(x.type==='date'?thDate(x.value):thDT(x.value.replace(' ','T'))):'';
+function beHints(){document.querySelectorAll('input[type=date],input[type=datetime-local]').forEach(x=>{let h=x.nextElementSibling;if(!h||!h.classList.contains('beh')){h=document.createElement('small');h.className='beh';h.setAttribute('aria-hidden','true');x.after(h)}const t=beTxt(x);if(h.textContent!==t)h.textContent=t})}
+new MutationObserver(()=>beHints()).observe(document.documentElement,{childList:true,subtree:true});
+['input','change'].forEach(ev=>document.addEventListener(ev,e=>{if(e.target.matches?.('input[type=date],input[type=datetime-local]'))beHints()}));
+document.addEventListener('click',()=>setTimeout(beHints,0));
 const openDlg=h=>{$('#dlgBody').innerHTML=h;const d=$('#dlg');if(!d.open)d.showModal()};
 const closeDlg=()=>$('#dlg').close();
 const dHead=t=>`<header><h2>${esc(t)}</h2><button type="button" class="btn sm" data-act="close">ปิด</button></header>`;
