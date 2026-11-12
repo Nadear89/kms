@@ -721,22 +721,24 @@ function vTenants(){
   return `<div class="head"><div><h1>ผู้เช่า</h1><p>พักอยู่ ${activeTenants().length} คน</p></div><div class="row"><input class="search" id="q" type="search" placeholder="ค้นหาชื่อ เบอร์ หรือห้อง" value="${esc(query)}" aria-label="ค้นหาผู้เช่า"><button class="btn pri" data-act="newTenant">รับผู้เช่าใหม่</button></div></div>${sampleNote()}${appsBox()}
   ${rows?`<div class="tw"><table><thead><tr><th>ห้อง</th><th>ผู้เช่า</th><th>วันเวลาเข้าพัก</th><th>สถานะ</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`:`<div class="empty">${q?'ไม่พบผู้เช่าที่ตรงกับคำค้น':'ยังไม่มีผู้เช่า กด "รับผู้เช่าใหม่" เพื่อเริ่ม'}</div>`}`;
 }
-function moveinForm(tid){const t=S.tenants[tid];if(!t)return;const ex=S.bills['in_'+tid];if(ex)return billDlg(ex);
-  const mi=(t.moveInAt||todayStr()).slice(0,10),m=mi.slice(0,7);
-  openDlg(`<div class="dlg">${dHead('ทำบิลแรกเข้า ห้อง '+roomNo(t.roomId))}<p>${esc(t.name)} · เข้าพัก ${thDate(mi)}</p>
+function moveinForm(tid,edit){const t=S.tenants[tid];if(!t)return;const ex=S.bills['in_'+tid];if(ex&&!edit)return billDlg(ex);
+  const mi=(ex?.moveInAt||t.moveInAt||todayStr()).slice(0,10),m=mi.slice(0,7),E=edit&&ex,KN=['ค่าเช่าเดือนแรก','เงินประกัน','ค่าเช่าล่วงหน้า','หักเงินจอง'];
+  const it=l=>Math.abs(Number(E?.items?.find(x=>x.label===l)?.amount)||0),oth=E?.items?.find(x=>!KN.includes(x.label));
+  const val=(l,def)=>E?it(l):def;
+  openDlg(`<div class="dlg">${dHead((E?'แก้ไขบิลแรกเข้า ห้อง ':'ทำบิลแรกเข้า ห้อง ')+roomNo(t.roomId))}<p>${esc(t.name)} · เข้าพัก ${thDate(mi)}</p>
   <form data-form="movein" data-id="${tid}" id="miF"><fieldset><legend>รายการที่เก็บวันทำสัญญา</legend>
-  <label class="f">ค่าเช่าเดือนแรก<input name="rent" type="number" min="0" step="any" value="${Number(t.rent)||0}"></label>
-  <label class="f">เงินประกัน<input name="deposit" type="number" min="0" step="any" value="${Number(t.deposit)||0}"></label>
-  <label class="f">ค่าเช่าล่วงหน้า<input name="advance" type="number" min="0" step="any" value="0"></label>
-  <label class="f">หักเงินจองที่จ่ายแล้ว<input name="booking" type="number" min="0" step="any" value="0"></label>
-  <label class="f">รายการอื่น (ถ้ามี)<input name="otherLabel" placeholder="เช่น ค่ากุญแจ ค่าคีย์การ์ด"></label>
-  <label class="f">จำนวนเงิน<input name="otherAmt" type="number" step="any" value=""></label>
-  <label class="f full chk"><input type="checkbox" name="skip" checked> บิลรายเดือนของเดือน${monthLabel(m)} ไม่ต้องคิดค่าเช่าซ้ำ (เก็บค่าเช่าเดือนนี้ไปแล้ว)</label>
-  <label class="f">ครบกำหนดชำระทั้งหมด<input name="dueDate" type="date" required value="${todayStr()}"></label></fieldset>
-  <fieldset><legend>ชำระวันแรกเข้า (ผ่อนส่วนที่เหลือได้)</legend><label class="f">ยอดที่ลูกค้าจ่ายวันนี้<input name="payToday" id="miPay" type="number" min="0" step="any"></label><label class="f">ช่องทาง<select name="payMethod"><option>โอนธนาคาร</option><option>โอนพร้อมเพย์</option><option>เงินสด</option></select></label><p id="miRem" style="grid-column:1/-1;margin:0;font-weight:700"></p></fieldset>
+  <label class="f">ค่าเช่าเดือนแรก<input name="rent" type="number" min="0" step="any" value="${val('ค่าเช่าเดือนแรก',Number(t.rent)||0)}"></label>
+  <label class="f">เงินประกัน<input name="deposit" type="number" min="0" step="any" value="${val('เงินประกัน',Number(t.deposit)||0)}"></label>
+  <label class="f">ค่าเช่าล่วงหน้า<input name="advance" type="number" min="0" step="any" value="${val('ค่าเช่าล่วงหน้า',0)}"></label>
+  <label class="f">หักเงินจองที่จ่ายแล้ว<input name="booking" type="number" min="0" step="any" value="${val('หักเงินจอง',0)}"></label>
+  <label class="f">รายการอื่น (ถ้ามี)<input name="otherLabel" placeholder="เช่น ค่ากุญแจ ค่าคีย์การ์ด" value="${esc(oth?.label||'')}"></label>
+  <label class="f">จำนวนเงิน<input name="otherAmt" type="number" step="any" value="${oth?oth.amount:''}"></label>
+  <label class="f full chk"><input type="checkbox" name="skip" ${E&&!E.skipRentMonth?'':'checked'}> บิลรายเดือนของเดือน${monthLabel(m)} ไม่ต้องคิดค่าเช่าซ้ำ (เก็บค่าเช่าเดือนนี้ไปแล้ว)</label>
+  <label class="f">ครบกำหนดชำระทั้งหมด<input name="dueDate" type="date" required value="${E?.dueDate||todayStr()}"></label></fieldset>
+  <fieldset><legend>${E?'ยอดที่ลูกค้าชำระแล้ว (ผ่อนจ่าย ใส่ยอดที่จ่ายจริง)':'ชำระวันแรกเข้า (ผ่อนส่วนที่เหลือได้)'}</legend><label class="f">${E?'ชำระแล้วทั้งหมด':'ยอดที่ลูกค้าจ่ายวันนี้'}<input name="payToday" id="miPay" type="number" min="0" step="any" ${E?`value="${paidOf(E)}" data-ed="1"`:''}></label><label class="f">ช่องทาง<select name="payMethod"><option>โอนธนาคาร</option><option>โอนพร้อมเพย์</option><option>เงินสด</option></select></label><p id="miRem" style="grid-column:1/-1;margin:0;font-weight:700"></p></fieldset>
   <div class="total" style="margin-top:10px;display:flex;justify-content:space-between;font-weight:700"><span>รวม</span><span id="miT">-</span></div>
-  <div class="actions"><button type="button" class="btn" data-act="close">ยกเลิก</button><button class="btn pri">สร้างบิลแรกเข้า</button></div></form></div>`);
-  const f=$('#miF'),upd=e=>{const T=round2(moveinItems(f).reduce((a,x)=>a+x.amount,0)),pi=$('#miPay');$('#miT').textContent=baht(T)+' บาท';if(e?.target!==pi&&!pi.dataset.ed)pi.value=T;if(e?.target===pi)pi.dataset.ed=1;const r=round2(T-(Number(pi.value)||0));$('#miRem').textContent=r>0?`คงเหลือผ่อน ${baht(r)} บาท (ห้องจะเป็นสีแดงจนกว่าจะจ่ายครบ)`:'จ่ายครบวันนี้';$('#miRem').style.color=r>0?'#C62828':'#1C7A4A'};f.oninput=upd;upd()}
+  <div class="actions"><button type="button" class="btn" data-act="close">ยกเลิก</button><button class="btn pri">${E?'บันทึกการแก้ไข':'สร้างบิลแรกเข้า'}</button></div></form></div>`);
+  const f=$('#miF'),upd=e=>{const T=round2(moveinItems(f).reduce((a,x)=>a+x.amount,0)),pi=$('#miPay');$('#miT').textContent=baht(T)+' บาท';if(e?.target!==pi&&!pi.dataset.ed)pi.value=T;if(e?.target===pi)pi.dataset.ed=1;const r=round2(T+(E?.extrasTotal||0)-(Number(pi.value)||0));$('#miRem').textContent=r>0?`คงเหลือผ่อน ${baht(r)} บาท (ห้องจะเป็นสีแดงจนกว่าจะจ่ายครบ)`:E?'จ่ายครบแล้ว':'จ่ายครบวันนี้';$('#miRem').style.color=r>0?'#C62828':'#1C7A4A'};f.oninput=upd;upd()}
 function moveinItems(f){const v=k=>Number(f.elements[k].value)||0,L=[];
   if(v('rent'))L.push({label:'ค่าเช่าเดือนแรก',amount:v('rent')});if(v('deposit'))L.push({label:'เงินประกัน',note:'คืนเมื่อย้ายออกตามสัญญา',amount:v('deposit')});
   if(v('advance'))L.push({label:'ค่าเช่าล่วงหน้า',amount:v('advance')});if(v('otherAmt'))L.push({label:f.elements.otherLabel.value.trim()||'รายการอื่น',amount:v('otherAmt')});
@@ -1153,7 +1155,7 @@ function billDlg(b){
     <div class="xrow"><input id="xLabel" aria-label="ชื่อรายการใหม่" placeholder="เช่น ค่าปรับล่าช้า"><input id="xAmt" aria-label="จำนวนเงินใหม่" type="number" step="any" placeholder="บาท"><button class="btn sm" data-act="xAdd" data-id="${b.id}">เพิ่ม</button></div></div>
     <form data-form="pay" data-id="${b.id}"><fieldset><legend>รับชำระเงิน</legend><label class="f">วันที่รับเงิน<input name="paidAt" type="date" required value="${todayStr()}"></label><label class="f">ช่องทาง<select name="payMethod"><option>โอนธนาคาร</option><option>โอนพร้อมเพย์</option><option>เงินสด</option></select></label><label class="f">จำนวนเงินที่รับ (ผ่อนได้)<input name="amount" type="number" step="any" min="0.01" required value="${dueOf(b)}"></label></fieldset><div class="actions" style="margin-top:10px"><button class="btn pri">บันทึกรับเงิน</button></div></form>`:''}
   <div class="actions"><button class="btn" data-act="copyBill" data-id="${b.id}">คัดลอกข้อความส่ง LINE</button>${b.status==='unpaid'&&isLate(b)?`<button class="btn danger" data-act="remind" data-id="${b.roomId}">🔔 คัดลอกข้อความทวง</button>`:''}${dl?`<button class="btn" data-act="pngBill" data-id="${b.id}">บันทึกบิลเป็นรูป</button>`:''}
-  ${canWrite?(b.status==='paid'?`<button class="btn" data-act="unpay" data-id="${b.id}">ยกเลิกการรับเงิน</button>`:`${b.kind==='movein'?'':`<button class="btn" data-act="recalc" data-id="${b.id}">คำนวณใหม่จากมิเตอร์</button>`}<button class="btn danger" data-act="delBill" data-id="${b.id}">ลบบิล</button>`):''}</div></div>`);
+  ${canWrite&&b.kind==='movein'?`<button class="btn" data-act="moveinEdit" data-id="${b.tenantId}">✏️ แก้ไขบิลแรกเข้า / ยอดผ่อน</button>`:''}${canWrite?(b.status==='paid'?`<button class="btn" data-act="unpay" data-id="${b.id}">ยกเลิกการรับเงิน</button>`:`${b.kind==='movein'?'':`<button class="btn" data-act="recalc" data-id="${b.id}">คำนวณใหม่จากมิเตอร์</button>`}<button class="btn danger" data-act="delBill" data-id="${b.id}">ลบบิล</button>`):''}</div></div>`);
   fillQR(b);
   if(b.slip&&sb?.storage)sb.storage.from('slips').createSignedUrl(b.slip.path,3600).then(({data,error})=>{const e=$('#slipImg');if(!e)return;if(error||!data)e.textContent='เปิดสลิปไม่ได้ ตรวจว่ารันไฟล์ SQL อัปเดตแล้ว';else e.innerHTML=`<a href="${data.signedUrl}" target="_blank" rel="noopener"><img src="${data.signedUrl}" alt="สลิปโอนเงิน"></a>`});
 }
@@ -1227,6 +1229,7 @@ const ACT={
   issueAll:async()=>{const l=billRows().filter(x=>!x.b&&readingOk(x.r));for(const x of l)await issueRoom(x.rid);toast(`ออกบิลแล้ว ${l.length} ห้อง`)},
   openBill:e=>billDlg(S.bills[e.dataset.id]),
   moveinBill:e=>moveinForm(e.dataset.id),
+  moveinEdit:e=>moveinForm(e.dataset.id,true),
   xAdd:async e=>{const b=S.bills[e.dataset.id],label=$('#xLabel').value.trim(),amount=num($('#xAmt').value);if(amount==null)return toast('ใส่จำนวนเงินก่อน');await saveExtras(b,[...(b.extras||[]),{label:label||'รายการอื่น',amount}])},
   xDel:async e=>{const b=S.bills[e.dataset.id];await saveExtras(b,(b.extras||[]).filter((_,i)=>i!==Number(e.dataset.i)))},
   recalc:async e=>{const b=S.bills[e.dataset.id],n=buildBill(b.roomId,b.month,b);if(!n)return toast('คำนวณไม่ได้ ตรวจเลขมิเตอร์และผู้เช่าของห้องนี้');await put('bills',b.id,n);billDlg({...n,id:b.id});toast('คำนวณใหม่แล้ว')},
@@ -1269,6 +1272,11 @@ const FORM={
     const mi=(t.moveInAt||todayStr()).slice(0,10),m=mi.slice(0,7),id='in_'+tid,total=round2(items.reduce((a,x)=>a+x.amount,0));
     const b={kind:'movein',month:m,moveInAt:mi,roomId:t.roomId,roomNumber:room.number||'',tenantId:tid,tenantName:t.name,billNo:'IN-'+(Number(m.slice(0,4))+543)+m.slice(5,7)+'-'+(multi()?(BLD().findIndex(x=>x.id===roomBld(room))+1)+'-':'')+(room.number||''),
       buildingName:multi()?bldName(roomBld(room)):'',buildingAddress:BLD().find(x=>x.id===roomBld(room))?.address||'',items,extras:[],extrasTotal:0,rent:Number(f.elements.rent.value)||0,total,skipRentMonth:f.elements.skip.checked&&Number(f.elements.rent.value)?m:undefined,issuedAt:todayStr(),dueDate:d.dueDate,status:'unpaid'};
+    const ex=S.bills[id];if(ex){const{id:_,...o}=ex,ext=Number(o.extrasTotal)||0,tot=round2(total+ext),pd=round2(Number(d.payToday)||0);
+      let P=o.payments||[];if(pd!==paidOf(ex))P=pd>0?[{at:P[0]?.at||o.paidAt||todayStr(),amount:pd,method:d.payMethod}]:[];
+      const n={...o,items,rent:b.rent,total:tot,skipRentMonth:b.skipRentMonth,dueDate:d.dueDate,payments:P};const full=pd>=tot-0.001&&pd>0;
+      if(full){n.status='paid';n.paidAt=n.paidAt||todayStr();n.payMethod=n.payMethod||d.payMethod}else{n.status='unpaid';delete n.paidAt;delete n.payMethod}
+      if(await put('bills',id,n)){billDlg({...n,id});toast(full?'แก้ไขแล้ว · ชำระครบ':`แก้ไขแล้ว · คงเหลือ ${baht(dueOf(n))} บาท`)}return}
     if(!await put('bills',id,b))return;const pt=Number(d.payToday)||0;if(pt>0)await addPay({...b,id},{at:todayStr(),amount:Math.min(pt,total),method:d.payMethod});else{billDlg({...b,id});toast('สร้างบิลแรกเข้าแล้ว')}},
   pay:async(d,id)=>{const a=Number(d.amount)||0;if(a<=0)return toast('ใส่จำนวนเงิน');await addPay(S.bills[id],{at:d.paidAt,amount:a,method:d.payMethod})},
   blds:async d=>{await saveB(BLD().map(b=>({...b,name:(d[b.id]||b.name).trim(),address:(d['addr_'+b.id]??b.address??'').trim(),billName:(d['bn_'+b.id]??b.billName??'').trim(),phone:(d['ph_'+b.id]??b.phone??'').trim()})))},
