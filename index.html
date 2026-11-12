@@ -351,7 +351,7 @@ body.r-worker a[href="#bills"]{display:none!important}
 .paper .total.neg{color:#C23A2B}
 .stp{color:#000;font:13pt/1.5 "Sarabun",serif}.stp .paper{border:0;padding:0}.stp .sig{display:grid;grid-template-columns:1fr 1fr;gap:20pt;margin-top:40pt;text-align:center}
 .f.chk{flex-direction:row;align-items:center;gap:8px;color:var(--fg)}.f.chk input{width:20px;height:20px}
-.beh{color:var(--accent,#1D5B3B);font-size:.85rem;font-weight:600;min-height:1.2em}
+.thd{display:flex;gap:6px;flex-wrap:wrap}.thd select,.thd input{flex:1 1 0;min-width:4.5em}.thd .thM{flex:2 1 0;min-width:7em}.thd .thY{min-width:5.6em}.thd .thT{flex:1.4 1 0;min-width:6.5em}
 /* room states */
 .s-on{--c:#2E9E5B;--b:#E6F6EC;--l:#A6DBBB}
 .s-free{--c:#A9B2AC;--b:#FAFBFA;--l:#D9DEDA}
@@ -858,12 +858,23 @@ function paint(){
 }
 
 /* ---------- dialogs ---------- */
-/* แสดงวันที่เป็น พ.ศ. ใต้ช่องวันที่ทุกช่อง */
-const beTxt=x=>x.value?'พ.ศ. '+(x.type==='date'?thDate(x.value):thDT(x.value.replace(' ','T'))):'';
-function beHints(){document.querySelectorAll('input[type=date],input[type=datetime-local]').forEach(x=>{let h=x.nextElementSibling;if(!h||!h.classList.contains('beh')){h=document.createElement('small');h.className='beh';h.setAttribute('aria-hidden','true');x.after(h)}const t=beTxt(x);if(h.textContent!==t)h.textContent=t})}
-new MutationObserver(()=>beHints()).observe(document.documentElement,{childList:true,subtree:true});
-['input','change'].forEach(ev=>document.addEventListener(ev,e=>{if(e.target.matches?.('input[type=date],input[type=datetime-local]'))beHints()}));
-document.addEventListener('click',()=>setTimeout(beHints,0));
+/* ช่องวันที่แบบ พ.ศ.: แปลงช่อง date / datetime-local ทุกช่องเป็น วัน · เดือน · ปี พ.ศ. (· เวลา) ค่าจริงยังเก็บเป็น ค.ศ. ในช่องเดิม */
+const TMF=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+function thPick(x){if(x.dataset.th)return;const dt=x.type==='datetime-local';x.dataset.th=dt?'dt':'d';x.type='hidden';
+  const w=document.createElement('span');w.className='thd';const lab=x.closest('label')?.firstChild?.textContent?.trim()||'วันที่';
+  const by=new Date().getFullYear()+543,vy=Number((x.value||'').slice(0,4))+543||by,ys=[];for(let y=Math.min(by-80,vy);y<=Math.max(by+10,vy);y++)ys.push(y);
+  w.innerHTML=`<select class="thD" aria-label="${esc(lab)} วัน"><option value="">วัน</option>${Array.from({length:31},(_,i)=>`<option>${i+1}</option>`).join('')}</select><select class="thM" aria-label="${esc(lab)} เดือน"><option value="">เดือน</option>${TMF.map((m,i)=>`<option value="${i+1}">${m}</option>`).join('')}</select><select class="thY" aria-label="${esc(lab)} ปี พ.ศ."><option value="">ปี พ.ศ.</option>${ys.reverse().map(y=>`<option>${y}</option>`).join('')}</select>${dt?`<input class="thT" type="time" aria-label="${esc(lab)} เวลา">`:''}`;
+  if(x.required)w.querySelectorAll('select').forEach(e=>e.required=true);if(x.disabled)w.querySelectorAll('select,input').forEach(e=>e.disabled=true);
+  x.after(w);thSync(x);
+  w.addEventListener('change',()=>{const d=+w.querySelector('.thD').value,m=+w.querySelector('.thM').value,y=+w.querySelector('.thY').value;let v='';
+    if(d&&m&&y){const Y=y-543,last=new Date(Y,m,0).getDate(),dd=Math.min(d,last);if(dd!==d)w.querySelector('.thD').value=dd;v=Y+'-'+pad(m)+'-'+pad(dd);if(dt)v+='T'+(w.querySelector('.thT').value||'12:00')}
+    x.value=v;x.dispatchEvent(new Event('input',{bubbles:true}));x.dispatchEvent(new Event('change',{bubbles:true}))})}
+function thSync(x){const w=x.nextElementSibling;if(!w?.classList.contains('thd'))return;const v=x.value||'',[y,m,d]=v.slice(0,10).split('-').map(Number);
+  const set=(c,val)=>{const e=w.querySelector(c);if(!e)return;if(c==='.thY'&&val&&![...e.options].some(o=>o.value==val))e.add(new Option(val,val),1);if(e.value!=String(val))e.value=val};
+  set('.thD',v?d:'');set('.thM',v?m:'');set('.thY',v?y+543:'');if(x.dataset.th==='dt')set('.thT',v.slice(11,16))}
+function thAll(){document.querySelectorAll('input[type=date],input[type=datetime-local]').forEach(thPick);document.querySelectorAll('input[data-th]').forEach(thSync)}
+new MutationObserver(thAll).observe(document.documentElement,{childList:true,subtree:true});
+document.addEventListener('click',()=>setTimeout(thAll,0));
 const openDlg=h=>{$('#dlgBody').innerHTML=h;const d=$('#dlg');if(!d.open)d.showModal()};
 const closeDlg=()=>$('#dlg').close();
 const dHead=t=>`<header><h2>${esc(t)}</h2><button type="button" class="btn sm" data-act="close">ปิด</button></header>`;
