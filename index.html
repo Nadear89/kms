@@ -360,6 +360,7 @@ body.r-worker a[href="#bills"]{display:none!important}
 .s-ending{--c:#8E44E8;--b:#F1E7FD;--l:#CDAEF5}
 .s-off{--c:#8B5A2B;--b:#F3E8DC;--l:#D2B394}
 .s-resv{--c:#1F4FCF;--b:#DFE7FC;--l:#9EB4F0}
+.s-apply{--c:#F07C1A;--b:#FFE7D1;--l:#F6B27A}
 .s-notice{--c:#E5A800;--b:#FFF5CF;--l:#F1D574}
 .s-soon{--c:#E5A800;--b:#FFF5CF;--l:#F1D574}
 .tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
@@ -588,9 +589,12 @@ function billPill(b){return b.status==='paid'?'<span class="pill ok">ชำร�
 function sampleNote(){const has=COLS.some(c=>Object.values(S[c]).some(x=>x.sample));
   return has?`<div class="note"><span>ข้อมูลที่เห็นตอนนี้เป็นตัวอย่าง ผู้เช่าและยอดเงินไม่ใช่ข้อมูลจริง</span>${canWrite?'<button class="btn sm" data-act="clearSample">ลบข้อมูลตัวอย่าง</button>':''}</div>`:''}
 
-const ST={on:'มีผู้เข้าพัก',free:'ห้องว่าง',resv:'จองแล้ว',daily:'ห้องพักรายวัน',notice:'แจ้งออก',ending:'สัญญาใกล้หมด',off:'ปิดรอซ่อม'};
+const ST={on:'มีผู้เข้าพัก',free:'ห้องว่าง',apply:'รอทำสัญญา',resv:'จองแล้ว',daily:'ห้องพักรายวัน',notice:'แจ้งออก',ending:'สัญญาใกล้หมด',off:'ปิดรอซ่อม'};
 const OCC=['on','notice','ending'];
-function roomState(r){if(r.closed)return 'off';const t=tenantOf(r.id);if(t){if(t.planOut)return 'notice';if(t.contractEnd&&daysTo(t.contractEnd)<=30)return 'ending';return 'on'}if(r.reservation?.name)return 'resv';return r.daily?'daily':'free'}
+/* คำขอทำสัญญาที่ยังไม่ได้รับเข้าพัก จับคู่กับห้องจากเลขห้อง (+หลัง) */
+function appFor(rid){const r=S.rooms[rid];if(!r)return null;const n=String(r.number).trim().toLowerCase(),b=roomBld(r);
+  return Object.values(S.applications).filter(a=>a.status==='new'&&String(a.roomNumber||'').trim().toLowerCase()===n&&(!a.building||!multi()||a.building===b)).sort((x,y)=>String(y.at).localeCompare(String(x.at)))[0]||null}
+function roomState(r){if(r.closed)return 'off';const t=tenantOf(r.id);if(t){if(t.planOut)return 'notice';if(t.contractEnd&&daysTo(t.contractEnd)<=30)return 'ending';return 'on'}if(appFor(r.id))return 'apply';if(r.reservation?.name)return 'resv';return r.daily?'daily':'free'}
 let planMode=(()=>{try{return localStorage.getItem('plan')||'full'}catch(e){return 'full'}})(),homeTab='plan';
 let planFilter='all';
 const IC2={pct:'<path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><circle cx="12" cy="14" r="2.5"/>',cash:'<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 9v.01M18 15v.01"/>',
@@ -630,14 +634,14 @@ function vHome(){
   const rowsR=resv.slice(0,6).map(r=>`<button class="lrow" data-act="roomMenu" data-id="${r.id}"><b class="rn">${esc(roomNo(r.id))}</b><span class="lt">${esc(r.reservation.name)}<small>เข้าพัก ${r.reservation.date?dmy(r.reservation.date):'-'}</small></span><span class="amt">${baht(r.reservation.deposit)}</span></button>`).join('');
   // plan
   const repRooms=new Set(openRepairs().map(x=>x.roomId));
-  const F={all:r=>true,owe:r=>owRooms.has(r.id),free:r=>roomState(r)==='free',out:r=>roomState(r)==='notice',resv:r=>roomState(r)==='resv',daily:r=>roomState(r)==='daily',ending:r=>roomState(r)==='ending',rep:r=>repRooms.has(r.id)};
+  const F={all:r=>true,owe:r=>owRooms.has(r.id),free:r=>roomState(r)==='free',out:r=>roomState(r)==='notice',resv:r=>roomState(r)==='resv',apply:r=>roomState(r)==='apply',daily:r=>roomState(r)==='daily',ending:r=>roomState(r)==='ending',rep:r=>repRooms.has(r.id)};
   const fl=rs.filter(F[planFilter]||F.all);
     const card=r=>{const st=roomState(r),t=tenantOf(r.id),rv=r.reservation,ow=owRooms.has(r.id),lt=lateRooms.has(r.id);
     const warn=(t?.planOut?`<span class="bdg out" title="แจ้งออก ${dmy(t.planOut)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H5v16h5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 8l4 4-4 4M18 12H9" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`:'')+(repRooms.has(r.id)?`<span class="bdg rep" title="มีแจ้งซ่อม"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5 23 21.5H1z" fill="#FFC107" stroke="#3B2A00" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.6 9.2a2.6 2.6 0 0 0-3.4 3.3l-3 3 1.3 1.3 3-3a2.6 2.6 0 0 0 3.3-3.4l-1.4 1.4-1.2-.3-.3-1.2z" fill="#3B2A00"/></svg></span>`:'')+(ow?`<span class="bdg warn ${lt?'':'soft'}" title="${lt?'ค้างชำระเกินกำหนด':'มีบิลรอชำระ'}">!</span>`:'');
-    if(planMode==='mini')return `<button class="rc mini2 s-${st} ${lt?'late':''}" data-act="roomMenu" data-id="${r.id}"><span class="badges">${warn}</span><b>${esc(r.number)}</b><small>${t?ic('user',13)+' '+esc(t.name):st==='resv'?'จอง: '+esc(rv.name):ST[st]}</small></button>`;
+    if(planMode==='mini')return `<button class="rc mini2 s-${st} ${lt?'late':''}" data-act="roomMenu" data-id="${r.id}"><span class="badges">${warn}</span><b>${esc(r.number)}</b><small>${t?ic('user',13)+' '+esc(t.name):st==='apply'?'รอสัญญา: '+esc(appFor(r.id).name):st==='resv'?'จอง: '+esc(rv.name):ST[st]}</small></button>`;
     return `<button class="rc s-${st} ${lt?'late':''}" data-act="roomMenu" data-id="${r.id}"><span class="badges">${warn}</span><b>${esc(r.number)}</b>
-      <span class="who">${t?ic('user',14)+' '+esc(t.name):st==='resv'?'จอง: '+esc(rv.name):ST[st]}</span>
-      ${t?`<span class="sub">${ic('cal',13)} ${t.planOut?'ออก '+dmy(t.planOut):'ถึง '+dmy(t.contractEnd)}</span>`:st==='resv'&&rv.date?`<span class="sub">${ic('cal',13)} เข้า ${dmy(rv.date)}</span>`:''}
+      <span class="who">${t?ic('user',14)+' '+esc(t.name):st==='apply'?ic('user',14)+' '+esc(appFor(r.id).name):st==='resv'?'จอง: '+esc(rv.name):ST[st]}</span>
+      ${t?`<span class="sub">${ic('cal',13)} ${t.planOut?'ออก '+dmy(t.planOut):'ถึง '+dmy(t.contractEnd)}</span>`:st==='apply'?`<span class="sub">${ic('cal',13)} รอทำสัญญา${appFor(r.id).moveIn?' · เข้า '+dmy(appFor(r.id).moveIn):''}</span>`:st==='resv'&&rv.date?`<span class="sub">${ic('cal',13)} เข้า ${dmy(rv.date)}</span>`:''}
       ${t?`<span class="rent">${baht0(t.rent)} ฿/เดือน</span>`:''}
       <span class="chips">${r.type?`<span class="ch">${esc(r.type)}</span>`:''}${ow?`<span class="ch red">${ic('alert',13)} ${lt?'ค้างจ่าย':'รอชำระ'}</span>`:''}${repRooms.has(r.id)?'<span class="ch org">แจ้งซ่อม</span>':''}</span></button>`};
   const planOf=list=>{const floors={};list.forEach(r=>(floors[r.floor||'-']??=[]).push(r));
@@ -674,7 +678,7 @@ function vHome(){
   </div>
   <section class="card" id="planCard"><div class="ch2">${ic('grid')}<h2>แผนผังห้องพัก</h2><span class="ss">${rs.length} ห้อง</span></div>
     <div class="cb">${rs.length?`<div class="legend top">${legend}</div>
-      <div class="ptools2"><div class="row">${fchip('all','ทั้งหมด',rs.length)}${fchip('owe','ค้างชำระ',owRooms.size)}${fchip('free','ว่าง',counts.free||0)}${counts.daily?fchip('daily','รายวัน',counts.daily):''}${counts.resv?fchip('resv','จองแล้ว',counts.resv):''}${counts.notice?fchip('out','แจ้งออก',counts.notice):''}${counts.ending?fchip('ending','สัญญาใกล้หมด',counts.ending):''}${repRooms.size?fchip('rep','แจ้งซ่อม',repRooms.size):''}</div>
+      <div class="ptools2"><div class="row">${fchip('all','ทั้งหมด',rs.length)}${fchip('owe','ค้างชำระ',owRooms.size)}${fchip('free','ว่าง',counts.free||0)}${counts.daily?fchip('daily','รายวัน',counts.daily):''}${counts.resv?fchip('resv','จองแล้ว',counts.resv):''}${counts.apply?fchip('apply','รอทำสัญญา',counts.apply):''}${counts.notice?fchip('out','แจ้งออก',counts.notice):''}${counts.ending?fchip('ending','สัญญาใกล้หมด',counts.ending):''}${repRooms.size?fchip('rep','แจ้งซ่อม',repRooms.size):''}</div>
       <div class="seg" role="group" aria-label="รูปแบบผัง"><button data-act="planMode" data-id="full" aria-pressed="${planMode!=='mini'}">${ic('grid',16)} การ์ด</button><button data-act="planMode" data-id="mini" aria-pressed="${planMode==='mini'}">ย่อ</button></div></div>
       ${plan}`:`<div class="empty">ยังไม่มีห้องพัก เพิ่มห้องก่อนเริ่มใช้งาน<a class="btn pri" href="#rooms">เพิ่มห้อง</a></div>`}</div></section>`;
 }
@@ -682,12 +686,14 @@ function roomMenu(rid){const r=S.rooms[rid],st=roomState(r),t=tenantOf(rid),rv=r
   const B=(act,id,l,c='')=>`<button class="btn ${c}" data-act="${act}" data-id="${id}">${l}</button>`;
   const info=[t?`<p><b>${esc(t.name)}</b> ${esc(t.phone||'')}<br><span style="color:var(--muted)">เข้าพัก ${thDT(t.moveInAt)} · สัญญาถึง ${thDate(t.contractEnd)}</span></p>`:'',
     t&&t.planOut?`<p>แจ้งออกเมื่อ ${thDate(t.noticeAt)} · ย้ายออก <b>${thDate(t.planOut)}</b></p>`:'',
+    st==='apply'?(a=>`<p>ขอทำสัญญาโดย <b>${esc(a.name)}</b> ${esc(a.phone||'')}<br><span style="color:var(--muted)">ส่งคำขอ ${thDT(a.at)}${a.moveIn?' · จะเข้าพัก '+thDate(a.moveIn):''}</span></p>`)(appFor(rid)):'',
     rv&&rv.name?`<p>จองโดย <b>${esc(rv.name)}</b> ${esc(rv.phone||'')}<br><span style="color:var(--muted)">เข้าพัก ${thDate(rv.date)} · เงินจอง ${baht(rv.deposit)} บาท</span></p>`:'',
     late.length?`<p style="color:var(--crit)">ค้างชำระ ${late.length} บิล รวม ${baht(late.reduce((a,b)=>a+dueOf(b),0))} บาท</p>`:''].join('');
   let btns='';
   if(st==='off')btns=B('editRoom',rid,'แก้ไขห้อง','pri');
   else if(t){btns=B('editTenant',t.id,'ข้อมูลผู้เช่า')+B('moveinBill',t.id,S.bills['in_'+t.id]?'เปิดบิลแรกเข้า':'💵 ทำบิลแรกเข้า')+B('renew',t.id,'ต่อสัญญา')+(t.planOut?B('cancelNotice',t.id,'ยกเลิกแจ้งออก')+B('noticeForm',t.id,'แก้ไขวันออก')+(rv?.name?B('resvForm',rid,'แก้ไขการจอง'):B('resvForm',rid,'จองต่อ'))+B('moveOut',t.id,'บันทึกย้ายออก','pri'):B('noticeForm',t.id,'แจ้งออก','pri'));
     if(late.length)btns=B('remind',rid,'🔔 ข้อความทวง')+B('copyBill',late[0].id,'📋 คัดลอกบิลค้าง')+B('openBill',late[0].id,'ดูบิลค้าง')+btns}
+  else if(st==='apply'){const a=appFor(rid);btns=B('appDlg',a.id,'ดูคำขอทำสัญญา')+B('appToTenant',a.id,'ทำสัญญา / รับเข้าพัก','pri')}
   else if(rv?.name)btns=B('cancelResv',rid,'ยกเลิกการจอง')+B('resvForm',rid,'แก้ไขการจอง')+B('checkIn',rid,'รับเข้าพัก','pri');
   else btns=B('editRoom',rid,'แก้ไขห้อง')+(r.daily?B('setDaily',rid,'เปลี่ยนเป็นห้องว่าง (รายเดือน)'):B('setDaily',rid,'☀ ตั้งเป็นห้องรายวัน'))+B('resvForm',rid,'จองห้อง')+B('newTenant',rid,'รับผู้เช่าเข้าพัก','pri');
   const reps=openRepairs().filter(x=>x.roomId===rid);
