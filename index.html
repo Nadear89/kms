@@ -593,7 +593,7 @@ const ST={on:'มีผู้เข้าพัก',free:'ห้องว่า�
 const OCC=['on','notice','ending'];
 /* คำขอทำสัญญาที่ยังไม่ได้รับเข้าพัก จับคู่กับห้องจากเลขห้อง (+หลัง) */
 function appFor(rid){const r=S.rooms[rid];if(!r)return null;const n=String(r.number).trim().toLowerCase(),b=roomBld(r);
-  return Object.values(S.applications).filter(a=>a.status==='new'&&String(a.roomNumber||'').trim().toLowerCase()===n&&(!a.building||!multi()||a.building===b)).sort((x,y)=>String(y.at).localeCompare(String(x.at)))[0]||null}
+  return Object.values(S.applications).filter(a=>a.status==='new'&&String(a.roomNumber||'').trim().toLowerCase()===n&&(!a.building||!multi()||a.building===b)).sort((x,y)=>String(y.at).localeCompare(String(x.at)))[0]||(r.pending?.name?{...r.pending,manual:true}:null)}
 function roomState(r){if(r.closed)return 'off';const t=tenantOf(r.id);if(t){if(t.planOut)return 'notice';if(t.contractEnd&&daysTo(t.contractEnd)<=30)return 'ending';return 'on'}if(appFor(r.id))return 'apply';if(r.reservation?.name)return 'resv';return r.daily?'daily':'free'}
 let planMode=(()=>{try{return localStorage.getItem('plan')||'full'}catch(e){return 'full'}})(),homeTab='plan';
 let planFilter='all';
@@ -686,16 +686,16 @@ function roomMenu(rid){const r=S.rooms[rid],st=roomState(r),t=tenantOf(rid),rv=r
   const B=(act,id,l,c='')=>`<button class="btn ${c}" data-act="${act}" data-id="${id}">${l}</button>`;
   const info=[t?`<p><b>${esc(t.name)}</b> ${esc(t.phone||'')}<br><span style="color:var(--muted)">เข้าพัก ${thDT(t.moveInAt)} · สัญญาถึง ${thDate(t.contractEnd)}</span></p>`:'',
     t&&t.planOut?`<p>แจ้งออกเมื่อ ${thDate(t.noticeAt)} · ย้ายออก <b>${thDate(t.planOut)}</b></p>`:'',
-    st==='apply'?(a=>`<p>ขอทำสัญญาโดย <b>${esc(a.name)}</b> ${esc(a.phone||'')}<br><span style="color:var(--muted)">ส่งคำขอ ${thDT(a.at)}${a.moveIn?' · จะเข้าพัก '+thDate(a.moveIn):''}</span></p>`)(appFor(rid)):'',
+    st==='apply'?(a=>`<p>${a.manual?'รอทำสัญญา':'ขอทำสัญญาโดย'} <b>${esc(a.name)}</b> ${esc(a.phone||'')}<br><span style="color:var(--muted)">${a.manual?'บันทึกโดยเจ้าหน้าที่':'ส่งคำขอ '+thDT(a.at)}${a.moveIn?' · จะเข้าพัก '+thDate(a.moveIn):''}${a.manual&&a.note?' · '+esc(a.note):''}</span></p>`)(appFor(rid)):'',
     rv&&rv.name?`<p>จองโดย <b>${esc(rv.name)}</b> ${esc(rv.phone||'')}<br><span style="color:var(--muted)">เข้าพัก ${thDate(rv.date)} · เงินจอง ${baht(rv.deposit)} บาท</span></p>`:'',
     late.length?`<p style="color:var(--crit)">ค้างชำระ ${late.length} บิล รวม ${baht(late.reduce((a,b)=>a+dueOf(b),0))} บาท</p>`:''].join('');
   let btns='';
   if(st==='off')btns=B('editRoom',rid,'แก้ไขห้อง','pri');
   else if(t){btns=B('editTenant',t.id,'ข้อมูลผู้เช่า')+B('moveinBill',t.id,S.bills['in_'+t.id]?'เปิดบิลแรกเข้า':'💵 ทำบิลแรกเข้า')+B('renew',t.id,'ต่อสัญญา')+(t.planOut?B('cancelNotice',t.id,'ยกเลิกแจ้งออก')+B('noticeForm',t.id,'แก้ไขวันออก')+(rv?.name?B('resvForm',rid,'แก้ไขการจอง'):B('resvForm',rid,'จองต่อ'))+B('moveOut',t.id,'บันทึกย้ายออก','pri'):B('noticeForm',t.id,'แจ้งออก','pri'));
     if(late.length)btns=B('remind',rid,'🔔 ข้อความทวง')+B('copyBill',late[0].id,'📋 คัดลอกบิลค้าง')+B('openBill',late[0].id,'ดูบิลค้าง')+btns}
-  else if(st==='apply'){const a=appFor(rid);btns=B('appDlg',a.id,'ดูคำขอทำสัญญา')+B('appToTenant',a.id,'ทำสัญญา / รับเข้าพัก','pri')}
+  else if(st==='apply'){const a=appFor(rid);btns=a.manual?B('cancelPend',rid,'ยกเลิกรอทำสัญญา')+B('pendForm',rid,'แก้ไข')+B('pendIn',rid,'ทำสัญญา / รับเข้าพัก','pri'):B('appDlg',a.id,'ดูคำขอทำสัญญา')+B('appToTenant',a.id,'ทำสัญญา / รับเข้าพัก','pri')}
   else if(rv?.name)btns=B('cancelResv',rid,'ยกเลิกการจอง')+B('resvForm',rid,'แก้ไขการจอง')+B('checkIn',rid,'รับเข้าพัก','pri');
-  else btns=B('editRoom',rid,'แก้ไขห้อง')+(r.daily?B('setDaily',rid,'เปลี่ยนเป็นห้องว่าง (รายเดือน)'):B('setDaily',rid,'☀ ตั้งเป็นห้องรายวัน'))+B('resvForm',rid,'จองห้อง')+B('newTenant',rid,'รับผู้เช่าเข้าพัก','pri');
+  else btns=B('editRoom',rid,'แก้ไขห้อง')+(r.daily?B('setDaily',rid,'เปลี่ยนเป็นห้องว่าง (รายเดือน)'):B('setDaily',rid,'☀ ตั้งเป็นห้องรายวัน'))+B('resvForm',rid,'จองห้อง')+B('pendForm',rid,'📝 รอทำสัญญา')+B('newTenant',rid,'รับผู้เช่าเข้าพัก','pri');
   const reps=openRepairs().filter(x=>x.roomId===rid);
   openDlg(`<div class="dlg">${dHead('ห้อง '+roomNo(rid))}<p><span class="pill s-${st}">${ST[st]}</span>${late.length?' <span class="pill crit">ค้างชำระ</span>':''}${reps.length?' <span class="pill rp-new">แจ้งซ่อม '+reps.length+'</span>':''} <span style="color:var(--muted)">ชั้น ${esc(r.floor)}${r.type?' · '+esc(r.type):''}${t?' · ค่าเช่า '+baht(t.rent)+' บาท':''}${r.daily&&st!=='daily'?' · ห้องพักรายวัน':''}</span></p>${info}
   ${reps.length?`<div class="menurep"><b>🔧 รายการแจ้งซ่อม</b>${reps.map(x=>`<button class="lrow" data-act="repairDlg" data-id="${x.id}"><span class="lt">${esc(x.device)} · ${esc(x.symptom)}<small>แจ้ง ${thDT(x.at)} · ${esc(x.name)} ${esc(x.phone||'')}${x.media?.length?' · แนบ '+x.media.length+' ไฟล์':''}${x.tech?' · ช่าง '+esc(x.tech):''}</small></span>${rPill(x)}</button>`).join('')}</div>`:''}<div class="actions">${btns}</div></div>`)}
@@ -703,6 +703,11 @@ function noticeForm(tid){const t=S.tenants[tid];const def=t.planOut||(t.contract
   openDlg(`<form class="dlg" data-form="notice" data-id="${tid}">${dHead('แจ้งออก ห้อง '+roomNo(t.roomId))}<p>${esc(t.name)} · สัญญาสิ้นสุด ${thDate(t.contractEnd)}</p>
   <fieldset><label class="f">วันที่แจ้ง<input name="noticeAt" type="date" required value="${t.noticeAt||todayStr()}"></label><label class="f">วันที่จะย้ายออก<input name="planOut" type="date" required value="${def}"></label><label class="f full">หมายเหตุ<input name="noticeNote" value="${esc(t.noticeNote||'')}"></label></fieldset>
   <div class="actions"><button class="btn pri">บันทึกแจ้งออก</button></div></form>`)}
+function pendForm(rid){const v=S.rooms[rid]?.pending||{};
+  openDlg(`<form class="dlg" data-form="pend" data-id="${rid}">${dHead('รอทำสัญญา ห้อง '+roomNo(rid))}<p>ใช้กับลูกค้าที่ตกลงเช่าแล้ว แต่ยังไม่ได้ทำสัญญา ห้องจะเป็นสีส้ม</p><fieldset>
+  <label class="f">ชื่อลูกค้า<input name="name" required value="${esc(v.name||'')}"></label><label class="f">เบอร์โทร<input name="phone" inputmode="tel" value="${esc(v.phone||'')}"></label>
+  <label class="f">วันที่จะเข้าพัก<input name="moveIn" type="date" value="${v.moveIn||''}"></label><label class="f">หมายเหตุ<input name="note" value="${esc(v.note||'')}" placeholder="เช่น นัดทำสัญญาวันเสาร์"></label></fieldset>
+  <div class="actions"><button class="btn pri">บันทึกรอทำสัญญา</button></div></form>`)}
 function resvForm(rid){const r=rid?S.rooms[rid]:null,v=r?.reservation||{};
   const opts=rid?'':`<label class="f full">ห้อง<select name="room" required><option value="">เลือกห้อง</option>${rooms().filter(x=>{const k=roomState(x);return k==='free'||((k==='notice'||k==='soon')&&!x.reservation?.name)}).map(x=>`<option value="${x.id}">${esc(roomNo(x.id))} · ${ST[roomState(x)]}${tenantOf(x.id)?.planOut?' ออก '+thDate(tenantOf(x.id).planOut):''}</option>`).join('')}</select></label>`;
   openDlg(`<form class="dlg" data-form="resv" data-id="${rid||''}">${dHead(rid?'จองห้อง '+roomNo(rid):'จองห้อง')}<fieldset>${opts}
@@ -1188,6 +1193,9 @@ const ACT={
   homeTab:e=>{homeTab=e.dataset.id;closeDlg();location.hash='home';paint()},
   planMode:e=>{planMode=e.dataset.id;try{localStorage.setItem('plan',planMode)}catch(x){}paint()},
   noticeForm:e=>noticeForm(e.dataset.id),resvForm:e=>resvForm(e.dataset.id),
+pendForm:e=>pendForm(e.dataset.id),
+cancelPend:async e=>{const{id,pending,...r}=S.rooms[e.dataset.id];closeDlg();if(await ask('ยกเลิกรอทำสัญญา?',`ห้องจะกลับเป็นห้องว่าง (${pending?.name||''})`,'ยกเลิก')&&await put('rooms',id,r))toast('ยกเลิกแล้ว')},
+pendIn:e=>{const r=S.rooms[e.dataset.id],v=r.pending||{};tenantForm({name:v.name,phone:v.phone,note:v.note||'',moveInAt:v.moveIn&&v.moveIn>=todayStr()?v.moveIn+'T12:00':''},r.id)},
   cancelNotice:async e=>{const{id,noticeAt,planOut,noticeNote,...t}=S.tenants[e.dataset.id];closeDlg();if(await ask('ยกเลิกแจ้งออก?',`${t.name} จะกลับเป็นผู้เข้าพักตามปกติ`,'ยกเลิกแจ้งออก',false)&&await put('tenants',id,t))toast('ยกเลิกแจ้งออกแล้ว')},
   cancelResv:async e=>{const{id,reservation,...r}=S.rooms[e.dataset.id];closeDlg();if(await ask('ยกเลิกการจอง?',`การจองของ ${reservation?.name||''} จะถูกลบ`,'ยกเลิกการจอง')&&await put('rooms',id,r))toast('ยกเลิกการจองแล้ว')},
   checkIn:e=>{const r=S.rooms[e.dataset.id],v=r.reservation||{};tenantForm({name:v.name,phone:v.phone,note:v.deposit?'เงินจอง '+v.deposit+' บาท':(v.note||''),moveInAt:v.date&&v.date>=todayStr()?v.date+'T12:00':''},r.id)},
@@ -1261,7 +1269,7 @@ const FORM={
     const fileEl=document.getElementById('tIdPh');if(fileEl?.files?.[0]){try{const blob=await shrinkImg(fileEl.files[0]);const path='i/'+crypto.randomUUID()+'.jpg';const up=await sb.storage.from('idcards').upload(path,blob,{contentType:'image/jpeg',upsert:false});if(up.error)throw 0;f.idPhoto=path}catch(x){toast('อัปโหลดรูปบัตรไม่สำเร็จ ตรวจว่ารันไฟล์ SQL สัญญาแล้ว')}}
     const data={...old,...f,name:f.name.trim(),rent:num(f.rent)||0,deposit:num(f.deposit)||0,status:old?.status||'active'};delete data.id;
     const tid=id||newId();await put('tenants',tid,data);
-    if(!id){const{id:rid,reservation,...r}=S.rooms[d.roomId];await put('rooms',rid,{...r,waterStart:num(waterIn)||0,elecStart:num(elecIn)||0})}
+    if(!id){const{id:rid,reservation,pending,...r}=S.rooms[d.roomId];await put('rooms',rid,{...r,waterStart:num(waterIn)||0,elecStart:num(elecIn)||0})}
     if(appId&&S.applications[appId]){const{id:_a,...ap}=S.applications[appId];await put('applications',appId,{...ap,status:'done',tenantId:tid})}
     if(id){closeDlg();toast('บันทึกแล้ว')}else openDlg(`<div class="dlg">${dHead('รับเข้าพักแล้ว')}<p>${esc(data.name)} ห้อง ${esc(roomNo(data.roomId))} ค่าเช่า ${baht(data.rent)} บาท/เดือน</p><div class="actions"><button class="btn" data-act="close">ปิด</button><button class="btn" data-act="viewC" data-id="${tid}">ดูสัญญา</button><button class="btn" data-act="printC" data-id="${tid}">🖨 พิมพ์สัญญา</button><button class="btn pri" data-act="moveinBill" data-id="${tid}">💵 ทำบิลแรกเข้า</button></div></div>`)},
   moveOut:async(d,id)=>{const f=document.querySelector('form[data-form=moveOut]'),m=moData(f),{id:_,...t}=S.tenants[id],room=S.rooms[t.roomId];
@@ -1287,6 +1295,7 @@ const FORM={
   pay:async(d,id)=>{const a=Number(d.amount)||0;if(a<=0)return toast('ใส่จำนวนเงิน');await addPay(S.bills[id],{at:d.paidAt,amount:a,method:d.payMethod})},
   blds:async d=>{await saveB(BLD().map(b=>({...b,name:(d[b.id]||b.name).trim(),address:(d['addr_'+b.id]??b.address??'').trim(),billName:(d['bn_'+b.id]??b.billName??'').trim(),phone:(d['ph_'+b.id]??b.phone??'').trim()})))},
   notice:async(d,id)=>{const{id:_,...t}=S.tenants[id];if(d.planOut<d.noticeAt)return toast('วันย้ายออกต้องไม่ก่อนวันที่แจ้ง');if(await put('tenants',id,{...t,noticeAt:d.noticeAt,planOut:d.planOut,noticeNote:d.noticeNote.trim()})){closeDlg();toast('บันทึกแจ้งออกแล้ว')}},
+  pend:async(d,rid)=>{const{id:_,...r}=S.rooms[rid];if(await put('rooms',rid,{...r,pending:{name:d.name.trim(),phone:d.phone.trim(),moveIn:d.moveIn||'',note:d.note.trim(),at:new Date().toISOString()}})){closeDlg();toast('บันทึกรอทำสัญญาแล้ว')}},
   resv:async(d,id)=>{const rid=id||d.room;if(!rid)return toast('เลือกห้องก่อน');const{id:_,...r}=S.rooms[rid];if(await put('rooms',rid,{...r,reservation:{name:d.name.trim(),phone:d.phone.trim(),date:d.date,deposit:num(d.deposit)||0,note:d.note.trim()}})){closeDlg();toast('บันทึกการจองแล้ว')}},
   assign:async d=>{const ids=[...document.querySelectorAll('.ak:checked')].map(x=>x.value);if(!ids.length)return toast('เลือกห้องก่อน');let n=0;
     for(const id of ids){const{id:_,...r}=S.rooms[id];if(roomBld(r)===d.to)continue;if(await put('rooms',id,{...r,building:d.to}))n++}closeDlg();toast(`ย้ายแล้ว ${n} ห้องไป${bldName(d.to)}`)},
