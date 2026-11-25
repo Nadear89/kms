@@ -763,7 +763,7 @@ function vContracts(){
   ${rows?`<div class="tw"><table><thead><tr><th>ห้อง</th><th>ผู้เช่า</th><th>เริ่ม</th><th>สิ้นสุด</th><th>สถานะ</th><th class="num">เงินประกัน</th><th class="num">ค่าเช่า</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="empty">สัญญาจะแสดงที่นี่เมื่อรับผู้เช่าเข้าห้องแล้ว</div>'}`;
 }
 const noNum=r=>/\d/.test(String(r.number))?0:1;
-const meterRooms=()=>rooms().slice().sort((a,b)=>noNum(a)-noNum(b)||(multi()&&curB()==='all'?BLD().findIndex(x=>x.id===roomBld(a))-BLD().findIndex(x=>x.id===roomBld(b)):0)||(Number(a.floor)||0)-(Number(b.floor)||0)||String(a.number).localeCompare(String(b.number),'th',{numeric:true}));
+const meterRooms=()=>rooms().slice().sort((a,b)=>noNum(a)-noNum(b)||(multi()&&curB()==='all'?BLD().findIndex(x=>x.id===roomBld(a))-BLD().findIndex(x=>x.id===roomBld(b)):0)||String(a.number).localeCompare(String(b.number),'th',{numeric:true}));
 function vMeter(){
   const list=meterRooms();
   const done=list.filter(r=>readingOk(reading(r.id,month))).length;
