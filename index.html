@@ -353,6 +353,7 @@ body.r-worker a[href="#bills"]{display:none!important}
 .f.chk{flex-direction:row;align-items:center;gap:8px;color:var(--fg)}.f.chk input{width:20px;height:20px}
 .thd{display:flex;gap:6px;flex-wrap:wrap}.thd select,.thd input{flex:1 1 0;min-width:4.5em}.thd .thM{flex:2 1 0;min-width:7em}.thd .thY{min-width:5.6em}.thd .thT{flex:1.4 1 0;min-width:6.5em}
 .instal{margin-top:6px;font-size:.92rem}.instal>div{display:flex;justify-content:space-between;color:#1C7A4A;padding:2px 0}.instal .rem{color:#C62828;font-weight:700;font-size:1.05rem;border-top:1px dashed #C9D3CF;margin-top:4px;padding-top:6px}
+.btn.cm[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
 /* room states */
 .s-on{--c:#2E9E5B;--b:#E6F6EC;--l:#A6DBBB}
 .s-free{--c:#A9B2AC;--b:#FAFBFA;--l:#D9DEDA}
@@ -926,7 +927,7 @@ function tenantForm(t={},presetRoom){
   ${isNew?`<label class="f">เลขมิเตอร์น้ำวันเข้า<input name="waterIn" id="tW" type="number" min="0" step="any" value="${preRoom?lastReading(preRoom.id).water:0}"></label><label class="f">เลขมิเตอร์ไฟวันเข้า<input name="elecIn" id="tE" type="number" min="0" step="any" value="${preRoom?lastReading(preRoom.id).elec:0}"></label>`:''}</fieldset>
   <fieldset><legend>สัญญาเช่า</legend><label class="f">เลขที่สัญญา<input name="contractNo" value="${v('contractNo')}"></label><label class="f">ค่าเช่า/เดือน ตามที่ตกลง<input name="rent" id="tRent" type="number" min="0" step="any" required value="${t.rent??''}" placeholder="ใช้ราคานี้ออกบิล"></label>
   <label class="f">วันเริ่มสัญญา<input name="contractStart" type="date" value="${v('contractStart')||todayStr()}"></label><label class="f">วันสิ้นสุดสัญญา<input name="contractEnd" type="date" value="${v('contractEnd')}"></label>
-  <div class="f full"><span>ตั้งวันสิ้นสุดจากวันเริ่ม</span><div class="row">${[3,6,12].map(m=>`<button type="button" class="btn sm" data-act="cEnd" data-m="${m}">${m===12?'1 ปี':m+' เดือน'}</button>`).join('')}</div></div>
+  <div class="f full"><span>ตั้งวันสิ้นสุดจากวันเริ่ม</span><div class="row">${Array.from({length:12},(_,i)=>i+1).map(m=>`<button type="button" class="btn sm cm" data-act="cEnd" data-m="${m}" aria-pressed="false">${m===12?'1 ปี':m+' เดือน'}</button>`).join('')}</div></div>
   <label class="f">เงินประกัน<input name="deposit" type="number" min="0" step="any" value="${t.deposit??''}"></label><label class="f">หมายเหตุ<input name="note" value="${v('note')}"></label></fieldset>
   ${t.status==='moved_out'?`<p style="color:var(--muted)">ย้ายออก ${thDT(t.moveOutAt)} คืนเงินประกัน ${baht(t.depositReturned)} บาท ${S.settlements[t.id]?`<button type="button" class="btn sm" data-act="settleDlg" data-id="${t.id}">ดูใบสรุปย้ายออก</button>`:''}</p>`:''}
   <div class="actions">${t.status==='active'?`<button type="button" class="btn danger l" data-act="moveOut" data-id="${t.id}">บันทึกย้ายออก</button>`:''}${t.id&&t.status==='active'?`<button type="button" class="btn" data-act="moveinBill" data-id="${t.id}">${S.bills['in_'+t.id]?'เปิดบิลแรกเข้า':'💵 ทำบิลแรกเข้า'}</button><button type="button" class="btn" data-act="renew" data-id="${t.id}">ต่อสัญญา</button>`:''}${t.id?`<button type="button" class="btn" data-act="viewC" data-id="${t.id}">ดูสัญญา</button><button type="button" class="btn" data-act="printC" data-id="${t.id}">🖨 พิมพ์สัญญา</button>`:''}<button class="btn pri" ${canWrite?'':'disabled'}>${isNew?'รับเข้าพัก':'บันทึก'}</button></div></form>`);
@@ -1068,7 +1069,7 @@ async function loadStaff(){const box=document.getElementById('staffBox');if(!box
 function renewForm(tid){const t=S.tenants[tid];const base=t.contractEnd&&t.contractEnd>=todayStr()?t.contractEnd:todayStr();const d=new Date(base+'T00:00:00');d.setDate(d.getDate()+1);const ns=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
   openDlg(`<form class="dlg" data-form="renew" data-id="${tid}">${dHead('ต่อสัญญา ห้อง '+roomNo(t.roomId))}<p>${esc(t.name)} · สัญญาเดิม ${thDate(t.contractStart)} – ${thDate(t.contractEnd)} · ค่าเช่า ${baht(t.rent)} บาท</p>
   <fieldset><label class="f">วันเริ่มสัญญาใหม่<input name="contractStart" type="date" required value="${ns}"></label><label class="f">วันสิ้นสุดสัญญาใหม่<input name="contractEnd" type="date" required></label>
-  <div class="f full"><span>ระยะเวลา</span><div class="row">${[3,6,12].map(m=>`<button type="button" class="btn sm" data-act="cEnd" data-m="${m}">${m===12?'1 ปี':m+' เดือน'}</button>`).join('')}</div></div>
+  <div class="f full"><span>ระยะเวลา</span><div class="row">${Array.from({length:12},(_,i)=>i+1).map(m=>`<button type="button" class="btn sm cm" data-act="cEnd" data-m="${m}" aria-pressed="false">${m===12?'1 ปี':m+' เดือน'}</button>`).join('')}</div></div>
   <label class="f">ค่าเช่า/เดือน ตามที่ตกลงใหม่<input name="rent" type="number" min="0" step="any" required value="${t.rent??''}"></label><label class="f">เงินประกัน<input name="deposit" type="number" min="0" step="any" value="${t.deposit??''}"></label>
   <label class="f">เลขที่สัญญาใหม่<input name="contractNo" value="${esc(t.contractNo||'')}"></label></fieldset>
   ${(t.renewals||[]).length?`<p style="color:var(--muted)">เคยต่อสัญญา ${t.renewals.length} ครั้ง</p>`:''}
@@ -1225,7 +1226,7 @@ pendIn:e=>{const r=S.rooms[e.dataset.id],v=r.pending||{};tenantForm({name:v.name
       const ok=await put('rooms',r.id,{...room,waterStart:d.waterCur??room.waterStart??0,elecStart:d.elecCur??room.elecStart??0,baseMonth:month});
       if(ok&&await del('meters',meterId(month,r.id)))n++;toast(`กำลังตั้งเลขเริ่มต้น ${n}/${list.length}`)}
     toast(`ตั้งเลขเริ่มต้นแล้ว ${n} ห้อง`)},
-  cEnd:e=>{const f=e.closest('form'),st=f.contractStart.value;if(!st)return toast('ใส่วันเริ่มสัญญาก่อน');const d=new Date(st+'T00:00:00');d.setMonth(d.getMonth()+Number(e.dataset.m));d.setDate(d.getDate()-1);f.contractEnd.value=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())},
+  cEnd:e=>{const f=e.closest('form'),st=f.contractStart.value;if(!st)return toast('ใส่วันเริ่มสัญญาก่อน');const[y,mo,dd]=st.split('-').map(Number),n=Number(e.dataset.m),last=new Date(y,mo-1+n+1,0).getDate(),d=dd>last?new Date(y,mo-1+n,last):new Date(y,mo-1+n,dd-1);f.querySelectorAll('.cm').forEach(b=>b.setAttribute('aria-pressed',b===e));f.contractEnd.value=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())},
   staffAdd:async()=>{const em=$('#sfE').value.trim().toLowerCase();if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em))return toast('ใส่อีเมลให้ถูกต้อง');const{error}=await sb.from('staff').upsert({email:em,role:$('#sfR').value,name:$('#sfN').value.trim()});toast(error?'เพิ่มไม่สำเร็จ (ต้องเป็นเจ้าของ)':'เพิ่มผู้ใช้แล้ว');loadStaff()},
   staffDel:async e=>{const em=e.dataset.id;if(!await ask('ลบผู้ใช้นี้?',em+' จะเข้าหลังบ้านไม่ได้อีก','ลบผู้ใช้'))return;const{error}=await sb.from('staff').delete().eq('email',em);toast(error?'ลบไม่สำเร็จ':'ลบผู้ใช้แล้ว');loadStaff()},
   editCur:e=>curForm(e.dataset.id),
