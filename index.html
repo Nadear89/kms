@@ -546,13 +546,17 @@ function reading(rid,m){
   return {waterPrev:d?.waterPrev??p.water,elecPrev:d?.elecPrev??p.elec,waterCur:d?.waterCur??null,elecCur:d?.elecCur??null};
 }
 function readingOk(r){return r.waterCur!=null&&r.elecCur!=null&&r.waterCur>=r.waterPrev&&r.elecCur>=r.elecPrev}
+/* ยอดค้างของบิลก่อนหน้า (ค้าง/ผ่อนไม่ครบ) ยกไปรวมในบิลเดือน m */
+function carryFor(rid,m,tid){const me=meterId(m,rid);return allBills().filter(x=>x.roomId===rid&&x.tenantId===tid&&x.status==='unpaid'&&x.id!==me&&!x.sample&&(x.kind==='movein'||x.month<m)&&dueOf(x)>0)
+  .sort((a,b)=>String(a.month).localeCompare(String(b.month))).map(x=>({id:x.id,label:x.kind==='movein'?'ค่าแรกเข้า':'เดือน'+monthLabel(x.month),amount:dueOf(x)}))}
 function buildBill(rid,m,old){
   const t=tenantOf(rid),room=S.rooms[rid],r=reading(rid,m);if(!t||!readingOk(r))return null;
   const R=rates(),pre=S.bills['in_'+t.id]?.skipRentMonth===m,rent=pre?0:Number(t.rent??room.rent)||0,extras=old?.extras||[];
   const c=calcBill({rent,water:{prev:r.waterPrev,cur:r.waterCur},elec:{prev:r.elecPrev,cur:r.elecCur},rates:R,extras});
+  const carry=old?(old.carry||[]):carryFor(rid,m,t.id),ct=round2(carry.reduce((a,x)=>a+x.amount,0));if(ct){c.carryTotal=ct;c.total=round2(c.total+ct)}
   return {month:m,roomId:rid,roomNumber:room.number,tenantId:t.id,tenantName:t.name,billNo:(Number(m.slice(0,4))+543)+m.slice(5,7)+'-'+(multi()?(BLD().findIndex(b=>b.id===roomBld(room))+1)+'-':'')+room.number,buildingName:multi()?bldName(roomBld(room)):'',buildingAddress:BLD().find(x=>x.id===roomBld(room))?.address||'',rent,
     water:{prev:r.waterPrev,cur:r.waterCur},elec:{prev:r.elecPrev,cur:r.elecCur},rates:R,extras,...c,
-    issuedAt:old?.issuedAt||todayStr(),dueDate:old?.dueDate||dueDateFor(m),status:'unpaid',rentPrepaid:pre||undefined,sample:old?.sample||undefined};
+    issuedAt:old?.issuedAt||todayStr(),dueDate:old?.dueDate||dueDateFor(m),status:'unpaid',rentPrepaid:pre||undefined,sample:old?.sample||undefined,carry:carry.length?carry:undefined,payments:old?.payments,slip:old?.slip};
 }
 const isLate=b=>b.status==='unpaid'&&b.dueDate<todayStr();
 /* ห้องแดง: เกินกำหนด หรือค่าแรกเข้ายังไม่ครบ หรือกำลังผ่อนชำระ */
@@ -586,7 +590,7 @@ function ask(title,msg,yes='ยืนยัน',danger=true){return new Promise(
 const monthBar=()=>`<div class="month"><button class="btn sm" data-act="month" data-d="-1" aria-label="เดือนก่อน">‹</button><span>${monthLabel(month)}</span><button class="btn sm" data-act="month" data-d="1" aria-label="เดือนถัดไป">›</button></div>`;
 function contractState(t){if(!t.contractEnd)return ['ไม่มีวันสิ้นสุด',''];const d=daysTo(t.contractEnd);
   if(d<0)return ['หมดสัญญาแล้ว '+(-d)+' วัน','crit'];if(d<=60)return ['เหลือ '+d+' วัน','warn'];return ['เหลือ '+d+' วัน','ok']}
-function billPill(b){return b.status==='paid'?'<span class="pill ok">ชำระแล้ว</span>':paidOf(b)>0&&!b.slip?`<span class="pill crit">ผ่อน · เหลือ ${baht(dueOf(b))}</span>`:b.slip?'<span class="pill s-resv">รอตรวจสลิป</span>':isLate(b)?'<span class="pill crit">เกินกำหนด</span>':'<span class="pill info">รอชำระ</span>'}
+function billPill(b){return b.status==='carried'?`<span class="pill">ยกยอดไป${S.bills[b.carriedTo]?' '+monthLabel(S.bills[b.carriedTo].month):'บิลถัดไป'}</span>`:b.status==='paid'?'<span class="pill ok">ชำระแล้ว</span>':paidOf(b)>0&&!b.slip?`<span class="pill crit">ผ่อน · เหลือ ${baht(dueOf(b))}</span>`:b.slip?'<span class="pill s-resv">รอตรวจสลิป</span>':isLate(b)?'<span class="pill crit">เกินกำหนด</span>':'<span class="pill info">รอชำระ</span>'}
 function sampleNote(){const has=COLS.some(c=>Object.values(S[c]).some(x=>x.sample));
   return has?`<div class="note"><span>ข้อมูลที่เห็นตอนนี้เป็นตัวอย่าง ผู้เช่าและยอดเงินไม่ใช่ข้อมูลจริง</span>${canWrite?'<button class="btn sm" data-act="clearSample">ลบข้อมูลตัวอย่าง</button>':''}</div>`:''}
 
@@ -810,7 +814,7 @@ function printHTML(html){closeDlg();let el=document.getElementById('printArea');
   Promise.all([...imgs,document.fonts?.load?document.fonts.load('16px Sarabun','ก').catch(()=>0):0]).then(()=>setTimeout(()=>window.print(),150))}
 function billRows(){
   const out=[];const seen=new Set();
-  allBills().filter(b=>b.month===month).forEach(b=>{seen.add(b.roomId);out.push({rid:b.roomId,no:S.rooms[b.roomId]?roomNo(b.roomId):b.roomNumber,name:b.tenantName,b})});
+  allBills().filter(b=>b.month===month&&b.kind!=='movein').forEach(b=>{seen.add(b.roomId);out.push({rid:b.roomId,no:S.rooms[b.roomId]?roomNo(b.roomId):b.roomNumber,name:b.tenantName,b})});
   activeTenants().forEach(t=>{if(!seen.has(t.roomId))out.push({rid:t.roomId,no:roomNo(t.roomId),name:t.name,r:reading(t.roomId,month)})});
   return out.sort((a,b)=>String(a.no).localeCompare(String(b.no),'th',{numeric:true}));
 }
@@ -1094,11 +1098,11 @@ function billLines(b){
   return [['ค่าเช่าห้อง',b.rentPrepaid?'ชำระแล้วในบิลแรกเข้า':'',b.rent],
    ['ค่าน้ำ',`${units(b.water.prev)} → ${units(b.water.cur)} = ${units(b.waterUnits)} หน่วย × ${baht(b.rates.water)}`,b.waterAmt],
    ['ค่าไฟ',`${units(b.elec.prev)} → ${units(b.elec.cur)} = ${units(b.elecUnits)} หน่วย × ${baht(b.rates.elec)}`,b.elecAmt],
-   ...(b.common?[['ค่าส่วนกลาง','',b.common]]:[]),...(b.extras||[]).map(x=>[x.label||'รายการอื่น','',Number(x.amount)||0])];
+   ...(b.common?[['ค่าส่วนกลาง','',b.common]]:[]),...(b.extras||[]).map(x=>[x.label||'รายการอื่น','',Number(x.amount)||0]),...(b.carry||[]).map(x=>['ยอดค้างชำระยกมา',x.label,Number(x.amount)||0])];
 }
 /* SHARED-BILL-START */
 const paidOf=b=>b.status==='paid'&&!(b.payments||[]).length?Number(b.total)||0:round2((b.payments||[]).reduce((a,x)=>a+(Number(x.amount)||0),0));
-const dueOf=b=>b.status==='paid'?0:Math.max(0,round2((Number(b.total)||0)-paidOf(b)));
+const dueOf=b=>b.status==='paid'||b.status==='carried'?0:Math.max(0,round2((Number(b.total)||0)-paidOf(b)));
 const baht0=n=>Number(n||0).toLocaleString('th-TH',{maximumFractionDigits:0});
 const dmy=d=>{if(!d)return '-';const[y,m,x]=d.slice(0,10).split('-');return x+'/'+m+'/'+(Number(y)+543)};
 function hdr(b,s,bid){const B=(s.buildings||[]).find(x=>x.id===bid)||{};const many=(s.buildings||[]).length>1;
@@ -1147,7 +1151,7 @@ function payLines(b){const p=paidOf(b);if(b.status==='paid')return [`ยอด�
   return [`ยอดทั้งหมด ${baht(b.total)} บาท`,`ชำระแล้ว ${baht(p)} บาท`,`คงเหลือ ${baht(dueOf(b))} บาท · ภายใน ${dmy(b.dueDate)}`]}
 function billText(b){const h=hdrOf(b);
   if(b.kind==='movein')return [`📄 ใบแจ้งค่าแรกเข้า ${h.name}`,`ห้อง ${b.roomNumber}${h.bname?' '+h.bname:''} · คุณ${b.tenantName}`,'',...billLines(b).map(([a,,n])=>`${a} ${baht(n)}`),'',...payLines(b),`ดูบิล/สแกนจ่าย/แนบสลิป: ${billLinkFor(b)}`].join('\n');
-  const L=[['ค่าเช่า',b.rent,''],['ค่าน้ำ',b.waterAmt,` (${units(b.waterUnits)} หน่วย)`],['ค่าไฟ',b.elecAmt,` (${units(b.elecUnits)} หน่วย)`],...(b.common?[['ค่าส่วนกลาง',b.common,'']]:[]),...(b.extras||[]).map(x=>[x.label||'อื่นๆ',Number(x.amount)||0,''])];
+  const L=[['ค่าเช่า',b.rent,''],['ค่าน้ำ',b.waterAmt,` (${units(b.waterUnits)} หน่วย)`],['ค่าไฟ',b.elecAmt,` (${units(b.elecUnits)} หน่วย)`],...(b.common?[['ค่าส่วนกลาง',b.common,'']]:[]),...(b.extras||[]).map(x=>[x.label||'อื่นๆ',Number(x.amount)||0,'']),...(b.carry||[]).map(x=>['ยอดค้างยกมา',Number(x.amount)||0,` (${x.label})`])];
   return [`📄 ใบแจ้งหนี้ ${h.name}`,`ห้อง ${b.roomNumber}${h.bname?' '+h.bname:''} · เดือน ${monthLabel(b.month)}`,'',...L.map(([a,n,u])=>`${a} ${baht(n)}${u}`),'',...payLines(b),`ดูบิล/สแกนจ่าย/แนบสลิป: ${billLinkFor(b)}`].join('\n')}
 function remindText(rid){const L=Object.values(S.bills).filter(b=>b.roomId===rid&&b.status==='unpaid').sort((a,b)=>a.month.localeCompare(b.month));if(!L.length)return '';
   const b0=L[0],h=hdrOf(b0),sum=L.reduce((a,b)=>a+dueOf(b),0),fee=Number(S.setup.lateFee??50)||0,lateDays=Math.max(0,-daysTo(b0.dueDate));
@@ -1167,7 +1171,7 @@ function billDlg(b){
     <div class="xrow"><input id="xLabel" aria-label="ชื่อรายการใหม่" placeholder="เช่น ค่าปรับล่าช้า"><input id="xAmt" aria-label="จำนวนเงินใหม่" type="number" step="any" placeholder="บาท"><button class="btn sm" data-act="xAdd" data-id="${b.id}">เพิ่ม</button></div></div>
     <form data-form="pay" data-id="${b.id}"><fieldset><legend>รับชำระเงิน</legend><label class="f">วันที่รับเงิน<input name="paidAt" type="date" required value="${todayStr()}"></label><label class="f">ช่องทาง<select name="payMethod"><option>โอนธนาคาร</option><option>โอนพร้อมเพย์</option><option>เงินสด</option></select></label><label class="f">จำนวนเงินที่รับ (ผ่อนได้)<input name="amount" type="number" step="any" min="0.01" required value="${dueOf(b)}"></label></fieldset><div class="actions" style="margin-top:10px"><button class="btn pri">บันทึกรับเงิน</button></div></form>`:''}
   <div class="actions"><button class="btn" data-act="copyBill" data-id="${b.id}">คัดลอกข้อความส่ง LINE</button>${b.status==='unpaid'&&isLate(b)?`<button class="btn danger" data-act="remind" data-id="${b.roomId}">🔔 คัดลอกข้อความทวง</button>`:''}${dl?`<button class="btn" data-act="pngBill" data-id="${b.id}">บันทึกบิลเป็นรูป</button>`:''}
-  ${canWrite&&b.kind==='movein'?`<button class="btn" data-act="moveinEdit" data-id="${b.tenantId}">✏️ แก้ไขบิลแรกเข้า / ยอดผ่อน</button>`:''}${canWrite?(b.status==='paid'?`<button class="btn" data-act="unpay" data-id="${b.id}">ยกเลิกการรับเงิน</button>`:`${b.kind==='movein'?'':`<button class="btn" data-act="recalc" data-id="${b.id}">คำนวณใหม่จากมิเตอร์</button>`}<button class="btn danger" data-act="delBill" data-id="${b.id}">ลบบิล</button>`):''}</div></div>`);
+  ${canWrite&&b.kind==='movein'&&b.status!=='carried'?`<button class="btn" data-act="moveinEdit" data-id="${b.tenantId}">✏️ แก้ไขบิลแรกเข้า / ยอดผ่อน</button>`:''}${b.status==='carried'?`<span style="color:var(--muted)">ยอดค้างของบิลนี้ยกไปรวมในบิล${S.bills[b.carriedTo]?' '+monthLabel(S.bills[b.carriedTo].month):'ถัดไป'}แล้ว</span><button class="btn" data-act="openBill" data-id="${b.carriedTo}">เปิดบิลที่ยกไป</button>`:canWrite?(b.status==='paid'?`<button class="btn" data-act="unpay" data-id="${b.id}">ยกเลิกการรับเงิน</button>`:`${b.kind==='movein'?'':`<button class="btn" data-act="recalc" data-id="${b.id}">คำนวณใหม่จากมิเตอร์</button>`}<button class="btn danger" data-act="delBill" data-id="${b.id}">ลบบิล</button>`):''}</div></div>`);
   fillQR(b);
   if(b.slip&&sb?.storage)sb.storage.from('slips').createSignedUrl(b.slip.path,3600).then(({data,error})=>{const e=$('#slipImg');if(!e)return;if(error||!data)e.textContent='เปิดสลิปไม่ได้ ตรวจว่ารันไฟล์ SQL อัปเดตแล้ว';else e.innerHTML=`<a href="${data.signedUrl}" target="_blank" rel="noopener"><img src="${data.signedUrl}" alt="สลิปโอนเงิน"></a>`});
 }
@@ -1177,7 +1181,8 @@ async function addPay(b0,pay){const{id,...b}=b0,L=[...(b.payments||[]),{...pay,a
   const n={...b,payments:L,...(full?{status:'paid',paidAt:pay.at,payMethod:L.length>1?'ผ่อนชำระ '+L.length+' งวด':pay.method}:{status:'unpaid'})};
   if(!await put('bills',id,n))return;billDlg({...n,id});toast(full?'รับเงินครบแล้ว ✅':`รับเงินแล้ว คงเหลือ ${baht(round2(b.total-sum))} บาท`)}
 /* ---------- actions ---------- */
-async function issueRoom(rid,m=month){const id=meterId(m,rid),b=buildBill(rid,m,S.bills[id]);return b&&await put('bills',id,b)}
+async function issueRoom(rid,m=month){const id=meterId(m,rid),b=buildBill(rid,m,S.bills[id]);if(!b||!await put('bills',id,b))return false;
+  for(const c of b.carry||[]){const x=S.bills[c.id];if(x&&x.status==='unpaid'){const{id:xi,...r}=x;await put('bills',xi,{...r,status:'carried',carriedTo:id})}}return true}
 const ACT={
   close:closeDlg,
   month:e=>{month=shiftMonth(month,Number(e.dataset.d));paint()},
@@ -1248,19 +1253,20 @@ pendIn:e=>{const r=S.rooms[e.dataset.id],v=r.pending||{};tenantForm({name:v.name
   xAdd:async e=>{const b=S.bills[e.dataset.id],label=$('#xLabel').value.trim(),amount=num($('#xAmt').value);if(amount==null)return toast('ใส่จำนวนเงินก่อน');await saveExtras(b,[...(b.extras||[]),{label:label||'รายการอื่น',amount}])},
   xDel:async e=>{const b=S.bills[e.dataset.id];await saveExtras(b,(b.extras||[]).filter((_,i)=>i!==Number(e.dataset.i)))},
   recalc:async e=>{const b=S.bills[e.dataset.id],n=buildBill(b.roomId,b.month,b);if(!n)return toast('คำนวณไม่ได้ ตรวจเลขมิเตอร์และผู้เช่าของห้องนี้');await put('bills',b.id,n);billDlg({...n,id:b.id});toast('คำนวณใหม่แล้ว')},
-  delBill:async e=>{const b=S.bills[e.dataset.id];closeDlg();if(await ask('ลบบิลห้อง '+b.roomNumber+'?','ออกบิลใหม่ได้จากหน้าทำบิล','ลบบิล'))await del('bills',b.id)},
+  delBill:async e=>{const b=S.bills[e.dataset.id];closeDlg();if(!await ask('ลบบิลห้อง '+b.roomNumber+'?','ออกบิลใหม่ได้จากหน้าทำบิล'+((b.carry||[]).length?' ยอดค้างที่ยกมาจะกลับไปเป็นค้างในบิลเดิม':''),'ลบบิล'))return;if(!await del('bills',b.id))return;
+  for(const c of b.carry||[]){const x=S.bills[c.id];if(x&&x.status==='carried'&&x.carriedTo===b.id){const{id:xi,carriedTo,...r}=x;await put('bills',xi,{...r,status:'unpaid'})}}},
   unpay:async e=>{const b=S.bills[e.dataset.id],{paidAt,payMethod,id,...r}=b;const n={...r,status:'unpaid',payments:[]};await put('bills',id,n);billDlg({...n,id});toast('ยกเลิกการรับเงินแล้ว')},
   copyBill:async e=>{const b=S.bills[e.dataset.id],r=S.rooms[b.roomId];if(r&&!r.code){const{id,...d}=r;await put('rooms',id,{...d,code:newCode()})}const t=billText(b);navigator.clipboard.writeText(t).then(()=>toast('คัดลอกแล้ว วางใน LINE ได้เลย'),()=>{openDlg(`<div class="dlg">${dHead('คัดลอกข้อความเอง')}<textarea id="copyTa" rows="12" style="width:100%">${esc(t)}</textarea></div>`);$('#copyTa').select()})},
   pngBill:async e=>{try{await billPng(S.bills[e.dataset.id])}catch(x){if(x?.code!=='declined')toast('บันทึกรูปไม่สำเร็จ')}},
   csv:async()=>{const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';const rows=allBills().filter(b=>b.month===month).sort((a,b)=>String(a.roomNumber).localeCompare(String(b.roomNumber),'th',{numeric:true}));
-    const csv='﻿'+[['เลขที่บิล','ห้อง','ผู้เช่า','ค่าเช่า','น้ำ(หน่วย)','ค่าน้ำ','ไฟ(หน่วย)','ค่าไฟ','ส่วนกลาง','อื่นๆ','รวม','สถานะ','วันชำระ'].map(q).join(','),...rows.map(b=>[b.billNo,b.roomNumber,b.tenantName,b.rent,b.waterUnits,b.waterAmt,b.elecUnits,b.elecAmt,b.common,b.extrasTotal,b.total,b.status==='paid'?'ชำระแล้ว':'รอชำระ',b.paidAt||''].map(q).join(','))].join('\n');
+    const csv='﻿'+[['เลขที่บิล','ห้อง','ผู้เช่า','ค่าเช่า','น้ำ(หน่วย)','ค่าน้ำ','ไฟ(หน่วย)','ค่าไฟ','ส่วนกลาง','อื่นๆ','รวม','สถานะ','วันชำระ'].map(q).join(','),...rows.map(b=>[b.billNo,b.roomNumber,b.tenantName,b.rent,b.waterUnits,b.waterAmt,b.elecUnits,b.elecAmt,b.common,b.extrasTotal,b.total,b.status==='paid'?'ชำระแล้ว':b.status==='carried'?'ยกยอดไปบิลถัดไป':'รอชำระ',b.paidAt||''].map(q).join(','))].join('\n');
     try{await dl.save({filename:`bills-${month}.csv`,data:csv})}catch(x){if(x?.code!=='declined')toast('ดาวน์โหลดไม่สำเร็จ')}},
   backup:async()=>{try{await dl.save({filename:`dorm-backup-${todayStr()}.json`,data:JSON.stringify(S,null,1)})}catch(x){if(x?.code!=='declined')toast('สำรองข้อมูลไม่สำเร็จ')}},
   clearSample:async()=>{if(!await ask('ลบข้อมูลตัวอย่าง?','ห้อง ผู้เช่า มิเตอร์ และบิลตัวอย่างจะถูกลบทั้งหมด ข้อมูลที่คุณเพิ่มเองยังอยู่','ลบข้อมูลตัวอย่าง'))return;
     for(const c of COLS)for(const x of Object.values(S[c]))if(x.sample)await del(c,x.id);toast('ลบข้อมูลตัวอย่างแล้ว')}
 };
 async function saveB(list){const n={...S.setup,buildings:list};delete n.id;if(await put('setup','main',n))toast('บันทึกรายชื่อหลังแล้ว')}
-async function saveExtras(b,extras){if(b.kind==='movein'){const{id,...r}=b,ex=round2(extras.reduce((a,x)=>a+(Number(x.amount)||0),0)),n={...r,extras,extrasTotal:ex,total:round2((r.items||[]).reduce((a,x)=>a+(Number(x.amount)||0),0)+ex)};await put('bills',id,n);return billDlg({...n,id})}const c=calcBill({rent:b.rent,water:b.water,elec:b.elec,rates:b.rates,extras});const {id,...r}=b;const n={...r,...c,extras};await put('bills',id,n);billDlg({...n,id})}
+async function saveExtras(b,extras){if(b.kind==='movein'){const{id,...r}=b,ex=round2(extras.reduce((a,x)=>a+(Number(x.amount)||0),0)),n={...r,extras,extrasTotal:ex,total:round2((r.items||[]).reduce((a,x)=>a+(Number(x.amount)||0),0)+ex)};await put('bills',id,n);return billDlg({...n,id})}const c=calcBill({rent:b.rent,water:b.water,elec:b.elec,rates:b.rates,extras});if(b.carryTotal)c.total=round2(c.total+b.carryTotal);const {id,...r}=b;const n={...r,...c,extras};await put('bills',id,n);billDlg({...n,id})}
 const FORM={
   room:async(d,id)=>{const bid=d.building||(id?roomBld(S.rooms[id]):(curB()==='all'?BLD()[0].id:curB()));const data={building:bid,number:d.number.trim(),floor:d.floor.trim(),type:d.type.trim(),rent:num(d.rent)||0,waterStart:num(d.waterStart)||0,elecStart:num(d.elecStart)||0,closed:!!d.closed,daily:!!d.daily};
     if(allRooms().some(r=>r.number===data.number&&r.id!==id&&roomBld(r)===bid))return toast('หลังนี้มีห้องเลขนี้แล้ว');
@@ -1309,7 +1315,7 @@ const FORM={
     if(await put('tenants',id,n))openDlg(`<div class="dlg">${dHead('ต่อสัญญาแล้ว')}<p>${esc(t.name)} ถึง ${thDate(d.contractEnd)} ค่าเช่า ${baht(n.rent)} บาท/เดือน (ใช้ออกบิลตั้งแต่บิลถัดไป)</p><div class="actions"><button class="btn" data-act="close">ปิด</button><button class="btn" data-act="viewC" data-id="${id}">ดูสัญญา</button><button class="btn pri" data-act="printC" data-id="${id}">🖨 พิมพ์สัญญาใหม่</button></div></div>`)},
   curMeter:async(d,rid)=>{const w=num(d.waterCur),el=num(d.elecCur),r=reading(rid,month);if(w==null||el==null)return toast('กรอกเป็นตัวเลข');if(w<r.waterPrev||el<r.elecPrev)return toast('เลขครั้งนี้ต้องไม่น้อยกว่าเลขครั้งก่อน');
     const mid=meterId(month,rid),{id:_,...old}=S.meters[mid]||{};if(!await put('meters',mid,{...r,...old,roomId:rid,month,waterCur:w,elecCur:el,readAt:nowLocal()}))return;
-    const b=S.bills[mid];if(b&&b.status!=='paid'){const n=buildBill(rid,month,b);if(n){const{id:__,...bb}=n;await put('bills',mid,{...bb,slip:b.slip});toast('แก้เลขและคำนวณบิลใหม่แล้ว')}}else toast('แก้เลขมิเตอร์แล้ว');closeDlg()},
+    const b=S.bills[mid];if(b&&b.status==='unpaid'){const n=buildBill(rid,month,b);if(n){const{id:__,...bb}=n;await put('bills',mid,{...bb,slip:b.slip});toast('แก้เลขและคำนวณบิลใหม่แล้ว')}}else toast('แก้เลขมิเตอร์แล้ว');closeDlg()},
   setup:async d=>{const n={...S.setup,...d,buildings:S.setup.buildings};if(!n.buildings)delete n.buildings;if(n.accNo?.trim())n.bank=`โอนเข้าบัญชี ${n.bankName||''} เลขที่ ${n.accNo.trim()}${n.accName?' ชื่อบัญชี '+n.accName:''}`.replace(/\s+/g,' ');['waterRate','waterMin','elecRate','elecMin','common','dueDay','cleanFee'].forEach(k=>n[k]=num(d[k])||0);if(d.lateFee===''||d.lateFee==null)delete n.lateFee;else n.lateFee=num(d.lateFee)||0;delete n.id;await put('setup','main',n);toast('บันทึกการตั้งค่าแล้ว')}
 };
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const f=ACT[b.dataset.act];if(f){e.preventDefault();f(b)}});
