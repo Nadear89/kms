@@ -219,8 +219,10 @@ body.r-worker a[href="#bills"]{display:none!important}
 .thd{display:flex;gap:6px;flex-wrap:wrap}.thd select,.thd input{flex:1 1 0;min-width:4.5em}.thd .thM{flex:2 1 0;min-width:7em}.thd .thY{min-width:5.6em}.thd .thT{flex:1.4 1 0;min-width:6.5em}
 .instal{margin-top:6px;font-size:.92rem}.instal>div{display:flex;justify-content:space-between;color:#1C7A4A;padding:2px 0}.instal .rem{color:#C62828;font-weight:700;font-size:1.05rem;border-top:1px dashed #C9D3CF;margin-top:4px;padding-top:6px}
 .btn.cm[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+.ncon{margin-top:10px;padding:8px 10px;border-radius:8px;background:#FFE7D1;color:#9A3F07;font-weight:600;font-size:.92rem;overflow-wrap:anywhere}.ncon a{color:inherit}
 
 .instal{margin-top:6px;font-size:.92rem}.instal>div{display:flex;justify-content:space-between;color:#1C7A4A;padding:2px 0}.instal .rem{color:#C62828;font-weight:700;font-size:1.05rem;border-top:1px dashed #C9D3CF;margin-top:4px;padding-top:6px}
+.ncon{margin-top:10px;padding:8px 10px;border-radius:8px;background:#FFE7D1;color:#9A3F07;font-weight:600;font-size:.92rem;overflow-wrap:anywhere}.ncon a{color:inherit}
 </style></head><body><div class="w" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
@@ -270,6 +272,8 @@ function billLines(b){
    ...(b.common?[['ค่าส่วนกลาง','',b.common]]:[]),...(b.extras||[]).map(x=>[x.label||'รายการอื่น','',Number(x.amount)||0]),...(b.carry||[]).map(x=>['ยอดค้างชำระยกมา',x.label,Number(x.amount)||0])];
 }
 /* SHARED-BILL-START */
+const applyLink=()=>new URL('apply.html',location.href).href;
+const NCON='ห้องนี้ยังไม่ได้ทำสัญญาเช่า กรุณากรอกข้อมูลทำสัญญา';
 const paidOf=b=>b.status==='paid'&&!(b.payments||[]).length?Number(b.total)||0:round2((b.payments||[]).reduce((a,x)=>a+(Number(x.amount)||0),0));
 const dueOf=b=>b.status==='paid'||b.status==='carried'?0:Math.max(0,round2((Number(b.total)||0)-paidOf(b)));
 const baht0=n=>Number(n||0).toLocaleString('th-TH',{maximumFractionDigits:0});
@@ -285,6 +289,7 @@ function paperHTML(b){const s=S.setup,h=hdrOf(b),paid=b.status==='paid';
     <div class="total"><span>รวมทั้งสิ้น</span><span>${baht(b.total)} บาท</span></div>
     ${!paid&&paidOf(b)>0?`<div class="instal">${(b.payments||[]).map(x=>`<div><span>ชำระแล้ว ${thDate(x.at)}${x.method?' · '+esc(x.method):''}</span><span>-${baht(x.amount)}</span></div>`).join('')}<div class="rem"><span>คงเหลือต้องชำระ</span><span>${baht(dueOf(b))} บาท</span></div></div>`:''}
     ${paid?`<div class="paidline"><span class="stamp">ชำระแล้ว</span><span>เมื่อ ${thDate(b.paidAt)}${b.payMethod?' · '+esc(b.payMethod):''}</span></div>`:`<div class="foot"><span id="qrSlot"></span><div class="pay"><span>ชำระภายใน <b>${thDate(b.dueDate)}</b></span>${s.bank?`<b>${esc(s.bank)}</b>`:''}${s.promptpay?`<span class="soft">พร้อมเพย์ ${esc(s.promptpay)}</span>`:''}</div></div>`}
+    ${b.needContract?`<div class="ncon">📝 หมายเหตุ: ${NCON} ที่ <a href="${applyLink()}" target="_blank" rel="noopener">${esc(applyLink())}</a> หรือเมนู "ทำสัญญา" ใน LINE หอพัก</div>`:''}
     ${s.billNote?`<div class="soft">${esc(s.billNote)}</div>`:''}
   </div>`}
 function fillQR(b){const pp=b.status==='unpaid'&&ppPayload(S.setup.promptpay,dueOf(b));if(pp&&window.QRCode){const c=makeQR(pp,200);if(c&&$('#qrSlot'))$('#qrSlot').append(c)}}
@@ -297,7 +302,7 @@ async function billPng(b){
   const LW=W-2*P-250;const fA=`400 17px ${F}`;
   const left=[[h.name,`600 28px ${F}`,'#1A2B29',36],...(h.bname?[[h.bname,`600 18px ${F}`,'#1D5B3B',26]]:[]),...wrap(h.address,fA,LW).map(l=>[l,fA,'#5C6E6B',24]),...(h.phone?[['โทร '+h.phone,fA,'#5C6E6B',24]]:[])];
   const headH=Math.max(left.reduce((a,x)=>a+x[3],0),100);
-  const H=headH+260+lines.length*54+(!paid&&paidOf(b)>0?(b.payments||[]).length*32+46:0)+(paid?60:(s.bank?wrap(s.bank,`600 19px ${F}`,W-2*P).length*28:0)+(qr?270:40));
+  const H=headH+260+lines.length*54+(b.needContract?44:0)+(!paid&&paidOf(b)>0?(b.payments||[]).length*32+46:0)+(paid?60:(s.bank?wrap(s.bank,`600 19px ${F}`,W-2*P).length*28:0)+(qr?270:40));
   c.width=W;c.height=H;g.fillStyle='#fff';g.fillRect(0,0,W,H);
   const T=(t,x,yy,f,al='left',col='#1A2B29')=>{g.font=f;g.textAlign=al;g.fillStyle=col;g.fillText(t,x,yy)};
   let y=56;left.forEach(([t,f,col,lh],i)=>{T(t,P,y,f,'left',col);y+=lh});
@@ -308,6 +313,7 @@ async function billPng(b){
   g.beginPath();g.moveTo(P,y-14);g.lineTo(W-P,y-14);g.stroke();y+=24;
   T('รวมทั้งสิ้น',P,y,`600 28px ${F}`);T(baht(b.total)+' บาท',W-P,y,`600 28px ${F}`,'right');y+=46;
   if(!paid&&paidOf(b)>0){(b.payments||[]).forEach(x=>{T('ชำระแล้ว '+thDate(x.at),P,y,`500 20px ${F}`,'left','#1C7A4A');T('-'+baht(x.amount),W-P,y,`500 20px ${F}`,'right','#1C7A4A');y+=32});T('คงเหลือต้องชำระ',P,y,`600 26px ${F}`,'left','#C62828');T(baht(dueOf(b))+' บาท',W-P,y,`600 26px ${F}`,'right','#C62828');y+=46}
+  if(b.needContract){T('📝 หมายเหตุ: '+NCON,P,y,`600 20px ${F}`,'left','#C2570C');y+=44}
   if(paid){T(`ชำระแล้วเมื่อ ${thDate(b.paidAt)}${b.payMethod?' · '+b.payMethod:''}`,P,y,`600 21px ${F}`,'left','#1C7A4A')}
   else{T(`ชำระภายใน ${thDate(b.dueDate)}`,P,y,`500 20px ${F}`);y+=30;if(s.bank)wrap(s.bank,`600 19px ${F}`,W-2*P).forEach(l=>{T(l,P,y,`600 19px ${F}`);y+=28});if(qr)g.drawImage(qr,W/2-120,y,240,240)}
   const blob=await new Promise(r=>c.toBlob(r,'image/png'));
